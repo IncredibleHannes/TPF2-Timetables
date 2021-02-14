@@ -24,8 +24,9 @@ function fillLineTable()
 end
 
 function selectLine(index)
-    
-    if index == -1 or not(timetableHelper.getAllRailLines()[index+1]) or (not menu.stationTable)then return end
+    if not index then return end
+    if not(timetableHelper.getAllRailLines()[index+1]) or (not menu.stationTable)then return end
+    UIState.currentlySelectedLineTableIndex = index
     menu.stationTable:deleteAll()
     local lineID = timetableHelper.getAllRailLines()[index+1].id
 
@@ -38,34 +39,36 @@ function selectLine(index)
         
 
         local conditionType = api.gui.comp.TextView.new(timetable.getConditionType(lineID, k))
+        conditionType:setMinimumSize(api.gui.util.Size.new(150,60))
+        conditionType:setMaximumSize(api.gui.util.Size.new(150,60))
       
-
         menu.stationTable:addRow({stationNumber,api.gui.comp.TextView.new(station.name), conditionType})
         
         menu.stationTable:onSelect(function (index)
-            UIState.currentlySelectedStationIndex = index
+            if not (index == -1) then UIState.currentlySelectedStationIndex = index end
             selectStation(index,lineID,index) 
         end)
-        
-        -- keep track of currently selected station
-        
-        if UIState.currentlySelectedStationIndex then 
-            print(UIState.currentlySelectedStationIndex)
-            --menu.stationTable:select(UIState.currentlySelectedStationIndex, true)
-        else
-            --menu.stationTable:select(0, true)
-        end
-
     end
+
+    -- keep track of currently selected station and resets if nessesarry
+    print(UIState.currentlySelectedStationIndex )
+    if UIState.currentlySelectedStationIndex then 
+        if menu.stationTable:getNumCols() > UIState.currentlySelectedStationIndex  then 
+            menu.stationTable:select(UIState.currentlySelectedStationIndex, true)
+        end
+    else
+        menu.stationTable:select(0, true)
+    end
+
+
 end
 
 function selectStation(index,lineID, lineNumber)
-    index = index + 1
-    if (index == -1) then
+    if index == -1 then
         menu.constraintTable:deleteAll()
         return 
     end
-    
+    index = index + 1
     menu.constraintTable:deleteAll()
     
     local comboBox = api.gui.comp.ComboBox.new()
@@ -78,14 +81,12 @@ function selectStation(index,lineID, lineNumber)
 
     comboBox:setGravity(1,0)
 
-    comboBox:setSelected(timetableHelper.constraintStringToInt(timetable.setConditionType(lineID, index)), false)
+    comboBox:setSelected(timetableHelper.constraintStringToInt(timetable.getConditionType(lineID, index)), false)
 
     comboBox:onIndexChanged(function (i) 
         timetable.setConditionType(lineID, index, timetableHelper.constraintIntToString(i))
         selectLine(UIState.currentlySelectedLineTableIndex)
     end)
-
-    timetable.setConditionType(lineID, index)
 
     menu.constraintTable:addRow({comboBox})
     
@@ -112,8 +113,8 @@ function showLineMenu()
     menu.lineTable:setColWidth(0,28)
     fillLineTable()
     menu.lineTable:onSelect(function(index)
+        if not index == -1 then UIState.currentlySelectedLineTableIndex = index end
         UIState.currentlySelectedStationIndex = 0
-        UIState.currentlySelectedLineTableIndex = index
         selectLine(index)
     end)
     scrollArea:setContent(menu.lineTable)
