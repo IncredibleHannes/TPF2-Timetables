@@ -86,6 +86,7 @@ function selectStation(index,lineID, lineNumber)
     comboBox:onIndexChanged(function (i) 
         timetable.setConditionType(lineID, index, timetableHelper.constraintIntToString(i))
         selectLine(UIState.currentlySelectedLineTableIndex)
+        
     end)
 
     menu.constraintTable:addRow({comboBox})

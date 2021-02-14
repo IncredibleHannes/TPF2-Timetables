@@ -6,6 +6,19 @@ function timetable_helper.getTime()
     return time
 end 
 
+function timetable_helper.mergeArray(a,b)
+    if a == nil then return b end
+    if b == nil then return a end
+    ab = {}
+    for k, v in pairs(a) do 
+        table.insert(ab, v) 
+    end
+    for k, v in pairs(b) do 
+        table.insert(ab, v) 
+    end
+    return ab
+end
+
 function timetable_helper.constraintIntToString(i) 
     if i == 0 then return "None"
     elseif i == 1 then return "ArrDep"

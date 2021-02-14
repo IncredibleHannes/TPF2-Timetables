@@ -14,7 +14,7 @@ stationInfo = {
     inboundTime = 1 :: int
 }
 
-condition = {
+conditions = {
     type = "None"| "ArrDep" | "minWait" | "debounce" | "moreFancey"
     ArrDep = {}
     minWait = {}
@@ -39,11 +39,15 @@ function timetable.setConditionType(line, stationNumber, type)
     if not(line and stationNumber) then return -1 end
     if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then
         timetableObject[tostring(line)].stations[stationNumber].conditions.type = type
+        local conditionObject = timetableObject[tostring(line)].stations[stationNumber].conditions[type] 
+        if not conditionObject then  timetableObject[tostring(line)].stations[stationNumber].conditions[type] = {} end
     else
         if not timetableObject[tostring(line)] then 
             timetableObject[tostring(line)] = { hasTimetable = false, stations = {}}
         end
         timetableObject[tostring(line)].stations[stationNumber] = {inobundTime = 0, conditions = {type = type}}
+        local conditionObject = timetableObject[tostring(line)].stations[stationNumber].conditions[type] 
+        if not conditionObject then  timetableObject[tostring(line)].stations[stationNumber].conditions[type] = {} end
     end
 end
 
@@ -62,10 +66,10 @@ function timetable.getConditionType(line, stationNumber)
 end
 
 
-function timetable.getConditions(line, stationNumber)
+function timetable.getConditions(line, stationNumber, type)
     if not(line and stationNumber) then return -1 end
-    if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then 
-        return timetableObject[tostring(line)].stations[stationNumber].conditions
+    if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] and timetableObject[tostring(line)].stations[stationNumber].conditions[type] then 
+        return timetableObject[tostring(line)].stations[stationNumber].conditions[type]
     else
         return -1
     end
@@ -78,17 +82,18 @@ function timetable.addCondition(line, stationNumber, condition)
 
     if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then
         if condition.type == "ArrDep" then
-            timetableObject[tostring(line)].stations[stationNumber].conditions.type = "ArrDep"
-            timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep = condition.ArrDep
+            timetable.setConditionType(line, stationNumber, condition.type)
+            local mergedArrays = timetableHelper.mergeArray(timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep, condition.ArrDep)
+            timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep = mergedArrays
         elseif condition.type == "minWait" then
             timetableObject[tostring(line)].stations[stationNumber].conditions.type = "minWait"
-            timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep = condition.minWait
+            timetableObject[tostring(line)].stations[stationNumber].conditions.minWait = condition.minWait
         elseif condition.type == "debounce" then
             timetableObject[tostring(line)].stations[stationNumber].conditions.type = "debounce"
-            timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep = condition.debounce
+            timetableObject[tostring(line)].stations[stationNumber].conditions.debounce = condition.debounce
         elseif condition.type == "moreFancey" then
             timetableObject[tostring(line)].stations[stationNumber].conditions.type = "moreFancey"
-            timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep = condition.moreFancey     
+            timetableObject[tostring(line)].stations[stationNumber].conditions.moreFancey = condition.moreFancey     
         end
 
     else
@@ -99,11 +104,18 @@ function timetable.addCondition(line, stationNumber, condition)
     end
 end
 
-function timetable.removeCondition(line, station, index)
-    if not(line and station and index) and (not (timetableObject[line] and timetableObject[tostring(line)].stations[tostring(station)])) then return -1 end
+function timetable.removeCondition(line, station, type, index)
+    if not(line and station and index) or (not (timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[station])) then return -1 end
 
-    if timetableObject[tostring(line)].stations[tostring(station)] then
-        return table.remove(timetableObject[tostring(line)].stations[tostring(station)].conditions, index)
+    if type == "ArrDep" then 
+        
+        local tmpTable = timetableObject[tostring(line)].stations[station].conditions.ArrDep
+        if tmpTable and tmpTable[index] then return table.remove(tmpTable, index) end
+    else
+        -- just remove the whole condition
+        local tmpTable = timetableObject[tostring(line)].stations[station].conditions[type]
+        if tmpTable and tmpTable[index] then tmpTable = {} end
+        return 0
     end
     return -1
 end
