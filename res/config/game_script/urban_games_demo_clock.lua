@@ -66,12 +66,11 @@ end
 
 
 
+-- makes game crash in the end.. maybe something with creating this stuff in a different thread
 
 function makeArrDepWindow(lineID, stationID) 
+    if not menu.constraintTable then return end 
     conditions = timetable.getConditions(lineID,stationID, "ArrDep")
-
-    -- Setup a list to contain all elemets
-    list = api.gui.comp.List.new(false,1,true)
 
     -- setup add button
     local addButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("Add") ,true)
@@ -79,16 +78,62 @@ function makeArrDepWindow(lineID, stationID)
     addButton:onClick(function() 
         timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {{0,0,0,0}}})
     end)
+    menu.constraintTable:addRow({addButton}) 
 
-    for k,v in pairs(conditions) do   
-        list:addItem(api.gui.comp.TextView.new("Arrival:  " .. tostring(v[1]) .. ":" ..  tostring(v[2])))
-        list:addItem(api.gui.comp.TextView.new("Depature: " .. tostring(v[3]) .. ":" ..  tostring(v[4])))
-        list:addItem(api.gui.comp.Component.new("HorizontalLine"))
+
+    -- setup arrival and depature content
+    for k,v in pairs(conditions) do
+        menu.constraintTable:addRow({api.gui.comp.Component.new("HorizontalLine")})
+        linetable = api.gui.comp.Table.new(4, 'SINGLE')
+        arivalLabel =  api.gui.comp.TextView.new("Arrival:  ")
+        arivalLabel:setMinimumSize(api.gui.util.Size.new(80, 30))
+        arivalLabel:setMaximumSize(api.gui.util.Size.new(80, 30))
+
+        arrivalMin = api.gui.comp.DoubleSpinBox.new()
+        arrivalMin:setMinimum(0,false)
+        arrivalMin:setMaximum(59,false)
+        arrivalMin:setValue(v[1],false)
+
+        arrivalSec = api.gui.comp.DoubleSpinBox.new()
+        arrivalSec:setMinimum(0,false)
+        arrivalSec:setMaximum(59,false)
+        arrivalSec:setValue(v[2],false)
+
+        linetable:addRow({
+            arivalLabel,  
+            arrivalMin,
+            api.gui.comp.TextView.new(":"),
+            arrivalSec,
+        })
+        menu.constraintTable:addRow({linetable})
+        
+        departureLabel =  api.gui.comp.TextView.new("Departure:  ")
+        departureLabel:setMinimumSize(api.gui.util.Size.new(80, 30))
+        departureLabel:setMaximumSize(api.gui.util.Size.new(80, 30))
+        departureMin = api.gui.comp.DoubleSpinBox.new()
+        departureMin:setMinimum(0,false)
+        departureMin:setMaximum(59,false)
+        departureMin:setValue(v[3],false)
+
+        departureSec = api.gui.comp.DoubleSpinBox.new()
+        departureSec:setMinimum(0,false)
+        departureSec:setMaximum(59,false)
+        departureSec:setValue(v[4],false)
+
+
+        linetable2 = api.gui.comp.Table.new(4, 'SINGLE')
+        linetable2:addRow({
+            departureLabel,  
+            departureMin,
+            api.gui.comp.TextView.new(":"),
+            departureSec,
+        })
+        menu.constraintTable:addRow({linetable2})
+        menu.constraintTable:addRow({api.gui.comp.Component.new("HorizontalLine")})
     end
-    if menu.constraintTable then 
-        menu.constraintTable:addRow({addButton}) 
-        menu.constraintTable:addRow({list}) 
-    end
+    
+    
+
 end 
 
 

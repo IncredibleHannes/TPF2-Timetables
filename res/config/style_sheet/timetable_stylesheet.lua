@@ -16,7 +16,7 @@ function data()
     a("timetable-linecolour-red", {
         padding = {3,0,3,8},
         color = {1, 0, 0, 1},
-        fontSize = 15
+        fontSize = 30
     })
     a("timetable-linename", {
         padding = {3,0,3,0},
