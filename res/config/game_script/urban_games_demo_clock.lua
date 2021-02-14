@@ -19,12 +19,17 @@ function showLineMenu()
     -- lable * id
     local scrollArea = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('LineOverview'), "timetable.LineOverview")
     -- numCols + mode 
-    local lineTable = api.gui.comp.Table.new(1, 'SINGLE')
+    local lineTable = api.gui.comp.Table.new(2, 'SINGLE')
+    lineTable:setColWidth(0,28)
     local boxlayout2 = api.gui.util.getById('timetable.floatingLayout')
 
 
     for k,v in pairs(timetableHelper.getAllRailLines()) do
-        lineTable:addRow({api.gui.comp.TextView.new(k)})
+        lineColour = api.gui.comp.TextView.new("O")
+        lineColour:setName("timetable-linecolour-" .. timetableHelper.getLineColour(v))
+        lineName = api.gui.comp.TextView.new(k)
+        lineName:setName("timetable-linename")
+        lineTable:addRow({lineColour,lineName})
     end
 
     scrollArea:setContent(lineTable)

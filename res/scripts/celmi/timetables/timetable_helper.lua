@@ -6,7 +6,9 @@ function timetable_helper.getTime()
     return time
 end 
 
-
+function timetable_helper.getLineColour(v)
+    return "red"
+end
 
 function timetable_helper.test()
     
@@ -25,7 +27,7 @@ end
 
 function timetable_helper.getAllRailLines()
     local res = {}
-    local ls = game.interface.getLines()
+    local ls = api.engine.system.lineSystem.getLines()
     for k,l in pairs(ls) do
         lObject = game.interface.getEntity(l)
         res[lObject.name] = l
