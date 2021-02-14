@@ -23,6 +23,17 @@ function timetable_helper.test()
     return res
 end
 
+function timetable_helper.getAllRailLines()
+    local res = {}
+    local ls = game.interface.getLines()
+    for k,l in pairs(ls) do
+        lObject = game.interface.getEntity(l)
+        res[lObject.name] = l
+    end
+
+    return res
+end
+
 function timetable_helper.getAllRailVehicles()
     local res = {}
     local vs = game.interface.getVehicles()
