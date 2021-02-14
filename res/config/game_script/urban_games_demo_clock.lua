@@ -9,13 +9,14 @@ local menu = {window = nil}
 
 local UIState = { 
     currentlySelectedLineTableIndex = nil ,
-    currentlySelectedStationIndex = nil
+    currentlySelectedStationIndex = nil,
+    currentlySelectedConstraintType = nil
 }
 
 function fillLineTable()
     menu.lineTable:deleteAll()
     for k,v in pairs(timetableHelper.getAllRailLines()) do
-        lineColour = api.gui.comp.TextView.new("O")
+        lineColour = api.gui.comp.TextView.new("●")
         lineColour:setName("timetable-linecolour-" .. timetableHelper.getLineColour(v))
         lineName = api.gui.comp.TextView.new(v.name)
         lineName:setName("timetable-linename")
@@ -51,7 +52,6 @@ function selectLine(index)
     end
 
     -- keep track of currently selected station and resets if nessesarry
-    print(UIState.currentlySelectedStationIndex )
     if UIState.currentlySelectedStationIndex then 
         if menu.stationTable:getNumCols() > UIState.currentlySelectedStationIndex  then 
             menu.stationTable:select(UIState.currentlySelectedStationIndex, true)
@@ -62,6 +62,38 @@ function selectLine(index)
 
 
 end
+
+
+
+
+
+function makeArrDepWindow(lineID, stationID) 
+    conditions = timetable.getConditions(lineID,stationID, "ArrDep")
+
+    -- Setup a list to contain all elemets
+    list = api.gui.comp.List.new(false,1,true)
+
+    -- setup add button
+    local addButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("Add") ,true)
+    addButton:setGravity(1,0)
+    addButton:onClick(function() 
+        timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {{0,0,0,0}}})
+    end)
+
+    for k,v in pairs(conditions) do   
+        list:addItem(api.gui.comp.TextView.new("Arrival:  " .. tostring(v[1]) .. ":" ..  tostring(v[2])))
+        list:addItem(api.gui.comp.TextView.new("Depature: " .. tostring(v[3]) .. ":" ..  tostring(v[4])))
+        list:addItem(api.gui.comp.Component.new("HorizontalLine"))
+    end
+    if menu.constraintTable then 
+        menu.constraintTable:addRow({addButton}) 
+        menu.constraintTable:addRow({list}) 
+    end
+end 
+
+
+
+
 
 function selectStation(index,lineID, lineNumber)
     if index == -1 then
@@ -86,11 +118,16 @@ function selectStation(index,lineID, lineNumber)
     comboBox:onIndexChanged(function (i) 
         timetable.setConditionType(lineID, index, timetableHelper.constraintIntToString(i))
         selectLine(UIState.currentlySelectedLineTableIndex)
-        
+        currentlySelectedConstraintType = i
+        if i == 1 then
+            makeArrDepWindow(lineID, index) 
+        end
     end)
 
+
+
     menu.constraintTable:addRow({comboBox})
-    
+   
     local conditionType = timetable.getConditionType(lineID, index)
     menu.constraintTable:addRow({api.gui.comp.TextView.new(conditionType)})
 
@@ -98,7 +135,6 @@ function selectStation(index,lineID, lineNumber)
 end
 
 function showLineMenu()
-    print("test")
     if menu.window ~= nil then
         fillLineTable()
         return menu.window:setVisible(true, true)  
