@@ -7,6 +7,11 @@ local clockstate = nil
 
 local menu = {window = nil}
 
+local UIState = { 
+    currentlySelectedLineTableIndex = nil ,
+    currentlySelectedStationIndex = nil
+}
+
 function fillLineTable()
     menu.lineTable:deleteAll()
     for k,v in pairs(timetableHelper.getAllRailLines()) do
@@ -19,28 +24,75 @@ function fillLineTable()
 end
 
 function selectLine(index)
+    
+    if index == -1 or not(timetableHelper.getAllRailLines()[index+1]) or (not menu.stationTable)then return end
     menu.stationTable:deleteAll()
-    if index == -1 or not(timetableHelper.getAllRailLines()[index+1]) then
-        return 
-    end
     local lineID = timetableHelper.getAllRailLines()[index+1].id
+
+    --iterate over all stations to display them
     for k, v in pairs(timetableHelper.getAllStations(lineID)) do
         local station = timetableHelper.getStation(v)
         local stationNumber = api.gui.comp.TextView.new(tostring(k))
         stationNumber:setName("timetable-stationcolour-" .. timetableHelper.getLineColour(lineID))
         stationNumber:setMinimumSize(api.gui.util.Size.new(28, 28))
         
-        local constaint = api.gui.comp.TextView.new("testconstaint\n is a table dynamic?")
 
-        menu.stationTable:addRow({stationNumber,api.gui.comp.TextView.new(station.name), constaint})
-        --menu.stationTable:onSelect(function (index) selectStation(index,lineID) end)
+        local conditionType = api.gui.comp.TextView.new(timetable.getConditionType(lineID, k))
+      
+
+        menu.stationTable:addRow({stationNumber,api.gui.comp.TextView.new(station.name), conditionType})
         
+        menu.stationTable:onSelect(function (index)
+            UIState.currentlySelectedStationIndex = index
+            selectStation(index,lineID,index) 
+        end)
+        
+        -- keep track of currently selected station
+        
+        if UIState.currentlySelectedStationIndex then 
+            print(UIState.currentlySelectedStationIndex)
+            --menu.stationTable:select(UIState.currentlySelectedStationIndex, true)
+        else
+            --menu.stationTable:select(0, true)
+        end
+
     end
 end
 
-function selectStation(index,lineID)
-    --menu.constraintTable:deleteAll()
-    --menu.constraintTable:addRow({stationNumber,api.gui.comp.TextView.new("TESTTEXT")})
+function selectStation(index,lineID, lineNumber)
+    index = index + 1
+    if (index == -1) then
+        menu.constraintTable:deleteAll()
+        return 
+    end
+    
+    menu.constraintTable:deleteAll()
+    
+    local comboBox = api.gui.comp.ComboBox.new()
+
+    comboBox:addItem("None")
+    comboBox:addItem("ArrDep")
+    comboBox:addItem("minWait")
+    comboBox:addItem("debounce")
+    comboBox:addItem("moreFancey")
+
+    comboBox:setGravity(1,0)
+
+    comboBox:setSelected(timetableHelper.constraintStringToInt(timetable.setConditionType(lineID, index)), false)
+
+    comboBox:onIndexChanged(function (i) 
+        timetable.setConditionType(lineID, index, timetableHelper.constraintIntToString(i))
+        selectLine(UIState.currentlySelectedLineTableIndex)
+    end)
+
+    timetable.setConditionType(lineID, index)
+
+    menu.constraintTable:addRow({comboBox})
+    
+    local conditionType = timetable.getConditionType(lineID, index)
+    menu.constraintTable:addRow({api.gui.comp.TextView.new(conditionType)})
+
+
 end
 
 function showLineMenu()
@@ -59,7 +111,11 @@ function showLineMenu()
     menu.lineTable = api.gui.comp.Table.new(2, 'SINGLE')
     menu.lineTable:setColWidth(0,28)
     fillLineTable()
-    menu.lineTable:onSelect(selectLine)
+    menu.lineTable:onSelect(function(index)
+        UIState.currentlySelectedStationIndex = 0
+        UIState.currentlySelectedLineTableIndex = index
+        selectLine(index)
+    end)
     scrollArea:setContent(menu.lineTable)
     scrollArea:setMinimumSize(api.gui.util.Size.new(300, 400))
     scrollArea:setMaximumSize(api.gui.util.Size.new(300, 400))
@@ -74,21 +130,20 @@ function showLineMenu()
     stationScrollArea:setContent(menu.stationTable)
 
     -- setup constraint tabl
-    --[[
+    
     local scrollAreaConstraint = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('scrollAreaConstraint'), "timetable.scrollAreaConstraint")
-    menu.constraintTable = api.gui.comp.Table.new(1, 'SINGLE') 
+    menu.constraintTable = api.gui.comp.Table.new(1, 'NONE') 
     scrollAreaConstraint:setContent(menu.constraintTable)
-    menu.constraintTable:addRow({stationNumber,api.gui.comp.TextView.new("TESTTEXT")})
     scrollAreaConstraint:setMinimumSize(api.gui.util.Size.new(300, 400))
     scrollAreaConstraint:setMaximumSize(api.gui.util.Size.new(300, 400))
-    --]]
 
     -- create final window
     local boxlayout2 = api.gui.util.getById('timetable.floatingLayout')
     boxlayout2:setGravity(-1,-1)
     boxlayout2:addItem(scrollArea,0,0)
     boxlayout2:addItem(stationScrollArea,0.5,0)
-    --boxlayout2:addItem(scrollAreaConstraint,1,0)
+    boxlayout2:addItem(scrollAreaConstraint,1,0)
+
     menu.window = api.gui.comp.Window.new('Timetables',  floatingLayout)
     menu.window:addHideOnCloseHandler()
     menu.window:setMovable(true)

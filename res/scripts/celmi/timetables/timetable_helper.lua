@@ -6,6 +6,26 @@ function timetable_helper.getTime()
     return time
 end 
 
+function timetable_helper.constraintIntToString(i) 
+    if i == 0 then return "None"
+    elseif i == 1 then return "ArrDep"
+    elseif i == 2 then return "minWait"
+    elseif i == 3 then return "debounce"
+    elseif i == 4 then return "moreFancey"
+    else return "ERROR"
+    end
+end
+
+function timetable_helper.constraintStringToInt(i) 
+    if i == "None" then return 0
+    elseif i == "ArrDep" then return 1
+    elseif i == "minWait" then return 2
+    elseif i == "debounce" then return 3
+    elseif i == "moreFancey" then return 4
+    else return 0
+    end
+end
+
 function timetable_helper.getLineColour(v)
     return "red"
 end

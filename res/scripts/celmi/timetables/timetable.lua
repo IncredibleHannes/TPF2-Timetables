@@ -15,8 +15,11 @@ stationInfo = {
 }
 
 condition = {
-    type = "ArrDep" | "minWait" | "debounce" | "moreFancey"
-    data = {}
+    type = "None"| "ArrDep" | "minWait" | "debounce" | "moreFancey"
+    ArrDep = {}
+    minWait = {}
+    debaunce  = {}
+    moreFancey = {}
 }
 --]]
 local timetable = { }
@@ -32,33 +35,67 @@ function timetable.setTimetableObject(t)
     end
 end
 
-function timetable.getConditions(line, station)
-    local res = {}
-    return res
+function timetable.setConditionType(line, stationNumber, type)
+    if not(line and stationNumber) then return -1 end
+    if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then
+        timetableObject[tostring(line)].stations[stationNumber].conditions.type = type
+    else
+        if not timetableObject[tostring(line)] then 
+            timetableObject[tostring(line)] = { hasTimetable = false, stations = {}}
+        end
+        timetableObject[tostring(line)].stations[stationNumber] = {inobundTime = 0, conditions = {type = type}}
+    end
+end
+
+function timetable.getConditionType(line, stationNumber)
+    if not(line and stationNumber) then return "ERROR" end
+    if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then 
+        if timetableObject[tostring(line)].stations[stationNumber].conditions.type then
+            return timetableObject[tostring(line)].stations[stationNumber].conditions.type
+        else 
+            timetableObject[tostring(line)].stations[stationNumber].conditions.type = "None"
+            return "None"
+        end
+    else
+        return "None"
+    end
 end
 
 
--- TEST: timetable.addCondition(1,1,{type = "ArrDep", data = {}})
-function timetable.addCondition(line, station, condition)
-    if not(line and station and condition) then return null end
+function timetable.getConditions(line, stationNumber)
+    if not(line and stationNumber) then return -1 end
+    if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then 
+        return timetableObject[tostring(line)].stations[stationNumber].conditions
+    else
+        return -1
+    end
+end
 
-    if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[tostring(station)] then
+
+-- TEST: timetable.addCondition(1,1,{type = "ArrDep", ArrDep = {{12,14,14,14}}})
+function timetable.addCondition(line, stationNumber, condition)
+    if not(line and stationNumber and condition) then return -1 end
+
+    if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then
         if condition.type == "ArrDep" then
-            local conditionArr = timetableObject[tostring(line)].stations[tostring(station)].conditions
-            conditionArr[#conditionArr + 1] = condition
+            timetableObject[tostring(line)].stations[stationNumber].conditions.type = "ArrDep"
+            timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep = condition.ArrDep
         elseif condition.type == "minWait" then
-    
+            timetableObject[tostring(line)].stations[stationNumber].conditions.type = "minWait"
+            timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep = condition.minWait
         elseif condition.type == "debounce" then
-    
+            timetableObject[tostring(line)].stations[stationNumber].conditions.type = "debounce"
+            timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep = condition.debounce
         elseif condition.type == "moreFancey" then
-        
+            timetableObject[tostring(line)].stations[stationNumber].conditions.type = "moreFancey"
+            timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep = condition.moreFancey     
         end
+
     else
         if not timetableObject[tostring(line)] then 
             timetableObject[tostring(line)] = {hasTimetable = false, stations = {}}
         end
-        timetableObject[tostring(line)].stations[tostring(station)] = {inboundTime = 0, conditions = {condition}}
-        -- add line and station
+        timetableObject[tostring(line)].stations[stationNumber] = {inobundTime = 0, conditions = condition}
     end
 end
 
