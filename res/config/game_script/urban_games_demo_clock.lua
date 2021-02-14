@@ -7,39 +7,88 @@ local clockstate = nil
 
 local menu = {window = nil}
 
-function showLineMenu()
-    print("test")
-    if menu.window ~= nil then return menu.window:setVisible(true, true) end
-    -- id + orientatin "VERTICAL" | "HORIZONTAL"
-    local floatingLayout = api.gui.layout.FloatingLayout.new(1,1)
-    floatingLayout:setId("timetable.floatingLayout")
-    
-    -- Label + true
-    local testButton = api.gui.comp.Button.new(api.gui.comp.TextView.new('test'), true)
-    -- lable * id
-    local scrollArea = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('LineOverview'), "timetable.LineOverview")
-    -- numCols + mode 
-    local lineTable = api.gui.comp.Table.new(2, 'SINGLE')
-    lineTable:setColWidth(0,28)
-    local boxlayout2 = api.gui.util.getById('timetable.floatingLayout')
-
-
+function fillLineTable()
+    menu.lineTable:deleteAll()
     for k,v in pairs(timetableHelper.getAllRailLines()) do
         lineColour = api.gui.comp.TextView.new("O")
         lineColour:setName("timetable-linecolour-" .. timetableHelper.getLineColour(v))
-        lineName = api.gui.comp.TextView.new(k)
+        lineName = api.gui.comp.TextView.new(v.name)
         lineName:setName("timetable-linename")
-        lineTable:addRow({lineColour,lineName})
+        menu.lineTable:addRow({lineColour,lineName})
     end
+end
 
-    scrollArea:setContent(lineTable)
-    scrollArea:setMinimumSize(api.gui.util.Size.new(300, 400))
-    scrollArea:setMaximumSize(api.gui.util.Size.new(300, 400))
+function selectLine(index)
+    menu.stationTable:deleteAll()
+    if index == -1 or not(timetableHelper.getAllRailLines()[index+1]) then
+        return 
+    end
+    local lineID = timetableHelper.getAllRailLines()[index+1].id
+    for k, v in pairs(timetableHelper.getAllStations(lineID)) do
+        local station = timetableHelper.getStation(v)
+        local stationNumber = api.gui.comp.TextView.new(tostring(k))
+        stationNumber:setName("timetable-stationcolour-" .. timetableHelper.getLineColour(lineID))
+        stationNumber:setMinimumSize(api.gui.util.Size.new(28, 28))
+        
+        local constaint = api.gui.comp.TextView.new("testconstaint\n is a table dynamic?")
+
+        menu.stationTable:addRow({stationNumber,api.gui.comp.TextView.new(station.name), constaint})
+        --menu.stationTable:onSelect(function (index) selectStation(index,lineID) end)
+        
+    end
+end
+
+function selectStation(index,lineID)
+    --menu.constraintTable:deleteAll()
+    --menu.constraintTable:addRow({stationNumber,api.gui.comp.TextView.new("TESTTEXT")})
+end
+
+function showLineMenu()
+    print("test")
+    if menu.window ~= nil then
+        fillLineTable()
+        return menu.window:setVisible(true, true)  
+    end
+    -- new folting layout to arrange all members
+    local floatingLayout = api.gui.layout.FloatingLayout.new(0,1)
+    floatingLayout:setId("timetable.floatingLayout")
     
    
+    -- setup lineTable
+    local scrollArea = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('LineOverview'), "timetable.LineOverview")
+    menu.lineTable = api.gui.comp.Table.new(2, 'SINGLE')
+    menu.lineTable:setColWidth(0,28)
+    fillLineTable()
+    menu.lineTable:onSelect(selectLine)
+    scrollArea:setContent(menu.lineTable)
+    scrollArea:setMinimumSize(api.gui.util.Size.new(300, 400))
+    scrollArea:setMaximumSize(api.gui.util.Size.new(300, 400))
 
-    boxlayout2:addItem(testButton,2,2)
-    boxlayout2:addItem(scrollArea,1,1)
+
+    -- setup station table
+    local stationScrollArea = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('stationScrollArea'), "timetable.stationScrollArea")
+    menu.stationTable = api.gui.comp.Table.new(3, 'SINGLE')
+    menu.stationTable:setColWidth(0,40)
+    stationScrollArea:setMinimumSize(api.gui.util.Size.new(400, 400))
+    stationScrollArea:setMaximumSize(api.gui.util.Size.new(400, 400))
+    stationScrollArea:setContent(menu.stationTable)
+
+    -- setup constraint tabl
+    --[[
+    local scrollAreaConstraint = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('scrollAreaConstraint'), "timetable.scrollAreaConstraint")
+    menu.constraintTable = api.gui.comp.Table.new(1, 'SINGLE') 
+    scrollAreaConstraint:setContent(menu.constraintTable)
+    menu.constraintTable:addRow({stationNumber,api.gui.comp.TextView.new("TESTTEXT")})
+    scrollAreaConstraint:setMinimumSize(api.gui.util.Size.new(300, 400))
+    scrollAreaConstraint:setMaximumSize(api.gui.util.Size.new(300, 400))
+    --]]
+
+    -- create final window
+    local boxlayout2 = api.gui.util.getById('timetable.floatingLayout')
+    boxlayout2:setGravity(-1,-1)
+    boxlayout2:addItem(scrollArea,0,0)
+    boxlayout2:addItem(stationScrollArea,0.5,0)
+    --boxlayout2:addItem(scrollAreaConstraint,1,0)
     menu.window = api.gui.comp.Window.new('Timetables',  floatingLayout)
     menu.window:addHideOnCloseHandler()
     menu.window:setMovable(true)

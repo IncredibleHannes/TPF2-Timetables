@@ -6,13 +6,20 @@ function data()
  
   local a = ssu.makeAdder(result)          -- helper function
  
+    a("timetable-stationcolour-red", {
+        margin = {0,1,2,1},
+        backgroundColor = {1, 0, 0, 1},
+        fontSize = 15,
+        textAlignment = {0.5,0.5}
+    })
+
     a("timetable-linecolour-red", {
-        padding = {0,0,0,8},
+        padding = {3,0,3,8},
         color = {1, 0, 0, 1},
         fontSize = 15
     })
     a("timetable-linename", {
-        padding = {0,0,0,0},
+        padding = {3,0,3,0},
         fontSize = 15
     })
  

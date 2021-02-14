@@ -10,19 +10,24 @@ function timetable_helper.getLineColour(v)
     return "red"
 end
 
-function timetable_helper.test()
-    
-    local res = {}
-    local vs = game.interface.getVehicles()
-    print(vs)
-    for k,v in pairs(vs) do   
-        local vObject = game.interface.getEntity(v)
-        print(vObject)
-        if (vObject and vObject.carrier == "RAIL" and vObject.line) then
-            res[v]= vObject.line
-        end
+-- getAllStations :: StationID -> {name :: String}
+function timetable_helper.getStation(stationID)
+    local stationObject = game.interface.getEntity(stationID)
+    if stationObject and stationObject.name then 
+        return { name = stationObject.name }
+    else
+        return {name = "ERROR"}
     end
-    return res
+end
+
+-- getAllStations :: LineID :: Int -> [Stops]
+function timetable_helper.getAllStations(line)
+    local lineObject = game.interface.getEntity(line)
+    if lineObject and lineObject.stops then
+        return lineObject.stops
+    else
+        return {}
+    end
 end
 
 function timetable_helper.getAllRailLines()
@@ -30,9 +35,8 @@ function timetable_helper.getAllRailLines()
     local ls = api.engine.system.lineSystem.getLines()
     for k,l in pairs(ls) do
         lObject = game.interface.getEntity(l)
-        res[lObject.name] = l
+        res[k] = {id = l, name = lObject.name}
     end
-
     return res
 end
 
