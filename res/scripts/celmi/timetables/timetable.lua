@@ -104,6 +104,21 @@ function timetable.addCondition(line, stationNumber, condition)
     end
 end
 
+function timetable.updateArrDep(line, station, indexKey, indexValue, value)
+    if not (line and station and indexKey and indexValue and value) then return -1 end
+    if timetableObject[tostring(line)] and 
+       timetableObject[tostring(line)].stations[station] and 
+       timetableObject[tostring(line)].stations[station].conditions and 
+       timetableObject[tostring(line)].stations[station].conditions.ArrDep and 
+       timetableObject[tostring(line)].stations[station].conditions.ArrDep[indexKey] and
+       timetableObject[tostring(line)].stations[station].conditions.ArrDep[indexKey][indexValue] then
+       timetableObject[tostring(line)].stations[station].conditions.ArrDep[indexKey][indexValue] = value
+        return 0
+    else
+        return -2
+    end
+end
+
 function timetable.removeCondition(line, station, type, index)
     if not(line and station and index) or (not (timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[station])) then return -1 end
 
@@ -121,10 +136,11 @@ function timetable.removeCondition(line, station, type, index)
 end
 
 function timetable.hasTimetable(line)
+    
     if timetableObject[tostring(line)] then
-        return timetableObject[tostring(line)].hasTimetable
+        return true--timetableObject[tostring(line)].hasTimetable
     else
-        return false
+        return true--false
     end
 end
 

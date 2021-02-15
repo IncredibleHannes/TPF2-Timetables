@@ -1,6 +1,22 @@
 
 local timetable_helper = {}
 
+-- returns an vector with the order
+function timetable_helper.getOrderOfArray(arr)
+    toSort = {}
+    for k,v in pairs(arr) do 
+        toSort[k] = {key =  k, value = v}
+    end
+    table.sort(toSort, function(a,b)
+        return a.value < b.value
+    end)
+    res = {}
+    for k,v in pairs(toSort) do
+        res[k] = v.key
+    end 
+    return res
+end
+
 function timetable_helper.getTime()
     local time = math.floor(game.interface.getGameTime().time)  
     return time
@@ -17,6 +33,23 @@ function timetable_helper.mergeArray(a,b)
         table.insert(ab, v) 
     end
     return ab
+end
+
+function timetable_helper.conditionToString(cond, type)
+    if not (cond and type) then return "" end
+    if type =="ArrDep" then
+        arr = "Arr "
+        dep = "Dep "
+        for k,v in pairs(cond) do
+            arr = arr .. string.format("%02d", v[1]) .. ":" .. string.format("%02d", v[2])  .. "|"
+            dep = dep .. string.format("%02d", v[3]) .. ":" .. string.format("%02d", v[4])  .. "|"
+        end
+        res = arr .. "\n"  .. dep
+        print(res)
+        return res
+    else
+        return type
+    end
 end
 
 function timetable_helper.constraintIntToString(i) 
@@ -40,8 +73,19 @@ function timetable_helper.constraintStringToInt(i)
 end
 
 function timetable_helper.getLineColour(v)
-    return "red"
+    if not(type(v) == "number") then return "default" end
+    entityID = 64
+    colour = api.engine.getComponent(v,64)
+    if (colour and  colour.color) then
+        a = string.format("%02d", (colour.color.x * 100))
+        b = string.format("%02d", (colour.color.y * 100))
+        c = string.format("%02d", (colour.color.z * 100))
+        return a .. b .. c
+    else
+        return "default"
+    end 
 end
+
 
 -- getAllStations :: StationID -> {name :: String}
 function timetable_helper.getStation(stationID)
