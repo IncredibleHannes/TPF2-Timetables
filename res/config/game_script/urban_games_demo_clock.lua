@@ -156,11 +156,7 @@ function fillStationTable(index, bool)
 
     -- keep track of currently selected station and resets if nessesarry
     if UIState.currentlySelectedStationIndex then 
-        print(tostring(UIState.currentlySelectedStationIndex))
-        print(menu.stationTable:getNumRows())
         if menu.stationTable:getNumRows() > UIState.currentlySelectedStationIndex and not(menu.stationTable:getNumRows() == 0)  then
-            print("resetSelected")
-            
             menu.stationTable:select(UIState.currentlySelectedStationIndex, bool)
         end
     else
@@ -282,7 +278,7 @@ function makeArrDepWindow(lineID, stationID)
         departureMin:setMinimum(0,false)
         departureMin:setMaximum(59,false)
         departureMin:setValue(v[3],false)
-        departureMin:onChange(function(value) print(timetable.updateArrDep(lineID, stationID, k, 3, value)) end)
+        departureMin:onChange(function(value) timetable.updateArrDep(lineID, stationID, k, 3, value) end)
 
         departureSec = api.gui.comp.DoubleSpinBox.new()
         departureSec:setMinimum(0,false)
@@ -331,7 +327,13 @@ function data()
 
         update = function()
             -- save state here
-            timetable.setHasTimetable(232, true)
+            --timetable.setHasTimetable(232, true)
+
+            
+            
+        end,
+        
+        guiUpdate = function()
 
             -- go through all vehicles and enforce waiting if neccesarry
             for vehicle,line in pairs(timetableHelper.getAllRailVehicles()) do
@@ -343,10 +345,6 @@ function data()
                     end
                 end
             end
-            
-        end,
-        
-        guiUpdate = function()
 			
             if not clockstate then
 				-- element for the divider

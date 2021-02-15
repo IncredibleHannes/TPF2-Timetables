@@ -10,6 +10,7 @@ timetable = {
 }
 
 stationInfo = {
+    
     conditions = {condition :: Condition},
     inboundTime = 1 :: int
 }
@@ -145,12 +146,22 @@ function timetable.hasTimetable(line)
 end
 
 function timetable.waitingRequired(vehicle)
-    local res = true
+
     local time = timetableHelper.getTime()
-    if tonumber(os.date('%M', time)) % 3 == 0 then
-        res = false
+    local currentLine = timetableHelper.getCurrentLine(vehicle)
+    local currentStop = timetableHelper.getCurrentStation(vehicle)
+
+    if not timetableObject[tostring(currentLine)] then return false end
+    if not timetableObject[tostring(currentLine)].stations[currentStop] then return false end
+    if not timetableObject[tostring(currentLine)].stations[currentStop].conditions then return false end
+    if not timetableObject[tostring(currentLine)].stations[currentStop].conditions.type then return false end
+
+    if timetableObject[tostring(currentLine)].stations[currentStop].conditions.type == "ArrDep" then 
+        return true
+    else
+        return false
     end
-    return res
+
 end
 
 function timetable.setHasTimetable(line, bool)

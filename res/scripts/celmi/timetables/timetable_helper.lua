@@ -1,6 +1,7 @@
 
 local timetable_helper = {}
 
+
 -- returns an vector with the order
 function timetable_helper.getOrderOfArray(arr)
     toSort = {}
@@ -45,7 +46,6 @@ function timetable_helper.conditionToString(cond, type)
             dep = dep .. string.format("%02d", v[3]) .. ":" .. string.format("%02d", v[4])  .. "|"
         end
         res = arr .. "\n"  .. dep
-        print(res)
         return res
     else
         return type
@@ -117,6 +117,7 @@ function timetable_helper.getAllRailLines()
     return res
 end
 
+-- returns [{vehicleID: lineID}]
 function timetable_helper.getAllRailVehicles()
     local res = {}
     local vs = game.interface.getVehicles()
@@ -142,6 +143,20 @@ end
 function timetable_helper.stopVehicle(vehicle)
     api.cmd.sendCommand(api.cmd.make.setUserStopped(vehicle,true))
     return null
+end
+
+function timetable_helper.getCurrentStation(v)
+    if not v then return -1 end
+    vehicle = game.interface.getEntity(v)
+    return vehicle.stopIndex + 1
+
+end
+
+function timetable_helper.getCurrentLine(v)
+    if not v then return -1 end
+    vehicle = game.interface.getEntity(v)
+    return vehicle.line
+
 end
 
 return timetable_helper
