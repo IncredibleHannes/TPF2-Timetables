@@ -46,7 +46,7 @@ function timetable.setConditionType(line, stationNumber, type)
         if not timetableObject[tostring(line)] then 
             timetableObject[tostring(line)] = { hasTimetable = false, stations = {}}
         end
-        timetableObject[tostring(line)].stations[stationNumber] = {inobundTime = 0, conditions = {type = type}}
+        timetableObject[tostring(line)].stations[stationNumber] = {inboundTime = 0, conditions = {type = type}}
         local conditionObject = timetableObject[tostring(line)].stations[stationNumber].conditions[type] 
         if not conditionObject then  timetableObject[tostring(line)].stations[stationNumber].conditions[type] = {} end
     end
@@ -101,7 +101,7 @@ function timetable.addCondition(line, stationNumber, condition)
         if not timetableObject[tostring(line)] then 
             timetableObject[tostring(line)] = {hasTimetable = false, stations = {}}
         end
-        timetableObject[tostring(line)].stations[stationNumber] = {inobundTime = 0, conditions = condition}
+        timetableObject[tostring(line)].stations[stationNumber] = {inboundTime = 0, conditions = condition}
     end
 end
 
@@ -155,10 +155,40 @@ function timetable.waitingRequired(vehicle)
     if not timetableObject[tostring(currentLine)].stations[currentStop] then return false end
     if not timetableObject[tostring(currentLine)].stations[currentStop].conditions then return false end
     if not timetableObject[tostring(currentLine)].stations[currentStop].conditions.type then return false end
+    if not timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting then timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting = {} end
 
     if timetableObject[tostring(currentLine)].stations[currentStop].conditions.type == "ArrDep" then 
-        return true
+
+        -- am I currently waiting or just arrived?
+        
+        if not (timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle]) then
+            timetableObject[tostring(currentLine)].stations[currentStop].inboundTime = time
+            nextConstraint = timetable.getNextConstraint(timetableObject[tostring(currentLine)].stations[currentStop].conditions.ArrDep, time)
+            if timetable.beforeDepature(nextConstraint, time) then
+                timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle] = {type = "ArrDep", constraint = nextConstraint}
+                return true
+            else
+                timetableObject[tostring(currentLine)].stations[currentStop].outboundTime = time
+                timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+                return false
+            end
+        else
+            constraint = timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle].constraint
+            if timetable.beforeDepature(constraint, time) then
+                return true
+            else
+                timetableObject[tostring(currentLine)].stations[currentStop].inboundTime = time
+                timetableObject[tostring(currentLine)].stations[currentStop].outboundTime = time
+                timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+                return false
+            end
+        end
+        timetableObject[tostring(currentLine)].stations[currentStop].inboundTime = time
+        timetableObject[tostring(currentLine)].stations[currentStop].outboundTime = time
+        timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+        return false
     else
+        timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
         return false
     end
 
@@ -172,6 +202,47 @@ function timetable.setHasTimetable(line, bool)
     end
     return bool
 end
+
+
+
+-------------- UTILS FUNCTIONS ----------
+
+function timetable.beforeDepature(constraint, time)
+    timeMin = tonumber(os.date('%M', time))
+    timeSec = tonumber(os.date('%S', time))
+
+    return not (timeMin == constraint[3] and timeSec >= constraint[4]) and not (timeMin - 1 == constraint[3])
+end
+
+--tests: timetable.getNextConstraint({{30,0,59,0},{9,0,59,0} },1200000)
+function timetable.getNextConstraint(constraint, time)
+    res = {diff = 40000, value = nil}
+    timeMin = tonumber(os.date('%M', time))
+    timeSec = tonumber(os.date('%S', time))
+    for k,v in pairs(constraint) do
+        arrMin = v[1]
+        arrSec = v[2]
+        diffMin = timetable.getDifference(timeMin, arrMin)
+        diffSec = timetable.getDifference(timeSec, arrMin)
+        diff = (diffMin * 60) + diffSec
+        if(diff < res.diff) then
+            res = {diff = diff, value = v}
+        end
+    end
+
+    return res.value
+end
+
+-- returns a value between 0 and 30
+function timetable.getDifference(a,b) 
+    if math.abs(a - b) < 30 then
+        return math.abs(a - b)
+    else 
+        return 60 - math.abs(a - b)
+    end
+end
+
+
 
 return timetable
 

@@ -12,6 +12,8 @@ local UIState = {
     currentlySelectedStationIndex = nil,
     currentlySelectedConstraintType = nil
 }
+
+local state = nil
 -------------------------------------------------------------
 ---------------------- SETUP --------------------------------
 -------------------------------------------------------------
@@ -139,14 +141,15 @@ function fillStationTable(index, bool)
         conditionString:setName("conditionString")
               
 
-        conditionString:setMinimumSize(api.gui.util.Size.new(150,50))
-        conditionString:setMaximumSize(api.gui.util.Size.new(150,50))
+        conditionString:setMinimumSize(api.gui.util.Size.new(235,50))
+        conditionString:setMaximumSize(api.gui.util.Size.new(235,50))
       
         menu.stationTable:addRow({stationNumber,api.gui.comp.TextView.new(station.name), conditionString})       
     end
 
     menu.stationTable:onSelect(function (index)
         if not (index == -1) then 
+            debugPrint(timetable.getTimetableObject())
             UIState.currentlySelectedStationIndex = index 
             initConstraintTable()
             fillConstraintTable(index,lineID,index) 
@@ -223,7 +226,9 @@ function makeArrDepWindow(lineID, stationID)
     addButton:onClick(function() 
         timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {{0,0,0,0}}})
         clearConstraintWindow() 
-        makeArrDepWindow(lineID, stationID) 
+        makeArrDepWindow(lineID, stationID)
+        initStationTable()
+        fillStationTable(UIState.currentlySelectedLineTableIndex, false)
     end)
     menu.constraintTable:addRow({addButton}) 
 
@@ -243,20 +248,28 @@ function makeArrDepWindow(lineID, stationID)
         arrivalMin:setMaximum(59,false)
         arrivalMin:setValue(v[1],false)
         arrivalMin:onChange(function(value)
-            timetable.updateArrDep(lineID, stationID, k, 1, value) 
+            timetable.updateArrDep(lineID, stationID, k, 1, value)
+            initStationTable()
+            fillStationTable(UIState.currentlySelectedLineTableIndex, false) 
         end)
 
         arrivalSec = api.gui.comp.DoubleSpinBox.new()
         arrivalSec:setMinimum(0,false)
         arrivalSec:setMaximum(59,false)
         arrivalSec:setValue(v[2],false)
-        arrivalSec:onChange(function(value) timetable.updateArrDep(lineID, stationID, k, 2, value) end)
+        arrivalSec:onChange(function(value) 
+            timetable.updateArrDep(lineID, stationID, k, 2, value)
+            initStationTable()
+            fillStationTable(UIState.currentlySelectedLineTableIndex, false) 
+        end)
 
         deleteButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("X") ,true)
-        deleteButton:onClick(function() 
+        deleteButton:onClick(function()
             timetable.removeCondition(lineID, stationID, "ArrDep", k)
             clearConstraintWindow()
             makeArrDepWindow(lineID, stationID) 
+            initStationTable()
+            fillStationTable(UIState.currentlySelectedLineTableIndex, false) 
 
         end)
 
@@ -278,13 +291,21 @@ function makeArrDepWindow(lineID, stationID)
         departureMin:setMinimum(0,false)
         departureMin:setMaximum(59,false)
         departureMin:setValue(v[3],false)
-        departureMin:onChange(function(value) timetable.updateArrDep(lineID, stationID, k, 3, value) end)
+        departureMin:onChange(function(value) 
+            timetable.updateArrDep(lineID, stationID, k, 3, value)
+            initStationTable()
+            fillStationTable(UIState.currentlySelectedLineTableIndex, false) 
+        end)
 
         departureSec = api.gui.comp.DoubleSpinBox.new()
         departureSec:setMinimum(0,false)
         departureSec:setMaximum(59,false)
         departureSec:setValue(v[4],false)
-        departureSec:onChange(function(value) timetable.updateArrDep(lineID, stationID, k, 4, value) end)
+        departureSec:onChange(function(value) 
+            timetable.updateArrDep(lineID, stationID, k, 4, value)
+            initStationTable()
+            fillStationTable(UIState.currentlySelectedLineTableIndex, false) 
+        end)
 
 
         deletePlaceholder = api.gui.comp.TextView.new(" ")
@@ -314,27 +335,30 @@ end
 -------------------------------------------------------------
 function data()
     return {
+        --engine Thread
+
+        handleEvent = function (src, id, name, param)
+            if id == "timetableUpdate" then
+                state.timetable = param
+            end
+        end,
+
         save = function()
-            return { }
+            return state
         end,
         
         load = function(loadedState) 
-            if state == nil then return end
-
-            
-            --state = loadedState.teststate or {counter = 0} 
+            if not state then
+                print("LOADED STATE:")
+                debugPrint(loadedState)
+                timetable.setTimetableObject(loadedState.timetable )
+            end
+            state = loadedState or state
         end,
 
-        update = function()
-            -- save state here
-            --timetable.setHasTimetable(232, true)
-
-            
-            
-        end,
         
         guiUpdate = function()
-
+            game.interface.sendScriptEvent("timetableUpdate", "", timetable.getTimetableObject())
             -- go through all vehicles and enforce waiting if neccesarry
             for vehicle,line in pairs(timetableHelper.getAllRailVehicles()) do
                 if timetable.hasTimetable(line) and timetableHelper.isInStation(vehicle) then

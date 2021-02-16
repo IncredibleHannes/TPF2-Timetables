@@ -8,7 +8,7 @@ function data()
  
     a("conditionString", {
       fontFamily = "Noto/NotoSansMono-Regular.ttf",
-      fontSize = 11,
+      fontSize = 10,
     })
 
     a("timetable-stationcolour-543115", {
