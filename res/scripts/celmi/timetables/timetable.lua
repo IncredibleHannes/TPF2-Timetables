@@ -1,6 +1,5 @@
 local timetableHelper = require "celmi/timetables/timetable_helper"
 
-
 --[[
 timetable = {
     line = {
@@ -25,6 +24,8 @@ conditions = {
 --]]
 local timetable = { }
 local timetableObject = { }
+local currentlyWaiting = { }
+
 
 function timetable.getTimetableObject()
     return timetableObject
@@ -155,46 +156,47 @@ function timetable.waitingRequired(vehicle)
     if not timetableObject[tostring(currentLine)].stations[currentStop] then return false end
     if not timetableObject[tostring(currentLine)].stations[currentStop].conditions then return false end
     if not timetableObject[tostring(currentLine)].stations[currentStop].conditions.type then return false end
-    if not timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting then timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting = {} end
+    if not currentlyWaiting[tostring(currentLine)] then currentlyWaiting[tostring(currentLine)] = {stations = {}} end
+    if not currentlyWaiting[tostring(currentLine)].stations[currentStop] then currentlyWaiting[tostring(currentLine)].stations[currentStop] = { currentlyWaiting = {}} end
 
     if timetableObject[tostring(currentLine)].stations[currentStop].conditions.type == "ArrDep" then 
 
         -- am I currently waiting or just arrived?
         
-        if not (timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle]) then
+        if not (currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle]) then
             timetableObject[tostring(currentLine)].stations[currentStop].inboundTime = time
             nextConstraint = timetable.getNextConstraint(timetableObject[tostring(currentLine)].stations[currentStop].conditions.ArrDep, time)
             if not nextConstraint then 
-                timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
                 timetableObject[tostring(currentLine)].stations[currentStop].outboundTime = time
                 timetableObject[tostring(currentLine)].stations[currentStop].inboundTime = time
                 return false 
             end
             if timetable.beforeDepature(nextConstraint, time) then
-                timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle] = {type = "ArrDep", constraint = nextConstraint}
+                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle] = {type = "ArrDep", constraint = nextConstraint}
                 return true
             else
                 timetableObject[tostring(currentLine)].stations[currentStop].outboundTime = time
-                timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
                 return false
             end
         else
-            constraint = timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle].constraint
+            constraint = currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle].constraint
             if timetable.beforeDepature(constraint, time) then
                 return true
             else
                 timetableObject[tostring(currentLine)].stations[currentStop].inboundTime = time
                 timetableObject[tostring(currentLine)].stations[currentStop].outboundTime = time
-                timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
                 return false
             end
         end
         timetableObject[tostring(currentLine)].stations[currentStop].inboundTime = time
         timetableObject[tostring(currentLine)].stations[currentStop].outboundTime = time
-        timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+        currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
         return false
     else
-        timetableObject[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+        currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
         return false
     end
 

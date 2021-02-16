@@ -210,6 +210,7 @@ function fillConstraintTable(index,lineID, lineNumber)
         if i == 1 then
             makeArrDepWindow(lineID, index) 
         end
+        --game.interface.sendScriptEvent("sdfgsdfgh", "",{} )
     end)
     menu.constraintTable:addRow({comboBox})
     comboBox:setSelected(constraintIndex, true)
@@ -341,6 +342,7 @@ function data()
             if id == "timetableUpdate" then
                 if state == nil then state = {timetable = {}} end
                 state.timetable = param
+                timetable.setTimetableObject(state.timetable) 
             end
         end,
 
@@ -350,7 +352,11 @@ function data()
         
         load = function(loadedState)
             if loadedState == nil  or next(loadedState) == nil then  return end
-            if loadedState.timetable then timetable.setTimetableObject(loadedState.timetable) end
+            if loadedState.timetable then 
+                if state == nil then 
+                    timetable.setTimetableObject(loadedState.timetable) 
+                end
+            end
             state = loadedState or {timetable = {}}
         end,
 
@@ -369,7 +375,7 @@ function data()
         end,
 
         guiUpdate = function()
-            game.interface.sendScriptEvent("timetableUpdate", "", timetable.getTimetableObject())
+            game.interface.sendScriptEvent("timetableUpdate", "", timetable.getTimetableObject() )
             
 			
             if not clockstate then
