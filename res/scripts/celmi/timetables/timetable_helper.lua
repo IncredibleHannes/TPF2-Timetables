@@ -121,7 +121,8 @@ end
 function timetable_helper.getAllRailVehicles()
     local res = {}
     local vs = game.interface.getVehicles()
-    for k,v in pairs(vs) do   
+    for k,v in pairs(vs) do
+        if not hasValue(game.interface.getVehicles(), v) then print("no Vehicle found") return -1 end   
         local vObject = game.interface.getEntity(v)
         if (vObject and vObject.carrier == "RAIL" and vObject.line) then
             res[v] = vObject.line
@@ -141,12 +142,16 @@ function timetable_helper.startVehicle(vehicle)
 end
 
 function timetable_helper.stopVehicle(vehicle)
+    allVehicles = timetable_helper.getAllRailVehicles()
+    if allVehicles[vehicle] == null then print("NoVehicle") return end
     api.cmd.sendCommand(api.cmd.make.setUserStopped(vehicle,true))
     return null
 end
 
 function timetable_helper.getCurrentStation(v)
     if not v then return -1 end
+    if not hasValue(game.interface.getVehicles(), v) then print("no Vehicle found") return -1 end
+
     vehicle = game.interface.getEntity(v)
     return vehicle.stopIndex + 1
 
@@ -154,10 +159,23 @@ end
 
 function timetable_helper.getCurrentLine(v)
     if not v then return -1 end
+    if not hasValue(game.interface.getVehicles(), v) then print("no Vehicle found") return -1 end
     vehicle = game.interface.getEntity(v)
     return vehicle.line
 
 end
+
+
+function hasValue(tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
+
+    return false
+end
+
 
 return timetable_helper
 

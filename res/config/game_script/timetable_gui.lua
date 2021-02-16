@@ -339,6 +339,7 @@ function data()
 
         handleEvent = function (src, id, name, param)
             if id == "timetableUpdate" then
+                if state == nil then state = {timetable = {}} end
                 state.timetable = param
             end
         end,
@@ -347,18 +348,13 @@ function data()
             return state
         end,
         
-        load = function(loadedState) 
-            if not state then
-                print("LOADED STATE:")
-                debugPrint(loadedState)
-                timetable.setTimetableObject(loadedState.timetable )
-            end
-            state = loadedState or state
+        load = function(loadedState)
+            if loadedState == nil  or next(loadedState) == nil then  return end
+            if loadedState.timetable then timetable.setTimetableObject(loadedState.timetable) end
+            state = loadedState or {timetable = {}}
         end,
 
-        
-        guiUpdate = function()
-            game.interface.sendScriptEvent("timetableUpdate", "", timetable.getTimetableObject())
+        update = function()
             -- go through all vehicles and enforce waiting if neccesarry
             for vehicle,line in pairs(timetableHelper.getAllRailVehicles()) do
                 if timetable.hasTimetable(line) and timetableHelper.isInStation(vehicle) then
@@ -369,6 +365,12 @@ function data()
                     end
                 end
             end
+            state.timetable = timetable.getTimetableObject()
+        end,
+
+        guiUpdate = function()
+            game.interface.sendScriptEvent("timetableUpdate", "", timetable.getTimetableObject())
+            
 			
             if not clockstate then
 				-- element for the divider
@@ -379,7 +381,7 @@ function data()
 				clockstate = api.gui.comp.TextView.new("gameInfo.time.label")
 
                 
-                local buttonLabel = gui.textView_create("gameInfo.timetables.label", "TestText")
+                local buttonLabel = gui.textView_create("gameInfo.timetables.label", "Timetable")
                 local button = gui.button_create("gameInfo.timetables.button", buttonLabel)
                 button:onClick(showLineMenu)
                 game.gui.boxLayout_addItem("gameInfo.layout", button.id)
