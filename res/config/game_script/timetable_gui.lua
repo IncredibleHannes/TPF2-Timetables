@@ -43,11 +43,11 @@ function initStationTable()
     if menu.stationScrollArea then UIState.boxlayout2:removeItem(menu.stationScrollArea) end
 
     menu.stationScrollArea = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('stationScrollArea'), "timetable.stationScrollArea")
-    menu.stationTable = api.gui.comp.Table.new(3, 'SINGLE')
+    menu.stationTable = api.gui.comp.Table.new(4, 'SINGLE')
     menu.stationTable:setColWidth(0,40)
     menu.stationTable:setColWidth(1,120)
-    menu.stationScrollArea:setMinimumSize(api.gui.util.Size.new(400, 700))
-    menu.stationScrollArea:setMaximumSize(api.gui.util.Size.new(400, 700))
+    menu.stationScrollArea:setMinimumSize(api.gui.util.Size.new(500, 700))
+    menu.stationScrollArea:setMaximumSize(api.gui.util.Size.new(500, 700))
     menu.stationScrollArea:setContent(menu.stationTable)
     UIState.boxlayout2:addItem(menu.stationScrollArea,0.5,0)
 end
@@ -86,7 +86,7 @@ function showLineMenu()
     menu.window:setMovable(true)
     menu.window:setPinButtonVisible(true)
     menu.window:setResizable(false)
-    menu.window:setSize(api.gui.util.Size.new(1000, 740))
+    menu.window:setSize(api.gui.util.Size.new(1100, 740))
     menu.window:setPosition(200,200)
 
 end
@@ -127,9 +127,12 @@ function fillStationTable(index, bool)
 
     UIState.currentlySelectedLineTableIndex = index
     local lineID = timetableHelper.getAllRailLines()[index+1].id
+    
+    
 
     --iterate over all stations to display them
     for k, v in pairs(timetableHelper.getAllStations(lineID)) do
+        local lineImage = api.gui.comp.ImageView.new("ui/timetable_line.tga")
         local station = timetableHelper.getStation(v)
         local stationNumber = api.gui.comp.TextView.new(tostring(k))
         stationNumber:setName("timetable-stationcolour-" .. timetableHelper.getLineColour(lineID))
@@ -144,7 +147,7 @@ function fillStationTable(index, bool)
         conditionString:setMinimumSize(api.gui.util.Size.new(235,50))
         conditionString:setMaximumSize(api.gui.util.Size.new(235,50))
       
-        menu.stationTable:addRow({stationNumber,api.gui.comp.TextView.new(station.name), conditionString})       
+        menu.stationTable:addRow({stationNumber,api.gui.comp.TextView.new(station.name), lineImage, conditionString})       
     end
 
     menu.stationTable:onSelect(function (index)

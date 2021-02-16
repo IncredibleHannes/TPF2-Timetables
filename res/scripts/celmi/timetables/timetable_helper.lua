@@ -15,6 +15,7 @@ function timetable_helper.getOrderOfArray(arr)
     for k,v in pairs(toSort) do
         res[k] = v.key
     end 
+    debugPrint(res)
     return res
 end
 

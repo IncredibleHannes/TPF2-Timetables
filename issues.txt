@@ -1,1 +1,25 @@
 - popping scroll bar 
+- isBeforeDeparture is buggy
+
+
+
+missing fratures
+
+- add tooltips
+- set timetable active/inactive for line
+- min wait feature
+- debounce feature (rename to unbunch)
+- every x Min feature (use more fency for that)
+- line sorting
+- add leg time to line (Based on time stopping)
+
+
+UI Improvements
+- add line thingy behind the square station indecators + add ... to show that its cyclic
+
+
+Optional Ideas
+- statistic tab recording all trains that where late
+- trains that arrived early
+- sort lines 
+
