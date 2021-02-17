@@ -7,6 +7,8 @@ local clockstate = nil
 
 local menu = {window = nil}
 
+local count = 0
+
 local UIState = { 
     currentlySelectedLineTableIndex = nil ,
     currentlySelectedStationIndex = nil,
@@ -22,7 +24,7 @@ function initLineTable()
     if menu.scrollArea then UIState.boxlayout2:removeItem(menu.scrollArea) end
     
     menu.scrollArea = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('LineOverview'), "timetable.LineOverview")
-    menu.lineTable = api.gui.comp.Table.new(2, 'SINGLE')
+    menu.lineTable = api.gui.comp.Table.new(3, 'SINGLE')
     menu.lineTable:setColWidth(0,28)
 
     menu.lineTable:onSelect(function(index)
@@ -30,6 +32,8 @@ function initLineTable()
         UIState.currentlySelectedStationIndex = 0
         fillStationTable(index, true)
     end)
+
+    menu.lineTable:setColWidth(1,240)
 
     menu.scrollArea:setMinimumSize(api.gui.util.Size.new(300, 700))
     menu.scrollArea:setMaximumSize(api.gui.util.Size.new(300, 700))
@@ -104,19 +108,22 @@ function fillLineTable()
         lineName = api.gui.comp.TextView.new(v.name)
         lineNames[k] = v.name
         lineName:setName("timetable-linename")
-        local buttonText = api.gui.comp.TextView.new('Disabled')
-        local button = api.gui.comp.ToggleButton.new(buttonText)
+        local buttonImage = api.gui.comp.ImageView.new("ui/checkbox0.tga")
+        if timetable.hasTimetable(v.id) then buttonImage:setImage("ui/checkbox1.tga", false) end
+        local button = api.gui.comp.Button.new(buttonImage, true)
         button:setGravity(1,0.5)
-        button:onToggle(function()
-            if  buttonText:getText() == 'Disabled' then
-                timetable.setHasTimetable(v.id,true)
-                buttonText:setText('Enabled')
+        button:onClick(function()
+            imageVeiw = buttonImage
+            hasTimetable = timetable.hasTimetable(v.id)
+            if  hasTimetable then
+                timetable.setHasTimetable(v.id,false)
+                imageVeiw:setImage("ui/checkbox0.tga", false)
             else
-                timetable.setHasTimetable(v.id,false)   
-                buttonText:setText('Disabled')
+                timetable.setHasTimetable(v.id,true)
+                imageVeiw:setImage("ui/checkbox1.tga", false)
             end
         end)
-        menu.lineTable:addRow({lineColour,lineName})
+        menu.lineTable:addRow({lineColour,lineName, button})
     end
 
     local order = timetableHelper.getOrderOfArray(lineNames)
@@ -393,18 +400,24 @@ function data()
         end,
 
         update = function()
-            -- go through all vehicles and enforce waiting if neccesarry
-            for vehicle,line in pairs(timetableHelper.getAllRailVehicles()) do
-                if timetable.hasTimetable(line) and timetableHelper.isInStation(vehicle) then
-                    if timetable.waitingRequired(vehicle) then
-                        timetableHelper.stopVehicle(vehicle)
-                    else
-                        timetableHelper.startVehicle(vehicle)
+            if count == nil then count = 0 end
+            count = count + 1
+            if count == 10 then 
+                -- go through all vehicles and enforce waiting if neccesarry
+                for vehicle,line in pairs(timetableHelper.getAllRailVehicles()) do
+                    if timetableHelper.isInStation(vehicle) then
+                        if timetable.hasTimetable(line) and timetable.waitingRequired(vehicle) then
+                            timetableHelper.stopVehicle(vehicle)
+                        else
+                            timetableHelper.startVehicle(vehicle)
+                        end
                     end
-                end
+                end    
+                count = 0
             end
-            if not state then state  = {} end
+            if state == nil then state = {timetable = {}} end
             state.timetable = timetable.getTimetableObject()
+            
         end,
 
         guiUpdate = function()

@@ -203,6 +203,7 @@ function timetable.waitingRequired(vehicle)
 end
 
 function timetable.setHasTimetable(line, bool)
+    
     if timetableObject[tostring(line)] then
         timetableObject[tostring(line)].hasTimetable = bool
     else 
