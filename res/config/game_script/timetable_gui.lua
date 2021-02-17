@@ -98,11 +98,24 @@ end
 function fillLineTable()
     local lineNames = {}
     for k,v in pairs(timetableHelper.getAllRailLines()) do
-        lineColour = api.gui.comp.TextView.new("●")
+        local lineColour = api.gui.comp.TextView.new("●")
         lineColour:setName("timetable-linecolour-" .. timetableHelper.getLineColour(v.id))
+        lineColour:setStyleClassList({"timetable-linecolour"})
         lineName = api.gui.comp.TextView.new(v.name)
         lineNames[k] = v.name
         lineName:setName("timetable-linename")
+        local buttonText = api.gui.comp.TextView.new('Disabled')
+        local button = api.gui.comp.ToggleButton.new(buttonText)
+        button:setGravity(1,0.5)
+        button:onToggle(function()
+            if  buttonText:getText() == 'Disabled' then
+                timetable.setHasTimetable(v.id,true)
+                buttonText:setText('Enabled')
+            else
+                timetable.setHasTimetable(v.id,false)   
+                buttonText:setText('Disabled')
+            end
+        end)
         menu.lineTable:addRow({lineColour,lineName})
     end
 
@@ -136,7 +149,8 @@ function fillStationTable(index, bool)
         local station = timetableHelper.getStation(v)
         local stationNumber = api.gui.comp.TextView.new(tostring(k))
         stationNumber:setName("timetable-stationcolour-" .. timetableHelper.getLineColour(lineID))
-        stationNumber:setMinimumSize(api.gui.util.Size.new(28, 28))
+        stationNumber:setMinimumSize(api.gui.util.Size.new(30, 30))
+        stationNumber:setStyleClassList({"!timetable-stationcolour"})
         
 
         local conditionType = timetable.getConditionType(lineID, k)
@@ -144,8 +158,9 @@ function fillStationTable(index, bool)
         conditionString:setName("conditionString")
               
 
-        conditionString:setMinimumSize(api.gui.util.Size.new(235,50))
-        conditionString:setMaximumSize(api.gui.util.Size.new(235,50))
+        conditionString:setMinimumSize(api.gui.util.Size.new(285,50))
+        conditionString:setMaximumSize(api.gui.util.Size.new(285,50))
+
       
         menu.stationTable:addRow({stationNumber,api.gui.comp.TextView.new(station.name), lineImage, conditionString})       
     end
@@ -192,14 +207,16 @@ function fillConstraintTable(index,lineID, lineNumber)
 
     -- combobox setup
     local comboBox = api.gui.comp.ComboBox.new()
-    comboBox:addItem("None")
-    comboBox:addItem("ArrDep")
-    comboBox:addItem("minWait")
-    comboBox:addItem("debounce")
-    comboBox:addItem("moreFancey")
+    comboBox:addItem("No Timetable")
+    comboBox:addItem("Arrival/Departure")
+    comboBox:addItem("Minimum Wait")
+    comboBox:addItem("Unbunch")
+    comboBox:addItem("Every X minutes")
     comboBox:setGravity(1,0)
 
     constraintIndex = timetableHelper.constraintStringToInt(timetable.getConditionType(lineID, index))
+
+     
     
          
     comboBox:onIndexChanged(function (i)
@@ -213,11 +230,23 @@ function fillConstraintTable(index,lineID, lineNumber)
         if i == 1 then
             makeArrDepWindow(lineID, index) 
         end
-        --game.interface.sendScriptEvent("sdfgsdfgh", "",{} )
     end)
-    menu.constraintTable:addRow({comboBox})
+
+    infoImage = api.gui.comp.ImageView.new("ui/info_small.tga")
+    infoImage:setTooltip(
+        "You can add timetable constraints to each station.\n" ..
+        "When a train arrives at the station it will try to \n" ..
+        "keep the constraints. The following constraints are awailabe: \n" ..
+        "  - Arrival/Departure: Set multiple Arr/Dep times and the train \n"..
+        "                                      chooses the closes arrival time"
+    )
+    infoImage:setName("timetable-info-icon")
+
+    local table = api.gui.comp.Table.new(2, 'NONE')
+    table:addRow({infoImage,comboBox})
+    menu.constraintTable:addRow({table})
+    
     comboBox:setSelected(constraintIndex, true)
-   
 end
 
 function makeArrDepWindow(lineID, stationID) 
@@ -374,6 +403,7 @@ function data()
                     end
                 end
             end
+            if not state then state  = {} end
             state.timetable = timetable.getTimetableObject()
         end,
 

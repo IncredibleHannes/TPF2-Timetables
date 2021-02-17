@@ -140,9 +140,9 @@ end
 function timetable.hasTimetable(line)
     
     if timetableObject[tostring(line)] then
-        return true--timetableObject[tostring(line)].hasTimetable
+        return timetableObject[tostring(line)].hasTimetable
     else
-        return true--false
+        return false
     end
 end
 
