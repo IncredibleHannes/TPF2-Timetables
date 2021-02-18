@@ -9,13 +9,12 @@ function timetable_helper.getOrderOfArray(arr)
         toSort[k] = {key =  k, value = v}
     end
     table.sort(toSort, function(a,b)
-        return a.value < b.value
+        return string.lower(a.value) < string.lower(b.value)
     end)
     res = {}
     for k,v in pairs(toSort) do
-        res[k] = v.key
+        res[k-1] = v.key-1
     end 
-    debugPrint(res)
     return res
 end
 
@@ -23,6 +22,26 @@ function timetable_helper.getTime()
     local time = math.floor(game.interface.getGameTime().time)  
     return time
 end 
+-- returns an array of booleans 
+function timetable_helper.isLineOfType(type)
+    lines = api.engine.system.lineSystem.getLines()
+    res = {}
+    for k,l in pairs(lines) do
+        res[k] = timetable_helper.lineHasType(l, type)
+    end
+    return res
+end
+
+function timetable_helper.lineHasType(line, type)
+    vehicles = game.interface.getVehicles()
+    for k,v in pairs(vehicles) do
+        local vehicle = game.interface.getEntity(v)
+        if vehicle and vehicle.carrier and vehicle.line==line and vehicle.carrier == type then
+            return true
+        end
+    end
+    return false 
+end
 
 function timetable_helper.mergeArray(a,b)
     if a == nil then return b end

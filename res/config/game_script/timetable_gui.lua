@@ -5,7 +5,7 @@ local gui = require "gui"
 
 local clockstate = nil
 
-local menu = {window = nil}
+local menu = {window = nil, lineTableItems = {}}
 
 local count = 0
 
@@ -22,6 +22,17 @@ local state = nil
 
 function initLineTable() 
     if menu.scrollArea then UIState.boxlayout2:removeItem(menu.scrollArea) end
+    if menu.lineHeader then UIState.boxlayout2:removeItem(menu.lineHeader) end
+
+    menu.lineHeader = api.gui.comp.Table.new(6, 'None')
+    local sortAll   = api.gui.comp.ToggleButton.new(api.gui.comp.TextView.new('All'))    
+    local sortBus   = api.gui.comp.ToggleButton.new(api.gui.comp.ImageView.new("ui/icons/game-menu/hud_filter_road_vehicles.tga"))
+    local sortTram  = api.gui.comp.ToggleButton.new(api.gui.comp.ImageView.new("ui/TimetableTramIcon.tga"))
+    local sortRail  = api.gui.comp.ToggleButton.new(api.gui.comp.ImageView.new("ui/icons/game-menu/hud_filter_trains.tga"))
+    local sortWater = api.gui.comp.ToggleButton.new(api.gui.comp.ImageView.new("ui/icons/game-menu/hud_filter_ships.tga"))
+    local sortAir   = api.gui.comp.ToggleButton.new(api.gui.comp.ImageView.new("ui/icons/game-menu/hud_filter_planes.tga"))
+
+    menu.lineHeader:addRow({sortAll,sortBus,sortTram,sortRail,sortWater,sortAir})
     
     menu.scrollArea = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('LineOverview'), "timetable.LineOverview")
     menu.lineTable = api.gui.comp.Table.new(3, 'SINGLE')
@@ -35,12 +46,100 @@ function initLineTable()
 
     menu.lineTable:setColWidth(1,240)
 
-    menu.scrollArea:setMinimumSize(api.gui.util.Size.new(300, 700))
-    menu.scrollArea:setMaximumSize(api.gui.util.Size.new(300, 700))
+    menu.scrollArea:setMinimumSize(api.gui.util.Size.new(300, 670))
+    menu.scrollArea:setMaximumSize(api.gui.util.Size.new(300, 670))
     menu.scrollArea:setContent(menu.lineTable)
-    fillLineTable() 
     
-    UIState.boxlayout2:addItem(menu.scrollArea,0,0)
+
+    UIState.boxlayout2:addItem(menu.lineHeader,0,0)
+    UIState.boxlayout2:addItem(menu.scrollArea,0,1)
+    fillLineTable()
+    
+    sortAll:onToggle(function(bool)
+        for k,v in pairs(menu.lineTableItems) do       
+            v[1]:setVisible(true,false)
+            v[2]:setVisible(true,false)
+            v[3]:setVisible(true,false)
+        end
+        sortBus:setSelected(false,false)
+        sortTram:setSelected(false,false)
+        sortRail:setSelected(false,false)
+        sortWater:setSelected(false,false)
+        sortAir:setSelected(false,false)
+        sortAll:setSelected(true,false)
+    end)
+
+    sortBus:onToggle(function(bool)
+        linesOfType = timetableHelper.isLineOfType("ROAD")
+        for k,v in pairs(menu.lineTableItems) do
+            v[1]:setVisible(linesOfType[k],false)
+            v[2]:setVisible(linesOfType[k],false)
+            v[3]:setVisible(linesOfType[k],false)
+        end
+        sortBus:setSelected(true,false)
+        sortTram:setSelected(false,false)
+        sortRail:setSelected(false,false)
+        sortWater:setSelected(false,false)
+        sortAir:setSelected(false,false)
+        sortAll:setSelected(false,false)
+    end)
+
+    sortTram:onToggle(function(bool)
+        linesOfType = timetableHelper.isLineOfType("TRAM")
+        for k,v in pairs(menu.lineTableItems) do
+            v[1]:setVisible(linesOfType[k],false)
+            v[2]:setVisible(linesOfType[k],false)
+            v[3]:setVisible(linesOfType[k],false)
+        end
+        sortBus:setSelected(false,false)
+        sortTram:setSelected(true,false)
+        sortRail:setSelected(false,false)
+        sortWater:setSelected(false,false)
+        sortAir:setSelected(false,false)
+        sortAll:setSelected(false,false)
+    end)
+    sortRail:onToggle(function(bool)
+        linesOfType = timetableHelper.isLineOfType("RAIL")
+        for k,v in pairs(menu.lineTableItems) do
+            v[1]:setVisible(linesOfType[k],false)
+            v[2]:setVisible(linesOfType[k],false)
+            v[3]:setVisible(linesOfType[k],false)
+        end
+        sortBus:setSelected(false,false)
+        sortTram:setSelected(false,false)
+        sortRail:setSelected(true,false)
+        sortWater:setSelected(false,false)
+        sortAir:setSelected(false,false)
+        sortAll:setSelected(false,false)
+    end)
+    sortWater:onToggle(function(bool)
+        linesOfType = timetableHelper.isLineOfType("WATER")
+        for k,v in pairs(menu.lineTableItems) do
+            v[1]:setVisible(linesOfType[k],false)
+            v[2]:setVisible(linesOfType[k],false)
+            v[3]:setVisible(linesOfType[k],false)
+        end
+        sortBus:setSelected(false,false)
+        sortTram:setSelected(false,false)
+        sortRail:setSelected(false,false)
+        sortWater:setSelected(true,false)
+        sortAir:setSelected(false,false)
+        sortAll:setSelected(false,false)
+    end)
+    sortAir:onToggle(function(bool)
+        linesOfType = timetableHelper.isLineOfType("AIR")
+        for k,v in pairs(menu.lineTableItems) do
+            v[1]:setVisible(linesOfType[k],false)
+            v[2]:setVisible(linesOfType[k],false)
+            v[3]:setVisible(linesOfType[k],false)
+        end
+        sortBus:setSelected(false,false)
+        sortTram:setSelected(false,false)
+        sortRail:setSelected(false,false)
+        sortWater:setSelected(false,false)
+        sortAir:setSelected(true,false)
+        sortAll:setSelected(false,false)
+    end)
 end
 
 function initStationTable() 
@@ -100,6 +199,8 @@ end
 -------------------------------------------------------------
 
 function fillLineTable()
+    menu.lineTable:deleteRows(0,menu.lineTable:getNumRows())
+    print("filling line table")
     local lineNames = {}
     for k,v in pairs(timetableHelper.getAllRailLines()) do
         local lineColour = api.gui.comp.TextView.new("●")
@@ -124,11 +225,12 @@ function fillLineTable()
                 imageVeiw:setImage("ui/checkbox1.tga", false)
             end
         end)
+        menu.lineTableItems[#menu.lineTableItems + 1] = {lineColour, lineName, button}
         menu.lineTable:addRow({lineColour,lineName, button})
     end
 
     local order = timetableHelper.getOrderOfArray(lineNames)
-    --menu.lineTable:setOrder(order)
+    menu.lineTable:setOrder(order)
 end
 
 -------------------------------------------------------------
