@@ -111,6 +111,7 @@ function fillLineTable()
         local buttonImage = api.gui.comp.ImageView.new("ui/checkbox0.tga")
         if timetable.hasTimetable(v.id) then buttonImage:setImage("ui/checkbox1.tga", false) end
         local button = api.gui.comp.Button.new(buttonImage, true)
+        button:setStyleClassList({"timetable-avtivateTimetableButton"})
         button:setGravity(1,0.5)
         button:onClick(function()
             imageVeiw = buttonImage
@@ -155,9 +156,10 @@ function fillStationTable(index, bool)
         local lineImage = api.gui.comp.ImageView.new("ui/timetable_line.tga")
         local station = timetableHelper.getStation(v)
         local stationNumber = api.gui.comp.TextView.new(tostring(k))
+        stationNumber:setStyleClassList({"timetable-stationcolour"})
         stationNumber:setName("timetable-stationcolour-" .. timetableHelper.getLineColour(lineID))
         stationNumber:setMinimumSize(api.gui.util.Size.new(30, 30))
-        stationNumber:setStyleClassList({"!timetable-stationcolour"})
+        
         
 
         local conditionType = timetable.getConditionType(lineID, k)
@@ -270,7 +272,16 @@ function makeArrDepWindow(lineID, stationID)
         initStationTable()
         fillStationTable(UIState.currentlySelectedLineTableIndex, false)
     end)
-    menu.constraintTable:addRow({addButton}) 
+
+    --setup header
+    headerTable = api.gui.comp.Table.new(4, 'NONE')
+    headerTable:setColWidth(0,125)
+    headerTable:setColWidth(1,78)
+    headerTable:setColWidth(2,38)
+    headerTable:setColWidth(3,50)
+    headerTable:addRow({api.gui.comp.TextView.new(""),api.gui.comp.TextView.new("min"),api.gui.comp.TextView.new("sec"),addButton})
+    menu.constraintTable:addRow({headerTable}) 
+
 
 
     -- setup arrival and depature content

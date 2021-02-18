@@ -16,6 +16,11 @@ function data()
       fontSize = 26,
     })
 
+    a("!timetable-avtivateTimetableButton", {
+      margin = {0,4,0,0},
+      textAlignment = {0.5,0.5}
+    })
+
     a("!timetable-stationcolour", {
       margin = {0,1,2,1},
       fontSize = 15,
