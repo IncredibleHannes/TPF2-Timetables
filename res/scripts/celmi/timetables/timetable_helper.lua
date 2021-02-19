@@ -1,9 +1,9 @@
 
-local timetable_helper = {}
+local timetableHelper = {}
 
 
 -- returns an vector with the order
-function timetable_helper.getOrderOfArray(arr)
+function timetableHelper.getOrderOfArray(arr)
     toSort = {}
     for k,v in pairs(arr) do 
         toSort[k] = {key =  k, value = v}
@@ -18,32 +18,29 @@ function timetable_helper.getOrderOfArray(arr)
     return res
 end
 
-function timetable_helper.getTime()
-    local time = math.floor(game.interface.getGameTime().time)  
+function timetableHelper.getTime()
+    local time = math.floor(api.engine.getComponent(0,16).gameTime/ 1000)  
     return time
 end 
 -- returns an array of booleans 
-function timetable_helper.isLineOfType(type)
+function timetableHelper.isLineOfType(type)
     lines = api.engine.system.lineSystem.getLines()
     res = {}
     for k,l in pairs(lines) do
-        res[k] = timetable_helper.lineHasType(l, type)
+        res[k] = timetableHelper.lineHasType(l, type)
     end
     return res
 end
 
-function timetable_helper.lineHasType(line, type)
-    vehicles = game.interface.getVehicles()
-    for k,v in pairs(vehicles) do
-        local vehicle = game.interface.getEntity(v)
-        if vehicle and vehicle.carrier and vehicle.line==line and vehicle.carrier == type then
-            return true
-        end
+function timetableHelper.lineHasType(line, type)
+    vehicles = api.engine.system.transportVehicleSystem.getLineVehicles(line)
+    if vehicles and vehicles[1] and game.interface.getEntity(vehicles[1]).carrier then
+        return game.interface.getEntity(vehicles[1]).carrier == type
     end
     return false 
 end
 
-function timetable_helper.mergeArray(a,b)
+function timetableHelper.mergeArray(a,b)
     if a == nil then return b end
     if b == nil then return a end
     ab = {}
@@ -56,7 +53,7 @@ function timetable_helper.mergeArray(a,b)
     return ab
 end
 
-function timetable_helper.conditionToString(cond, type)
+function timetableHelper.conditionToString(cond, type)
     if not (cond and type) then return "" end
     if type =="ArrDep" then
         arr = "Arr "
@@ -72,7 +69,7 @@ function timetable_helper.conditionToString(cond, type)
     end
 end
 
-function timetable_helper.constraintIntToString(i) 
+function timetableHelper.constraintIntToString(i) 
     if i == 0 then return "None"
     elseif i == 1 then return "ArrDep"
     elseif i == 2 then return "minWait"
@@ -82,7 +79,7 @@ function timetable_helper.constraintIntToString(i)
     end
 end
 
-function timetable_helper.constraintStringToInt(i) 
+function timetableHelper.constraintStringToInt(i) 
     if i == "None" then return 0
     elseif i == "ArrDep" then return 1
     elseif i == "minWait" then return 2
@@ -92,7 +89,7 @@ function timetable_helper.constraintStringToInt(i)
     end
 end
 
-function timetable_helper.getLineColour(v)
+function timetableHelper.getLineColour(v)
     if not(type(v) == "number") then return "default" end
     entityID = 64
     colour = api.engine.getComponent(v,64)
@@ -106,9 +103,43 @@ function timetable_helper.getLineColour(v)
     end 
 end
 
+function timetableHelper.getTrainLocations(line) 
+    local res = {}
+    local vehicles = api.engine.system.transportVehicleSystem.getLineVehicles(line)
+    for k,v in pairs(vehicles) do 
+        local vehicle = game.interface.getEntity(v)
+        local atTerminal = vehicle.state == "AT_TERMINAL"
+        if res[tostring(vehicle.stopIndex)] then
+            prevAtTerminal = res[tostring(vehicle.stopIndex)].atTerminal
+            res[tostring(vehicle.stopIndex)] = { stopIndex = vehicle.stopIndex, vehicle = v, atTerminal = (atTerminal or prevAtTerminal), countStr="MANY" }
+        else
+            res[tostring(vehicle.stopIndex)] = { stopIndex = vehicle.stopIndex, vehicle = v, atTerminal = atTerminal, countStr="SINGLE" }
+        end
+    end
+    return res
+end
+
+function timetableHelper.getVehiclesOnLine(line)
+    return api.engine.system.transportVehicleSystem.getLineVehicles(line)
+end
+
+function timetableHelper.getFrequency(lineID)
+    local line = game.interface.getEntity(lineID)
+    if line and line.frequency then
+        if line.frequency == 0 then return "--" end
+        local x = 1 / line.frequency
+        if x > 60 then
+            return tostring(math.floor(x/60)) .. " min"
+        else
+            return tostring(math.floor(x/60)) .. " sec"
+        end
+    else
+        return "--"
+    end
+end
 
 -- getAllStations :: StationID -> {name :: String}
-function timetable_helper.getStation(stationID)
+function timetableHelper.getStation(stationID)
     local stationObject = game.interface.getEntity(stationID)
     if stationObject and stationObject.name then 
         return { name = stationObject.name }
@@ -117,8 +148,25 @@ function timetable_helper.getStation(stationID)
     end
 end
 
+function timetableHelper.getRailStations()
+    res = {}
+    stations = api.engine.system.stationSystem.getStation2TownMap()
+    for k,v in pairs(stations) do
+        stationObject = game.interface.getEntity(k)
+        if stationObject and stationObject.carriers and stationObject.carriers["RAIL"] then 
+            stationName = api.engine.getComponent(k, 63)
+            res[#res + 1] = {
+                id = k,
+                name = stationName.name
+            }
+        end
+        
+    end
+    return res
+end
+
 -- getAllStations :: LineID :: Int -> [Stops]
-function timetable_helper.getAllStations(line)
+function timetableHelper.getAllStations(line)
     local lineObject = game.interface.getEntity(line)
     if lineObject and lineObject.stops then
         return lineObject.stops
@@ -127,60 +175,67 @@ function timetable_helper.getAllStations(line)
     end
 end
 
-function timetable_helper.getAllRailLines()
+function timetableHelper.getAllRailLines()
     local res = {}
     local ls = api.engine.system.lineSystem.getLines()
     for k,l in pairs(ls) do
-        lObject = game.interface.getEntity(l)
-        res[k] = {id = l, name = lObject.name}
-    end
-    return res
-end
-
--- returns [{vehicleID: lineID}]
-function timetable_helper.getAllRailVehicles()
-    local res = {}
-    local vs = game.interface.getVehicles()
-    for k,v in pairs(vs) do
-        if not hasValue(game.interface.getVehicles(), v) then print("no Vehicle found") return -1 end   
-        local vObject = game.interface.getEntity(v)
-        if (vObject and vObject.carrier == "RAIL" and vObject.line) then
-            res[v] = vObject.line
+        local lineName = api.engine.getComponent(l, 63)
+        if lineName and lineName.name then 
+            res[k] = {id = l, name = lineName.name}
+        else
+            res[k] = {id = l, name = "ERROR"}
         end
     end
     return res
 end
 
-function timetable_helper.isInStation(vehicle)
-    local v = game.interface.getEntity(vehicle)
-    return v and v.state == "AT_TERMINAL"
+function timetableHelper.getStationID(line, stationNumber)
+    lineObject = game.interface.getEntity(line)
+    if lineObject and lineObject.stops and lineObject.stops[stationNumber] then
+        return lineObject.stops[stationNumber]
+    else
+        return -1
+    end
 end
 
-function timetable_helper.startVehicle(vehicle)
-    api.cmd.sendCommand(api.cmd.make.setUserStopped(vehicle,false))
+-- returns [{vehicleID: lineID}]
+function timetableHelper.getAllRailVehicles()
+    local res = {}
+    local vehicleMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
+    for k,v in pairs(vehicleMap) do
+        for k2,v2 in pairs(v) do
+            res[tostring(v2)] = k 
+        end
+    end
+    return res
+end
+
+function timetableHelper.isInStation(vehicle)
+    if not(type(vehicle) == "string") then print("wrong type") return false end
+    local v = api.engine.getComponent(tonumber(vehicle), 70)
+    return v and v.state == 2
+end
+
+function timetableHelper.startVehicle(vehicle)
+    api.cmd.sendCommand(api.cmd.make.setUserStopped(tonumber(vehicle),false))
     return null
 end
 
-function timetable_helper.stopVehicle(vehicle)
-    allVehicles = timetable_helper.getAllRailVehicles()
-    if allVehicles[vehicle] == null then print("NoVehicle") return end
-    api.cmd.sendCommand(api.cmd.make.setUserStopped(vehicle,true))
+function timetableHelper.stopVehicle(vehicle)
+    api.cmd.sendCommand(api.cmd.make.setUserStopped(tonumber(vehicle),true))
     return null
 end
 
-function timetable_helper.getCurrentStation(v)
+function timetableHelper.getCurrentStation(v)
     if not v then return -1 end
-    if not hasValue(game.interface.getVehicles(), v) then print("no Vehicle found") return -1 end
-
-    vehicle = game.interface.getEntity(v)
+    local vehicle = api.engine.getComponent(tonumber(v), 70)
     return vehicle.stopIndex + 1
 
 end
 
-function timetable_helper.getCurrentLine(v)
+function timetableHelper.getCurrentLine(v)
     if not v then return -1 end
-    if not hasValue(game.interface.getVehicles(), v) then print("no Vehicle found") return -1 end
-    vehicle = game.interface.getEntity(v)
+    local vehicle = api.engine.getComponent(tonumber(v), 70)
     return vehicle.line
 
 end
@@ -197,5 +252,17 @@ function hasValue(tab, val)
 end
 
 
-return timetable_helper
+function timetableHelper.getLegTimes(line) 
+    local vehicleLineMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
+    if vehicleLineMap[line] == nil or vehicleLineMap[line][1] == nil then return {}end
+    local vehicle = vehicleLineMap[line][1]
+    vehicleObject = api.engine.getComponent(vehicle, 70)
+    if vehicleObject and vehicleObject.sectionTimes then
+        return vehicleObject.sectionTimes
+    else 
+        return {}
+    end
+end
+
+return timetableHelper
 

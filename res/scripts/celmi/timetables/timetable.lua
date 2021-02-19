@@ -38,16 +38,19 @@ function timetable.setTimetableObject(t)
 end
 
 function timetable.setConditionType(line, stationNumber, type)
+    stationID = timetableHelper.getStationID(line, stationNumber)
     if not(line and stationNumber) then return -1 end
     if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then
         timetableObject[tostring(line)].stations[stationNumber].conditions.type = type
         local conditionObject = timetableObject[tostring(line)].stations[stationNumber].conditions[type] 
         if not conditionObject then  timetableObject[tostring(line)].stations[stationNumber].conditions[type] = {} end
+        timetableObject[tostring(line)].stations[stationNumber].stationID = stationID
     else
         if not timetableObject[tostring(line)] then 
             timetableObject[tostring(line)] = { hasTimetable = false, stations = {}}
         end
-        timetableObject[tostring(line)].stations[stationNumber] = {inboundTime = 0, conditions = {type = type}}
+        
+        timetableObject[tostring(line)].stations[stationNumber] = {inboundTime = 0,stationID = stationID, conditions = {type = type}}
         local conditionObject = timetableObject[tostring(line)].stations[stationNumber].conditions[type] 
         if not conditionObject then  timetableObject[tostring(line)].stations[stationNumber].conditions[type] = {} end
     end
@@ -68,6 +71,21 @@ function timetable.getConditionType(line, stationNumber)
 end
 
 
+function timetable.getAllConditionsOfStaion(statioID)
+    res = { }
+    for k,v in pairs(timetableObject) do
+        for k2,v2 in pairs(v.stations) do
+            if v2.stationID and v2.conditions and  v2.conditions.type and not (v2.conditions.type == "None") and tostring(v2.stationID) == tostring(statioID+1) then
+                res[k] = {
+                    stationID = v2.stationID,
+                    conditions = v2.conditions
+                }
+            end
+        end
+    end
+    return res
+end
+
 function timetable.getConditions(line, stationNumber, type)
     if not(line and stationNumber) then return -1 end
     if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] and timetableObject[tostring(line)].stations[stationNumber].conditions[type] then 
@@ -80,6 +98,7 @@ end
 
 -- TEST: timetable.addCondition(1,1,{type = "ArrDep", ArrDep = {{12,14,14,14}}})
 function timetable.addCondition(line, stationNumber, condition)
+    stationID = timetableHelper.getStationID(line, stationNumber)
     if not(line and stationNumber and condition) then return -1 end
 
     if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then
@@ -97,12 +116,13 @@ function timetable.addCondition(line, stationNumber, condition)
             timetableObject[tostring(line)].stations[stationNumber].conditions.type = "moreFancey"
             timetableObject[tostring(line)].stations[stationNumber].conditions.moreFancey = condition.moreFancey     
         end
+        timetableObject[tostring(line)].stations[stationNumber].stationID = stationID
 
     else
         if not timetableObject[tostring(line)] then 
             timetableObject[tostring(line)] = {hasTimetable = false, stations = {}}
         end
-        timetableObject[tostring(line)].stations[stationNumber] = {inboundTime = 0, conditions = condition}
+        timetableObject[tostring(line)].stations[stationNumber] = {inboundTime = 0, stationID = stationID, conditions = condition}
     end
 end
 
@@ -166,7 +186,7 @@ function timetable.waitingRequired(vehicle)
         if not (currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle]) then
             -- check if is about to depart
 
-            if currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime and (currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime + 150) > time then
+            if currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime and (currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime + 40) > time then
                 return false
             end
 
