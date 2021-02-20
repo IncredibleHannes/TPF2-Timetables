@@ -103,6 +103,10 @@ function timetableHelper.getLineColour(v)
     end 
 end
 
+function timetableHelper.getLineName(v)
+    return api.engine.getComponent(tonumber(v), 63).name
+end
+
 function timetableHelper.getTrainLocations(line) 
     local res = {}
     local vehicles = api.engine.system.transportVehicleSystem.getLineVehicles(line)
@@ -153,11 +157,11 @@ function timetableHelper.getRailStations()
     stations = api.engine.system.stationSystem.getStation2TownMap()
     for k,v in pairs(stations) do
         stationObject = game.interface.getEntity(k)
+        stationGroup = game.interface.getEntity(stationObject.stationGroup)
         if stationObject and stationObject.carriers and stationObject.carriers["RAIL"] then 
-            stationName = api.engine.getComponent(k, 63)
             res[#res + 1] = {
                 id = k,
-                name = stationName.name
+                name = stationGroup.name
             }
         end
         
@@ -187,6 +191,13 @@ function timetableHelper.getAllRailLines()
         end
     end
     return res
+end
+
+function timetableHelper.getStationName(stationID)
+    local err, res = pcall(function()
+        return api.engine.getComponent(stationID, 63)
+    end)
+    if err then return res.name else return -1 end
 end
 
 function timetableHelper.getStationID(line, stationNumber)
@@ -240,7 +251,6 @@ function timetableHelper.getCurrentLine(v)
 
 end
 
-
 function hasValue(tab, val)
     for index, value in ipairs(tab) do
         if value == val then
@@ -250,7 +260,6 @@ function hasValue(tab, val)
 
     return false
 end
-
 
 function timetableHelper.getLegTimes(line) 
     local vehicleLineMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()

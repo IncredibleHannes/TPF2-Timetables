@@ -12,7 +12,8 @@ local count = 0
 local UIState = { 
     currentlySelectedLineTableIndex = nil ,
     currentlySelectedStationIndex = nil,
-    currentlySelectedConstraintType = nil
+    currentlySelectedConstraintType = nil,
+    currentlySelectedStationTabStation = nil
 }
 local co = nil
 local state = nil
@@ -21,10 +22,10 @@ local state = nil
 ---------------------- stationTab ---------------------------
 -------------------------------------------------------------
 
-
-
 function initStationTab()
     if menu.stationTabScrollArea then UIState.floatingLayoutStationTab:removeItem(menu.scrollArea) end
+
+    --left table
     menu.stationTabScrollArea = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('StationOverview'), "timetable.stationTabStationOverviewScrollArea")
     menu.stationTabStationTable = api.gui.comp.Table.new(1, 'SINGLE')
     menu.stationTabScrollArea:setMinimumSize(api.gui.util.Size.new(300, 700))
@@ -33,31 +34,75 @@ function initStationTab()
     fillStationTabStationTable()
     UIState.floatingLayoutStationTab:addItem(menu.stationTabScrollArea,0,0)
 
-end
+    
+    menu.stationTabLinesScrollArea = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('LineOverview'), "timetable.stationTabLinesScrollArea")
+    menu.stationTabLinesTable = api.gui.comp.Table.new(3, 'NONE')
+    menu.stationTabLinesScrollArea:setMinimumSize(api.gui.util.Size.new(799, 700))
+    menu.stationTabLinesScrollArea:setMaximumSize(api.gui.util.Size.new(799, 700))
+    menu.stationTabLinesTable:setColWidth(0,23)
+    menu.stationTabLinesTable:setColWidth(1,150)
 
+    menu.stationTabLinesScrollArea:setContent(menu.stationTabLinesTable)
+    UIState.floatingLayoutStationTab:addItem(menu.stationTabLinesScrollArea,1,0)
+
+    
+
+end
 
 function fillStationTabStationTable()
-    for k,v in pairs(timetableHelper.getRailStations()) do
-        menu.stationTabStationTable:addRow({api.gui.comp.TextView.new(tostring(v.name))})
+    menu.stationTabStationTable:deleteAll()
+
+    local lineNames2 ={}
+    for k,v in pairs(timetable.getAllConditionsOfAllStations()) do
+        stationName = timetableHelper.getStationName(k)
+        if not (stationName == -1) then  
+            menu.stationTabStationTable:addRow({api.gui.comp.TextView.new(tostring(stationName))})
+            lineNames2[#lineNames2 + 1] = stationName
+        end
     end
     menu.stationTabStationTable:onSelect(fillStationTabLineTable)
-end
 
-
-function fillStationTabLineTable(index)
-    stationID = timetableHelper.getRailStations()[index+1].id
-
-    debugPrint(timetable.getAllConditionsOfStaion(stationID))
+    local order = timetableHelper.getOrderOfArray(lineNames2)
+    menu.stationTabStationTable:setOrder(order)
+    -- select last station again
+    if UIState.currentlySelectedStationTabStation and menu.stationTabStationTable:getNumRows() > UIState.currentlySelectedStationTabStation  then
+        menu.stationTabStationTable:select(UIState.currentlySelectedStationTabStation, true)
+    end
     
 end
 
+function fillStationTabLineTable(index)
+    if index == - 1 then return end
+    UIState.currentlySelectedStationTabStation = index
+    menu.stationTabLinesTable:deleteAll()
+    local i = 0
+    for k,v in pairs(timetable.getAllConditionsOfAllStations()) do
+        if i == index then 
+            stationID = k
+            constraints = v
+            break
+        end
+        i = i + 1
+    end
+    local lineNames2 ={}
+    for k,v in  pairs(constraints) do
+        lineName = timetableHelper.getLineName(k)
+        lineNames2[#lineNames2 + 1] = lineName
 
+        local lineColour2 = api.gui.comp.TextView.new("●")
 
+        lineColour2:setName("timetable-linecolour-" .. timetableHelper.getLineColour(tonumber(k)))
+        lineColour2:setStyleClassList({"timetable-linecolour"})
 
-
-
-
-
+        local type = timetableHelper.conditionToString(v.conditions[v.conditions.type], v.conditions.type) 
+        local stConditionString = api.gui.comp.TextView.new(type)
+        stConditionString:setName("conditionString")
+        menu.stationTabLinesTable:addRow({lineColour2, api.gui.comp.TextView.new(lineName), stConditionString})
+    end
+    local order = timetableHelper.getOrderOfArray(lineNames2)
+    menu.stationTabLinesTable:setOrder(order)
+    
+end
 
 -------------------------------------------------------------
 ---------------------- SETUP --------------------------------
@@ -149,6 +194,12 @@ function showLineMenu()
     local wrapper2 = api.gui.comp.Component.new("wrapper2")
     wrapper2:setLayout(UIState.floatingLayoutStationTab)
     menu.tabWidget:addTab(api.gui.comp.TextView.new('Station'),wrapper2)
+
+    menu.tabWidget:onCurrentChanged(function(i)
+        if i == 1 then
+            fillStationTabStationTable()
+        end
+    end)
 
     
     -- create final window
@@ -658,7 +709,7 @@ function data()
             if co == nil or coroutine.status(co) == "dead" then
                 co = coroutine.create(timetableCoroutine)
             end
-            for i = 0, 5 do
+            for i = 0, 10 do
                 coroutine.resume(co)
             end
 

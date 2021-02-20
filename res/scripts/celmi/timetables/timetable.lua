@@ -71,13 +71,28 @@ function timetable.getConditionType(line, stationNumber)
 end
 
 
-function timetable.getAllConditionsOfStaion(statioID)
+function timetable.getAllConditionsOfStaion(stationID)
     res = { }
     for k,v in pairs(timetableObject) do
         for k2,v2 in pairs(v.stations) do
-            if v2.stationID and v2.conditions and  v2.conditions.type and not (v2.conditions.type == "None") and tostring(v2.stationID) == tostring(statioID+1) then
+            if v2.stationID and v2.conditions and  v2.conditions.type and not (v2.conditions.type == "None") and tostring(v2.stationID) == tostring(stationID+1) then
                 res[k] = {
                     stationID = v2.stationID,
+                    conditions = v2.conditions
+                }
+            end
+        end
+    end
+    return res
+end
+
+function timetable.getAllConditionsOfAllStations()
+    res = { }
+    for k,v in pairs(timetableObject) do
+        for k2,v2 in pairs(v.stations) do
+            if v2.stationID and v2.conditions and  v2.conditions.type and not (v2.conditions.type == "None")  then
+                if not res[v2.stationID] then res[v2.stationID] = {} end
+                res[v2.stationID][k] = {
                     conditions = v2.conditions
                 }
             end
@@ -252,6 +267,7 @@ end
 -------------- UTILS FUNCTIONS ----------
 
 function timetable.beforeDepature(constraint, time)
+    
     timeMin = tonumber(os.date('%M', time))
     timeSec = tonumber(os.date('%S', time))
 

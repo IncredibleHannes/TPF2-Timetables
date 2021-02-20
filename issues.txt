@@ -1,13 +1,10 @@
 - isBeforeDeparture is buggy
 
-
-
 missing fratures
 
 - min wait feature
 - debounce feature (rename to unbunch)
 - every x Min feature (use more fency for that)
-- add leg time to line (Based on time stopping)
 
 
 UI Improvements
