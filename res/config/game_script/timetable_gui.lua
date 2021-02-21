@@ -193,7 +193,7 @@ function showLineMenu()
     initStationTab()
     local wrapper2 = api.gui.comp.Component.new("wrapper2")
     wrapper2:setLayout(UIState.floatingLayoutStationTab)
-    menu.tabWidget:addTab(api.gui.comp.TextView.new('Station'),wrapper2)
+    menu.tabWidget:addTab(api.gui.comp.TextView.new('Stations'),wrapper2)
 
     menu.tabWidget:onCurrentChanged(function(i)
         if i == 1 then
@@ -398,25 +398,45 @@ function fillStationTable(index, bool)
     for k, v in pairs(timetableHelper.getAllStations(lineID)) do
         menu.lineImage = {}
         local vehiclePositions = timetableHelper.getTrainLocations(lineID) 
-        for k, v in pairs(timetableHelper.getAllStations(lineID)) do
+        if vehiclePositions[tostring(k-1)] then
+            if vehiclePositions[tostring(k-1)].atTerminal then
+                if vehiclePositions[tostring(k-1)].countStr == "MANY" then
+                    menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_in_station_many.tga")
+                else
+                    menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_in_station.tga")
+                end
+            else 
+                if vehiclePositions[tostring(k-1)].countStr == "MANY" then
+                    menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_en_route_many.tga")
+                else
+                    menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_en_route.tga")
+                end
+            end
+        else
+            menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line.tga")
+        end
+        local x = menu.lineImage[k]
+        menu.lineImage[k]:onStep(function()
+            if not x then print("ERRROR") return end
+            local vehiclePositions = timetableHelper.getTrainLocations(lineID) 
             if vehiclePositions[tostring(k-1)] then
                 if vehiclePositions[tostring(k-1)].atTerminal then
                     if vehiclePositions[tostring(k-1)].countStr == "MANY" then
-                        menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_in_station_many.tga")
+                        x:setImage("ui/timetable_line_train_in_station_many.tga", false)
                     else
-                        menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_in_station.tga")
+                        x:setImage("ui/timetable_line_train_in_station.tga", false)
                     end
                 else 
                     if vehiclePositions[tostring(k-1)].countStr == "MANY" then
-                        menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_en_route_many.tga")
+                        x:setImage("ui/timetable_line_train_en_route_many.tga", false)
                     else
-                        menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_en_route.tga")
+                        x:setImage("ui/timetable_line_train_en_route.tga", false)
                     end
                 end
             else
-                menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line.tga")
+                x:setImage("ui/timetable_line.tga", false)
             end
-        end
+        end)
 
         local station = timetableHelper.getStation(v)
      
@@ -493,9 +513,9 @@ function fillConstraintTable(index,lineID, lineNumber)
     local comboBox = api.gui.comp.ComboBox.new()
     comboBox:addItem("No Timetable")
     comboBox:addItem("Arrival/Departure")
-    comboBox:addItem("Minimum Wait")
+    --comboBox:addItem("Minimum Wait")
     comboBox:addItem("Unbunch")
-    comboBox:addItem("Every X minutes")
+    --comboBox:addItem("Every X minutes")
     comboBox:setGravity(1,0)
 
     constraintIndex = timetableHelper.constraintStringToInt(timetable.getConditionType(lineID, index))
@@ -513,6 +533,8 @@ function fillConstraintTable(index,lineID, lineNumber)
         clearConstraintWindow() 
         if i == 1 then
             makeArrDepWindow(lineID, index) 
+        elseif i == 2 then
+            makeDebounceWindow(lineID, index) 
         end
     end)
 
@@ -522,7 +544,8 @@ function fillConstraintTable(index,lineID, lineNumber)
         "When a train arrives at the station it will try to \n" ..
         "keep the constraints. The following constraints are awailabe: \n" ..
         "  - Arrival/Departure: Set multiple Arr/Dep times and the train \n"..
-        "                                      chooses the closes arrival time"
+        "                                      chooses the closes arrival time\n" ..
+        "  - Unbunch: Set a time and vehicles will only depart the station in the given interval"
     )
     infoImage:setName("timetable-info-icon")
 
@@ -532,6 +555,7 @@ function fillConstraintTable(index,lineID, lineNumber)
     
     comboBox:setSelected(constraintIndex, true)
 end
+
 
 function makeArrDepWindow(lineID, stationID) 
     if not menu.constraintTable then return end 
@@ -654,7 +678,52 @@ function makeArrDepWindow(lineID, stationID)
     
     
 
-end 
+end
+
+function makeDebounceWindow(lineID, stationID) 
+    if not menu.constraintTable then return end 
+    local condition2 = timetable.getConditions(lineID,stationID, "debounce")
+    debugPrint(condition2)
+
+    local debounceTable = api.gui.comp.Table.new(4, 'NONE')
+    debounceTable:setColWidth(0,150)
+    debounceTable:setColWidth(1,62)
+    debounceTable:setColWidth(2,25)
+    debounceTable:setColWidth(3,63)
+
+    debounceMin = api.gui.comp.DoubleSpinBox.new()
+    debounceMin:setMinimum(0,false)
+    debounceMin:setMaximum(59,false)
+
+    debounceMin:onChange(function(value) 
+        timetable.updateDebounce(lineID, stationID,  1, value)
+        initStationTable()
+        fillStationTable(UIState.currentlySelectedLineTableIndex, false) 
+    end)
+
+    if condition2 and condition2[1] then
+        debounceMin:setValue(condition2[1],false)
+    end
+
+
+    debounceSec = api.gui.comp.DoubleSpinBox.new()
+    debounceSec:setMinimum(0,false)
+    debounceSec:setMaximum(59,false)
+
+    debounceSec:onChange(function(value) 
+        timetable.updateDebounce(lineID, stationID, 2, value)
+        initStationTable()
+        fillStationTable(UIState.currentlySelectedLineTableIndex, false) 
+    end)
+    if condition2 and condition2[2] then
+        debounceSec:setValue(condition2[2],false)
+    end
+
+    debounceTable:addRow({api.gui.comp.TextView.new("Unbunch Time:"), debounceMin,api.gui.comp.TextView.new(":"), debounceSec})
+
+    menu.constraintTable:addRow({debounceTable})
+
+end
 
 -------------------------------------------------------------
 --------------------- OTHER ---------------------------------

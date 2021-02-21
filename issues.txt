@@ -1,3 +1,5 @@
+
+
 - isBeforeDeparture is buggy
 
 missing fratures

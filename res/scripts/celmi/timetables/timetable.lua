@@ -156,6 +156,19 @@ function timetable.updateArrDep(line, station, indexKey, indexValue, value)
     end
 end
 
+function timetable.updateDebounce(line, station, indexKey, value)
+    if not (line and station and indexKey and value) then return -1 end
+    if timetableObject[tostring(line)] and 
+       timetableObject[tostring(line)].stations[station] and 
+       timetableObject[tostring(line)].stations[station].conditions and 
+       timetableObject[tostring(line)].stations[station].conditions.debounce then
+       timetableObject[tostring(line)].stations[station].conditions.debounce[indexKey] = value
+        return 0
+    else
+        return -2
+    end
+end
+
 function timetable.removeCondition(line, station, type, index)
     if not(line and station and index) or (not (timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[station])) then return -1 end
 
@@ -182,20 +195,20 @@ function timetable.hasTimetable(line)
 end
 
 function timetable.waitingRequired(vehicle)
-
+    
     local time = timetableHelper.getTime()
     local currentLine = timetableHelper.getCurrentLine(vehicle)
     local currentStop = timetableHelper.getCurrentStation(vehicle)
-
     if not timetableObject[tostring(currentLine)] then return false end
     if not timetableObject[tostring(currentLine)].stations[currentStop] then return false end
     if not timetableObject[tostring(currentLine)].stations[currentStop].conditions then return false end
     if not timetableObject[tostring(currentLine)].stations[currentStop].conditions.type then return false end
+
+    if timetableHelper.getTimeUntilDeparture(vehicle) >= 5 then return false end
+
     if not currentlyWaiting[tostring(currentLine)] then currentlyWaiting[tostring(currentLine)] = {stations = {}} end
     if not currentlyWaiting[tostring(currentLine)].stations[currentStop] then currentlyWaiting[tostring(currentLine)].stations[currentStop] = { currentlyWaiting = {}} end
-
     if timetableObject[tostring(currentLine)].stations[currentStop].conditions.type == "ArrDep" then 
-
         -- am I currently waiting or just arrived?
         
         if not (currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle]) then
@@ -206,12 +219,10 @@ function timetable.waitingRequired(vehicle)
             end
 
             -- just arrived
-            timetableObject[tostring(currentLine)].stations[currentStop].inboundTime = time
             local nextConstraint = timetable.getNextConstraint(timetableObject[tostring(currentLine)].stations[currentStop].conditions.ArrDep, time)
             if not nextConstraint then 
                 -- no constraints set
                 currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
-                timetableObject[tostring(currentLine)].stations[currentStop].inboundTime = time
                 return false 
             end
             if timetable.beforeDepature(nextConstraint, time) then
@@ -243,13 +254,24 @@ function timetable.waitingRequired(vehicle)
         currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
         return false
 
-
-
-    else
+    --------------------------------------------------------------------------------------------------------------------------------------
+    --------------------------------------- DEBOUNCE ------------------------------------------------------------------------------------
+    
+    elseif timetableObject[tostring(currentLine)].stations[currentStop].conditions.type == "debounce" then
+        local previousDepartureTime = timetableHelper.getPreviousDepartureTime(tonumber(vehicle)) 
+        condition = timetable.getConditions(currentLine, currentStop, "debounce")
+        if not condition[1] then condition[1] = 0 end
+        if not condition[2] then condition[2] = 0 end
+        if time > previousDepartureTime + ((condition[1] * 60)  + condition[2]) then
+            currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+            return false
+        else
+            return true
+        end
+    else 
         currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
         return false
     end
-
 end
 
 function timetable.setHasTimetable(line, bool)

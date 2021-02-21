@@ -64,6 +64,11 @@ function timetableHelper.conditionToString(cond, type)
         end
         res = arr .. "\n"  .. dep
         return res
+    elseif type == "debounce" then
+        if not cond[1] then cond[1] = 0 end
+        if not cond[2] then cond[2] = 0 end
+        return "Unbunch Time: " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2]) 
+    
     else
         return type
     end
@@ -72,9 +77,9 @@ end
 function timetableHelper.constraintIntToString(i) 
     if i == 0 then return "None"
     elseif i == 1 then return "ArrDep"
-    elseif i == 2 then return "minWait"
-    elseif i == 3 then return "debounce"
-    elseif i == 4 then return "moreFancey"
+    --elseif i == 2 then return "minWait"
+    elseif i == 2 then return "debounce"
+    --elseif i == 4 then return "moreFancey"
     else return "ERROR"
     end
 end
@@ -82,9 +87,9 @@ end
 function timetableHelper.constraintStringToInt(i) 
     if i == "None" then return 0
     elseif i == "ArrDep" then return 1
-    elseif i == "minWait" then return 2
-    elseif i == "debounce" then return 3
-    elseif i == "moreFancey" then return 4
+    --elseif i == "minWait" then return 2
+    elseif i == "debounce" then return 2
+    --elseif i == "moreFancey" then return 4
     else return 0
     end
 end
@@ -271,6 +276,31 @@ function timetableHelper.getLegTimes(line)
     else 
         return {}
     end
+end
+
+function timetableHelper.getPreviousDepartureTime(vehicle) 
+    local vehicleLineMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
+    local line = timetableHelper.getCurrentLine(vehicle)
+    local departureTimes = {}
+    local currentStopIndex = api.engine.getComponent(vehicle, 70).stopIndex
+    for k,v in pairs(vehicleLineMap[line]) do
+        departureTimes[#departureTimes + 1] = api.engine.getComponent(v, 70).lineStopDepartures[currentStopIndex + 1]
+    end 
+    return (timetableHelper.maximumArray(departureTimes))/1000
+end
+
+function timetableHelper.maximumArray(arr)
+    local max = arr[1]
+    for k,v in pairs(arr) do
+        if max < arr[k] then
+            max = arr[k]
+        end
+    end
+    return max
+end
+
+function timetableHelper.getTimeUntilDeparture(vehicle)
+    return api.engine.getComponent(tonumber(vehicle), 70).timeUntilCloseDoors
 end
 
 return timetableHelper
