@@ -448,13 +448,19 @@ function fillStationTable(index, bool)
         stationNumber:setMinimumSize(api.gui.util.Size.new(30, 30))
 
         
-        local stationNameString = station.name
+        local stationName = api.gui.comp.TextView.new(station.name)
+        stationName:setName("stationName")
         if (stationLegTime and stationLegTime[k]) then 
-            stationName = api.gui.comp.TextView.new(stationNameString .. "\nLeg Time: " .. os.date('%M:%S', stationLegTime[k]))
+            jurneyTime = api.gui.comp.TextView.new("Journey Time: " .. os.date('%M:%S', stationLegTime[k]))
         else 
-            stationName = api.gui.comp.TextView.new(stationNameString)
+            jurneyTime = api.gui.comp.TextView.new("")
         end
+        jurneyTime:setName("conditionString")
 
+        local stationNameTable = api.gui.comp.Table.new(1, 'NONE')
+        stationNameTable:addRow({stationName})
+        stationNameTable:addRow({jurneyTime})
+        stationNameTable:setColWidth(0,120)
         
 
         local conditionType = timetable.getConditionType(lineID, k)
@@ -466,7 +472,7 @@ function fillStationTable(index, bool)
         conditionString:setMaximumSize(api.gui.util.Size.new(285,50))
 
       
-        menu.stationTable:addRow({stationNumber,stationName, menu.lineImage[k], conditionString})       
+        menu.stationTable:addRow({stationNumber,stationNameTable, menu.lineImage[k], conditionString})       
     end
 
     menu.stationTable:onSelect(function (index)
@@ -778,8 +784,9 @@ function data()
             if co == nil or coroutine.status(co) == "dead" then
                 co = coroutine.create(timetableCoroutine)
             end
-            for i = 0, 10 do
-                coroutine.resume(co)
+            for i = 0, 8 do
+                local err, msg = coroutine.resume(co)
+                if not err then print(msg) end
             end
 
             state.timetable = timetable.getTimetableObject()
@@ -800,7 +807,10 @@ function data()
                 
                 local buttonLabel = gui.textView_create("gameInfo.timetables.label", "Timetable")
                 local button = gui.button_create("gameInfo.timetables.button", buttonLabel)
-                button:onClick(showLineMenu)
+                button:onClick(function () 
+                    local err, msg = pcall(showLineMenu)
+                    if not err then print(msg) end
+                end)
                 game.gui.boxLayout_addItem("gameInfo.layout", button.id)
 				-- add elements to ui
 				local gameInfoLayout = api.gui.util.getById("gameInfo"):getLayout()

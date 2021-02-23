@@ -204,7 +204,7 @@ function timetable.waitingRequired(vehicle)
     if not timetableObject[tostring(currentLine)].stations[currentStop].conditions then return false end
     if not timetableObject[tostring(currentLine)].stations[currentStop].conditions.type then return false end
 
-    if timetableHelper.getTimeUntilDeparture(vehicle) >= 5 then return false end
+    if timetableHelper.getTimeUntilDeparture(vehicle) >= 2 then return false end
 
     if not currentlyWaiting[tostring(currentLine)] then currentlyWaiting[tostring(currentLine)] = {stations = {}} end
     if not currentlyWaiting[tostring(currentLine)].stations[currentStop] then currentlyWaiting[tostring(currentLine)].stations[currentStop] = { currentlyWaiting = {}} end

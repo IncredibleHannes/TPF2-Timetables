@@ -10,6 +10,10 @@ function data()
       fontFamily = "Noto/NotoSansMono-Regular.ttf",
       fontSize = 10,
     })
+    a("stationName", {
+      padding = {7,0,0,0},
+      fontSize = 14,
+    })
     
     a("!timetable-linecolour", {
       padding = {0,0,0,8},

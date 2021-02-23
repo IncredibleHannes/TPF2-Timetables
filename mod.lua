@@ -4,8 +4,8 @@ function data()
 			minorVersion = 0,
 			severityAdd = "NONE",
 			severityRemove = "NONE",
-			name = _("Timetables"),
-			description = "The 'uiUpdate' callback in a game script is used to add a clock to the game.",
+			name = _("Timetables [BETA]"),
+			description = "This is a BETA version for the upcoming timetable mod.\nThe release for this mod is planned for Friday 26.02.21.\nWARNING: This workshop item is expected to be deleted before the final release!\n",
 		},
  }
 end
