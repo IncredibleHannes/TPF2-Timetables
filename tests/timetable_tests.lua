@@ -1,19 +1,17 @@
 package.loaded["celmi/timetables/timetable_helper"] = {}
 
 timetable = require ".res.scripts.celmi.timetables.timetable" 
---timetableHelper = require ".res.scripts.celmi.timetables.timetable_helper"
 
+local timetableTests = {}
 
-tests = {}
-
-tests[#tests + 1] = function()
+timetableTests[#timetableTests + 1] = function()
     x = { testfield = 0 }
     timetable.setTimetableObject(x)
     y = timetable.getTimetableObject()
     assert(x.testfield == y.testfield, "Error while setting and retriving the same object from the timetable")
 end
 
-tests[#tests + 1] = function()
+timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
     x = timetable.getDifference(0,0) 
     assert(x == 0, "Difference between same time should be 0")
@@ -29,7 +27,7 @@ tests[#tests + 1] = function()
     assert(x == 30, "Difference between 2 times should be 30")
 end
 
-tests[#tests + 1] = function()
+timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
     x = timetable.getNextConstraint({{30,0,59,0},{9,0,59,0} },1200000)
     assert(x[1] == 30 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the closest time constraint")
@@ -44,7 +42,7 @@ tests[#tests + 1] = function()
 end
 
 
-tests[#tests + 1] = function()
+timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
     x = timetable.beforeDepature({0,0,30,0},1200)
     assert(x, "should be defore departure")
@@ -63,7 +61,7 @@ end
 
 return {
     test = function()
-        for k,v in pairs(tests) do
+        for k,v in pairs(timetableTests) do
             print("Running test: " .. tostring(k))
             v()
         end
