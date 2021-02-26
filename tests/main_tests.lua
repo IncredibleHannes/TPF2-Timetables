@@ -1,1 +1,4 @@
-print "Hello World4"
+timetableTests = require "tests.timetable_tests"
+
+
+timetableTests.test()
