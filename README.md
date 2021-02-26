@@ -3,7 +3,7 @@
 The project is split into 3 parts, represented by 3 different script files.
 ### Timetable Logic
 All the timetable logic is implemented in ```/res/scripts/celmi/timetables/timetable.lua```
-The timetable is stored in a giant LUA table. See wiki for further documentation.
+The timetable is stored in a giant LUA table. See wiki for further documentation. [Link](https://github.com/IncredibleHannes/TPF2-Timetables/wiki/Timetable-object)   
 The timetable module provides all necessary methods to alter the timetable and to request its information.
 It is read-only to the engine thread and read/write to the GUI thread.
 ### UI Logic
