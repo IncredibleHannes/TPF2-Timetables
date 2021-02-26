@@ -1,3 +1,4 @@
+[![CI](https://github.com/IncredibleHannes/TPF2-Timetables/actions/workflows/blank.yml/badge.svg)](https://github.com/IncredibleHannes/TPF2-Timetables/actions/workflows/blank.yml)
 # TPF2-Timetables
 ## Project setup
 The project is split into 3 parts, represented by 3 different script files.
