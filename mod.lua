@@ -7,7 +7,7 @@ function data()
 			severityAdd = "NONE",
 			severityRemove = "WARNING",
 			params = { },
-			tags = { "Script", "Timetable", "Fahrplan", "Timetables", "Fahrpläne" },
+			tags = { "Script Mod","Script", "Timetable", "Fahrplan", "Timetables", "Fahrpläne" },
 			authors = { -- OPTIONAL one or multiple authors
 				{
 					name = "Celmi", -- author name
