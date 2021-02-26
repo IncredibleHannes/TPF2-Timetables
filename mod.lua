@@ -1,11 +1,21 @@
 function data()
 	return {
 		info = {
+			description = _("This mod adds timetables to the game!"),
+			name = _("Timetables"),
 			minorVersion = 0,
 			severityAdd = "NONE",
-			severityRemove = "NONE",
-			name = _("Timetables [BETA]"),
-			description = "This is a BETA version for the upcoming timetable mod.\nThe release for this mod is planned for Friday 26.02.21.\nWARNING: This workshop item is expected to be deleted before the final release!\n",
+			severityRemove = "WARNING",
+			params = { },
+			tags = { "Script", "Timetable", "Fahrplan", "Timetables", "Fahrpläne" },
+			authors = { -- OPTIONAL one or multiple authors
+				{
+					name = "Celmi", -- author name
+					role = "CREATOR", -- OPTIONAL "CREATOR", "CO_CREATOR", "TESTER" or "BASED_ON" or "OTHER"
+					tfnetId = "" -- OPTIONAL train-fever-net author id
+				}
+			},
 		},
- }
-end
+	}
+	end
+	
