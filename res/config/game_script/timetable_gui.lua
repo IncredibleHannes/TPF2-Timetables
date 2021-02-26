@@ -477,7 +477,6 @@ function fillStationTable(index, bool)
 
     menu.stationTable:onSelect(function (index)
         if not (index == -1) then 
-            debugPrint(timetable.getTimetableObject())
             UIState.currentlySelectedStationIndex = index 
             initConstraintTable()
             fillConstraintTable(index,lineID,index) 
@@ -689,7 +688,6 @@ end
 function makeDebounceWindow(lineID, stationID) 
     if not menu.constraintTable then return end 
     local condition2 = timetable.getConditions(lineID,stationID, "debounce")
-    debugPrint(condition2)
 
     local debounceTable = api.gui.comp.Table.new(4, 'NONE')
     debounceTable:setColWidth(0,150)
