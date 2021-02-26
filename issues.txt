@@ -5,6 +5,10 @@
 missing fratures
 - localisation
 
+- stopping in station dosent work anymoe
+
+- wired chrash wen removing timetable slots
+
 
 UI Improvements
 - set number imput field size fixed so it wont change
