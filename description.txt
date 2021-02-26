@@ -1,0 +1,23 @@
+[h1]Timetables[/h1]
+I can proudly present my newest Project: Timetables!
+This mod adds timetables to the game.
+Timetables can be configured for each line and each station individually. There are two types of timetable constraints that can be added to a station:
+[list]
+[*] [b] Arrival/Departure[/b]: You can add arrival/departure timeslots. The train chooses the closest arrival time slot when entering the station, and then wait until the departure time. 
+[*] [b] Unbunch[/b]: You can set the frequency and the mod will enforce that the trains will depart this station with the given frequency. 
+[/list]
+Trains will depart right away when they are late without interference from the mod. The timetable mod uses the game the stop command and can therefore only enforce longer waiting times. It won't make trains drive faster or load/unload quicker.
+
+Timetables are only working when the checkbox on the line overview is ticked.
+
+[h2]Contribute[/h2]
+The source code of the timetable mod is available on GitHub. Any contributions are very welcome!
+[url=https://github.com/IncredibleHannes/TPF2-Timetables][img]https://raw.githubusercontent.com/IncredibleHannes/TPF2-Timetables/develop/github_button.png[/img][/url]
+
+
+[h2]Reporting bugs/Submitting feature requests[/h2]
+My prefered method and therefore the most likely method to get my attention will be through GitHub issues.
+
+
+If you like my mods, a donation would be greatly appreciated:
+[url=https://www.paypal.com/donate?hosted_button_id=NZWEU467XUWJ6][img]https://i.imgur.com/GpY6AzF.png[/img][/url]
