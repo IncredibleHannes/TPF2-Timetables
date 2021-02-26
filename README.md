@@ -21,3 +21,10 @@ For every release to the workshop, a pull request into the master branch is crea
 ## Reporting bugs/Submitting feature request
 Please use the issue feature to submit feedback/feature requests/bug reports.
 When reporting a bug, please detail all the steps that are nectary to recreate this bug! Also please append your stdout.txt file whenever possible.
+
+
+If you like this mod, a donation would be greatly appreciated:
+
+[![img](https://i.imgur.com/GpY6AzF.png)](https://www.paypal.com/donate?hosted_button_id=NZWEU467XUWJ6)
+
+
