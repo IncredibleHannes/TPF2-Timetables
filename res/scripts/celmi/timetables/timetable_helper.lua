@@ -56,8 +56,8 @@ end
 function timetableHelper.conditionToString(cond, type)
     if not (cond and type) then return "" end
     if type =="ArrDep" then
-        arr = "Arr "
-        dep = "Dep "
+        arr = _("arr_i18n") .. " "
+        dep = _("dep_i18n") .. " "
         for k,v in pairs(cond) do
             arr = arr .. string.format("%02d", v[1]) .. ":" .. string.format("%02d", v[2])  .. "|"
             dep = dep .. string.format("%02d", v[3]) .. ":" .. string.format("%02d", v[4])  .. "|"
@@ -67,7 +67,7 @@ function timetableHelper.conditionToString(cond, type)
     elseif type == "debounce" then
         if not cond[1] then cond[1] = 0 end
         if not cond[2] then cond[2] = 0 end
-        return "Unbunch Time: " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2]) 
+        return _("unbunch_time_i18n") .. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
     
     else
         return type
@@ -138,9 +138,9 @@ function timetableHelper.getFrequency(lineID)
         if line.frequency == 0 then return "--" end
         local x = 1 / line.frequency
         if x > 60 then
-            return tostring(math.floor(x/60)) .. " min"
+            return tostring(math.floor(x/60)) .. " " .. _("min_i18n")
         else
-            return tostring(math.floor(x/60)) .. " sec"
+            return tostring(math.floor(x/60)) .. " " .. _("sec_i18n")
         end
     else
         return "--"

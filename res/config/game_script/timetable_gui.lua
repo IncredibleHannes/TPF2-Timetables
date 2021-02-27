@@ -181,7 +181,7 @@ function showLineMenu()
     menu.tabWidget = api.gui.comp.TabWidget.new("NORTH")
     local wrapper = api.gui.comp.Component.new("wrapper")
     wrapper:setLayout(UIState.boxlayout2 )
-    menu.tabWidget:addTab(api.gui.comp.TextView.new('Lines'), wrapper)
+    menu.tabWidget:addTab(api.gui.comp.TextView.new(_("lines_i18n")), wrapper)
 
 
     -- seting up station Tab
@@ -193,7 +193,8 @@ function showLineMenu()
     initStationTab()
     local wrapper2 = api.gui.comp.Component.new("wrapper2")
     wrapper2:setLayout(UIState.floatingLayoutStationTab)
-    menu.tabWidget:addTab(api.gui.comp.TextView.new('Stations'),wrapper2)
+    -- stations = _('stations_i18n') -- also this does not work
+    menu.tabWidget:addTab(api.gui.comp.TextView.new(_("stations_i18n") .. ""),wrapper2)
 
     menu.tabWidget:onCurrentChanged(function(i)
         if i == 1 then
@@ -203,7 +204,7 @@ function showLineMenu()
 
     
     -- create final window
-    menu.window = api.gui.comp.Window.new('Timetables',  menu.tabWidget)
+    menu.window = api.gui.comp.Window.new(_('timetables_i18n'),  menu.tabWidget)
     menu.window:addHideOnCloseHandler()
     menu.window:setMovable(true)
     menu.window:setPinButtonVisible(true)
@@ -225,7 +226,7 @@ function fillLineTable()
     if not (menu.lineHeader == nil) then menu.lineHeader:deleteRows(0,menu.lineHeader:getNumRows()) end
 
     menu.lineHeader = api.gui.comp.Table.new(6, 'None')
-    local sortAll   = api.gui.comp.ToggleButton.new(api.gui.comp.TextView.new('All'))    
+    local sortAll   = api.gui.comp.ToggleButton.new(api.gui.comp.TextView.new(_("all_i18n")))
     local sortBus   = api.gui.comp.ToggleButton.new(api.gui.comp.ImageView.new("ui/icons/game-menu/hud_filter_road_vehicles.tga"))
     local sortTram  = api.gui.comp.ToggleButton.new(api.gui.comp.ImageView.new("ui/TimetableTramIcon.tga"))
     local sortRail  = api.gui.comp.ToggleButton.new(api.gui.comp.ImageView.new("ui/icons/game-menu/hud_filter_trains.tga"))
@@ -387,7 +388,7 @@ function fillStationTable(index, bool)
     local lineID = timetableHelper.getAllRailLines()[index+1].id
     
 
-    local header1 = api.gui.comp.TextView.new("Frequency: " .. timetableHelper.getFrequency(lineID))
+    local header1 = api.gui.comp.TextView.new(_("frequency_i18n") .. " " .. timetableHelper.getFrequency(lineID))
     local header2 = api.gui.comp.TextView.new("")
     local header3 = api.gui.comp.TextView.new("")
     local header4 = api.gui.comp.TextView.new("")
@@ -451,7 +452,7 @@ function fillStationTable(index, bool)
         local stationName = api.gui.comp.TextView.new(station.name)
         stationName:setName("stationName")
         if (stationLegTime and stationLegTime[k]) then 
-            jurneyTime = api.gui.comp.TextView.new("Journey Time: " .. os.date('%M:%S', stationLegTime[k]))
+            jurneyTime = api.gui.comp.TextView.new(_("journey_time_i18n") .. ": " .. os.date('%M:%S', stationLegTime[k]))
         else 
             jurneyTime = api.gui.comp.TextView.new("")
         end
@@ -516,8 +517,8 @@ function fillConstraintTable(index,lineID, lineNumber)
 
     -- combobox setup
     local comboBox = api.gui.comp.ComboBox.new()
-    comboBox:addItem("No Timetable")
-    comboBox:addItem("Arrival/Departure")
+    comboBox:addItem(_("no_timetable_i18n"))
+    comboBox:addItem(_("arr_dep_i18n"))
     --comboBox:addItem("Minimum Wait")
     comboBox:addItem("Unbunch")
     --comboBox:addItem("Every X minutes")
@@ -544,14 +545,7 @@ function fillConstraintTable(index,lineID, lineNumber)
     end)
 
     infoImage = api.gui.comp.ImageView.new("ui/info_small.tga")
-    infoImage:setTooltip(
-        "You can add timetable constraints to each station.\n" ..
-        "When a train arrives at the station it will try to \n" ..
-        "keep the constraints. The following constraints are awailabe: \n" ..
-        "  - Arrival/Departure: Set multiple Arr/Dep times and the train \n"..
-        "                                      chooses the closes arrival time\n" ..
-        "  - Unbunch: Set a time and vehicles will only depart the station in the given interval"
-    )
+    infoImage:setTooltip(_("tooltip_i18n"))
     infoImage:setName("timetable-info-icon")
 
     local table = api.gui.comp.Table.new(2, 'NONE')
@@ -567,7 +561,7 @@ function makeArrDepWindow(lineID, stationID)
     conditions = timetable.getConditions(lineID,stationID, "ArrDep")
 
     -- setup add button
-    local addButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("Add") ,true)
+    local addButton = api.gui.comp.Button.new(api.gui.comp.TextView.new( _("add_i18n") ) ,true)
     addButton:setGravity(1,0)
     addButton:onClick(function() 
         timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {{0,0,0,0}}})
@@ -583,7 +577,7 @@ function makeArrDepWindow(lineID, stationID)
     headerTable:setColWidth(1,78)
     headerTable:setColWidth(2,38)
     headerTable:setColWidth(3,50)
-    headerTable:addRow({api.gui.comp.TextView.new(""),api.gui.comp.TextView.new("min"),api.gui.comp.TextView.new("sec"),addButton})
+    headerTable:addRow({api.gui.comp.TextView.new(""),api.gui.comp.TextView.new(_("time_min_i18n")),api.gui.comp.TextView.new(_("time_sec_i18n")),addButton})
     menu.constraintTable:addRow({headerTable}) 
 
 
@@ -594,7 +588,7 @@ function makeArrDepWindow(lineID, stationID)
 
 
         linetable = api.gui.comp.Table.new(5, 'NONE')
-        arivalLabel =  api.gui.comp.TextView.new("Arrival:  ")
+        arivalLabel =  api.gui.comp.TextView.new(_("arrival_i18n") .. ":  ")
         arivalLabel:setMinimumSize(api.gui.util.Size.new(80, 30))
         arivalLabel:setMaximumSize(api.gui.util.Size.new(80, 30))
 
@@ -639,7 +633,7 @@ function makeArrDepWindow(lineID, stationID)
 
         
 
-        departureLabel =  api.gui.comp.TextView.new("Departure:  ")
+        departureLabel =  api.gui.comp.TextView.new(_("departure_i18n") .. ":  ")
         departureLabel:setMinimumSize(api.gui.util.Size.new(80, 30))
         departureLabel:setMaximumSize(api.gui.util.Size.new(80, 30))
         departureMin = api.gui.comp.DoubleSpinBox.new()
@@ -723,7 +717,7 @@ function makeDebounceWindow(lineID, stationID)
         debounceSec:setValue(condition2[2],false)
     end
 
-    debounceTable:addRow({api.gui.comp.TextView.new("Unbunch Time:"), debounceMin,api.gui.comp.TextView.new(":"), debounceSec})
+    debounceTable:addRow({api.gui.comp.TextView.new(_("unbunch_time_i18n") .. ":"), debounceMin,api.gui.comp.TextView.new(":"), debounceSec})
 
     menu.constraintTable:addRow({debounceTable})
 
