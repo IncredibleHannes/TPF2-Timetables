@@ -231,7 +231,7 @@ function timetableHelper.getAllTimetableRailVehicles()
     local res = {}
     local vehicleMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
     for k,v in pairs(vehicleMap) do
-        if timetable.hasTimetable(k)
+        if timetable.hasTimetable(k) then
             for k2,v2 in pairs(v) do
                 res[tostring(v2)] = k 
             end
