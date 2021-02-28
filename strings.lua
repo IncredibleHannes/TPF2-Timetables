@@ -36,9 +36,9 @@ function data()
 			["arr_i18n"] = "An",
 			["arrival_i18n"] = "Ankunft",
 			["dep_i18n"] = "Ab",
-			["departure_i18n"] = "Departure",
-			["unbunch_time_i18n"] = "Ungebündelte Zeit", --????;
-			["unbunch_i18n"] = "Umstieg", --????
+			["departure_i18n"] = "Abfahrt",
+			["unbunch_time_i18n"] = "Taktzeit", --????;
+			["unbunch_i18n"] = "Takt", --????
 			["timetable_i18n"] = "Fahrplan",
 			["timetables_i18n"] = "Fahrpläne",
 			["line_i18n"] = "Linie",
@@ -51,16 +51,248 @@ function data()
 			["arr_dep_i18n"] = "Ankunft/Abfahrt",
 			["no_timetable_i18n"] = "Kein Fahrplan",
 			["all_i18n"] = "Alle",
-			["add_i18n"] = "Hinzufügen",
+			["add_i18n"] = "+",
 			["none_i18n"] = "Keine",
 			["tooltip_i18n"] = (
      		    "Du kannst für jede Station Bedingungen setzen.\n" ..
-        		"WEnn ein Zug an einer Station ankommt, versucht er die \n" ..
-        		"Bedingungen einzuhalten. Folgende Bedinungen gibt es: \n" ..
-        		"  - Ankunft/Abfahrt: Seitze merhere Ank/Abf Zeiten und der Zug \n"..
-        		"                             wählt die naheste Ankunftszeit\n" ..
-        		"  - Unbunch: Setze eine Zeit, so dass der Zug die Station nur zu einem bestimmten Intervall verlässt"
+        		"Wenn ein Zug an einer Station ankommt, versucht er die \n" ..
+        		"Bedingungen einzuhalten. Folgende Bedingungen gibt es: \n" ..
+        		"  - Ankunft/Abfahrt: Setze mehrere Ank/Abf Zeiten und der Zug \n"..
+        		"                     wählt die naheste Ankunftszeit\n" ..
+        		"  - Takt: Setze eine Zeit, so dass der Zug die Station nur zu einem bestimmten Intervall verlässt"
     			),
-		}
+			},
+		
+--[[		
+		nl = {
+			["arr_i18n"] = "",
+			["arrival_i18n"] = "",
+			["dep_i18n"] = "",
+			["departure_i18n"] = "",
+			["unbunch_time_i18n"] = "",
+			["unbunch_i18n"] = "",
+			["timetable_i18n"] = "",
+			["timetables_i18n"] = "",
+			["line_i18n"] = "",
+			["lines_i18n"] = "",
+			["time_min_i18n"] = "",
+			["time_sec_i18n"] = "",
+			["stations_i18n"] = "",
+			["frequency_i18n"] = "",
+			["journey_time_i18n"] = "",
+			["arr_dep_i18n"] = "",
+			["no_timetable_i18n"] = "",
+			["all_i18n"] = "",
+			["add_i18n"] = "",
+			["none_i18n"] = "",
+			["tooltip_i18n"] = (
+     		    "\n" ..
+        		"\n" ..
+        		"\n" ..
+        		"\n"..
+        		"" ..
+        		""
+    			),
+			},
+--]]
+
+--[[		
+		es = {
+			["arr_i18n"] = "",
+			["arrival_i18n"] = "",
+			["dep_i18n"] = "",
+			["departure_i18n"] = "",
+			["unbunch_time_i18n"] = "",
+			["unbunch_i18n"] = "",
+			["timetable_i18n"] = "",
+			["timetables_i18n"] = "",
+			["line_i18n"] = "",
+			["lines_i18n"] = "",
+			["time_min_i18n"] = "",
+			["time_sec_i18n"] = "",
+			["stations_i18n"] = "",
+			["frequency_i18n"] = "",
+			["journey_time_i18n"] = "",
+			["arr_dep_i18n"] = "",
+			["no_timetable_i18n"] = "",
+			["all_i18n"] = "",
+			["add_i18n"] = "",
+			["none_i18n"] = "",
+			["tooltip_i18n"] = (
+     		    "\n" ..
+        		"\n" ..
+        		"\n" ..
+        		"\n"..
+        		"" ..
+        		""
+    			),
+			},
+--]]
+
+--[[		
+		fr = {
+			["arr_i18n"] = "",
+			["arrival_i18n"] = "",
+			["dep_i18n"] = "",
+			["departure_i18n"] = "",
+			["unbunch_time_i18n"] = "",
+			["unbunch_i18n"] = "",
+			["timetable_i18n"] = "",
+			["timetables_i18n"] = "",
+			["line_i18n"] = "",
+			["lines_i18n"] = "",
+			["time_min_i18n"] = "",
+			["time_sec_i18n"] = "",
+			["stations_i18n"] = "",
+			["frequency_i18n"] = "",
+			["journey_time_i18n"] = "",
+			["arr_dep_i18n"] = "",
+			["no_timetable_i18n"] = "",
+			["all_i18n"] = "",
+			["add_i18n"] = "",
+			["none_i18n"] = "",
+			["tooltip_i18n"] = (
+     		    "\n" ..
+        		"\n" ..
+        		"\n" ..
+        		"\n"..
+        		"" ..
+        		""
+    			),
+			},
+--]]
+
+--[[		
+		pl = {
+			["arr_i18n"] = "",
+			["arrival_i18n"] = "",
+			["dep_i18n"] = "",
+			["departure_i18n"] = "",
+			["unbunch_time_i18n"] = "",
+			["unbunch_i18n"] = "",
+			["timetable_i18n"] = "",
+			["timetables_i18n"] = "",
+			["line_i18n"] = "",
+			["lines_i18n"] = "",
+			["time_min_i18n"] = "",
+			["time_sec_i18n"] = "",
+			["stations_i18n"] = "",
+			["frequency_i18n"] = "",
+			["journey_time_i18n"] = "",
+			["arr_dep_i18n"] = "",
+			["no_timetable_i18n"] = "",
+			["all_i18n"] = "",
+			["add_i18n"] = "",
+			["none_i18n"] = "",
+			["tooltip_i18n"] = (
+     		    "\n" ..
+        		"\n" ..
+        		"\n" ..
+        		"\n"..
+        		"" ..
+        		""
+    			),
+			},
+--]]
+
+--[[		
+		jp = {
+			["arr_i18n"] = "",
+			["arrival_i18n"] = "",
+			["dep_i18n"] = "",
+			["departure_i18n"] = "",
+			["unbunch_time_i18n"] = "",
+			["unbunch_i18n"] = "",
+			["timetable_i18n"] = "",
+			["timetables_i18n"] = "",
+			["line_i18n"] = "",
+			["lines_i18n"] = "",
+			["time_min_i18n"] = "",
+			["time_sec_i18n"] = "",
+			["stations_i18n"] = "",
+			["frequency_i18n"] = "",
+			["journey_time_i18n"] = "",
+			["arr_dep_i18n"] = "",
+			["no_timetable_i18n"] = "",
+			["all_i18n"] = "",
+			["add_i18n"] = "",
+			["none_i18n"] = "",
+			["tooltip_i18n"] = (
+     		    "\n" ..
+        		"\n" ..
+        		"\n" ..
+        		"\n"..
+        		"" ..
+        		""
+    			),
+			},
+--]]
+
+--[[		
+		zh = {
+			["arr_i18n"] = "",
+			["arrival_i18n"] = "",
+			["dep_i18n"] = "",
+			["departure_i18n"] = "",
+			["unbunch_time_i18n"] = "",
+			["unbunch_i18n"] = "",
+			["timetable_i18n"] = "",
+			["timetables_i18n"] = "",
+			["line_i18n"] = "",
+			["lines_i18n"] = "",
+			["time_min_i18n"] = "",
+			["time_sec_i18n"] = "",
+			["stations_i18n"] = "",
+			["frequency_i18n"] = "",
+			["journey_time_i18n"] = "",
+			["arr_dep_i18n"] = "",
+			["no_timetable_i18n"] = "",
+			["all_i18n"] = "",
+			["add_i18n"] = "",
+			["none_i18n"] = "",
+			["tooltip_i18n"] = (
+     		    "\n" ..
+        		"\n" ..
+        		"\n" ..
+        		"\n"..
+        		"" ..
+        		""
+    			),
+			},
+--]]
+
+--[[		
+		cn = {
+			["arr_i18n"] = "",
+			["arrival_i18n"] = "",
+			["dep_i18n"] = "",
+			["departure_i18n"] = "",
+			["unbunch_time_i18n"] = "",
+			["unbunch_i18n"] = "",
+			["timetable_i18n"] = "",
+			["timetables_i18n"] = "",
+			["line_i18n"] = "",
+			["lines_i18n"] = "",
+			["time_min_i18n"] = "",
+			["time_sec_i18n"] = "",
+			["stations_i18n"] = "",
+			["frequency_i18n"] = "",
+			["journey_time_i18n"] = "",
+			["arr_dep_i18n"] = "",
+			["no_timetable_i18n"] = "",
+			["all_i18n"] = "",
+			["add_i18n"] = "",
+			["none_i18n"] = "",
+			["tooltip_i18n"] = (
+     		    "\n" ..
+        		"\n" ..
+        		"\n" ..
+        		"\n"..
+        		"" ..
+        		""
+    			),
+			},
+--]]
+
 	}
 	end
