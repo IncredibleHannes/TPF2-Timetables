@@ -242,7 +242,6 @@ function timetableHelper.getAllTimetableRailVehicles(hasTimetable)
 end
 
 function timetableHelper.isInStation(vehicle)
-    if not(type(vehicle) == "string") then print("wrong type") return false end
     local v = api.engine.getComponent(tonumber(vehicle), 70)
     return v and v.state == 2
 end

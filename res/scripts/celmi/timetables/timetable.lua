@@ -285,6 +285,20 @@ function timetable.setHasTimetable(line, bool)
     return bool
 end
 
+--- Start all vehicles of given line.
+---@param line table line id
+function timetable.startAllLineVehicles(line)
+    for _, vehicle in pairs(timetableHelper.getVehiclesOnLine(line)) do
+        if timetableHelper.isInStation(vehicle) then
+            local currentLine = tostring(timetableHelper.getCurrentLine(vehicle))
+            local currentStop = timetableHelper.getCurrentStation(vehicle)
+            if currentlyWaiting[currentLine] and currentlyWaiting[currentLine].stations[currentStop] then
+                currentlyWaiting[currentLine].stations[currentStop].currentlyWaiting = {}
+            end
+            timetableHelper.startVehicle(vehicle)
+        end
+    end
+end
 
 
 -------------- UTILS FUNCTIONS ----------

@@ -239,7 +239,7 @@ function fillLineTable()
         local lineColour = api.gui.comp.TextView.new("●")
         lineColour:setName("timetable-linecolour-" .. timetableHelper.getLineColour(v.id))
         lineColour:setStyleClassList({"timetable-linecolour"})
-        lineName = api.gui.comp.TextView.new(v.name)
+        local lineName = api.gui.comp.TextView.new(v.name)
         lineNames[k] = v.name
         lineName:setName("timetable-linename")
         local buttonImage = api.gui.comp.ImageView.new("ui/checkbox0.tga")
@@ -248,11 +248,13 @@ function fillLineTable()
         button:setStyleClassList({"timetable-avtivateTimetableButton"})
         button:setGravity(1,0.5)
         button:onClick(function()
-            imageVeiw = buttonImage
-            hasTimetable = timetable.hasTimetable(v.id)
+            local imageVeiw = buttonImage
+            local hasTimetable = timetable.hasTimetable(v.id)
             if  hasTimetable then
                 timetable.setHasTimetable(v.id,false)
                 imageVeiw:setImage("ui/checkbox0.tga", false)
+                -- start all stopped vehicles again if the timetable is disabled for this line
+                timetable.startAllLineVehicles(v.id)
             else
                 timetable.setHasTimetable(v.id,true)
                 imageVeiw:setImage("ui/checkbox1.tga", false)
