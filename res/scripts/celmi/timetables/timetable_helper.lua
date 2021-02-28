@@ -226,6 +226,20 @@ function timetableHelper.getAllRailVehicles()
     return res
 end
 
+-- returns [{vehicleID: lineID}]
+function timetableHelper.getAllTimetableRailVehicles()
+    local res = {}
+    local vehicleMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
+    for k,v in pairs(vehicleMap) do
+        if timetable.hasTimetable(k)
+            for k2,v2 in pairs(v) do
+                res[tostring(v2)] = k 
+            end
+        end
+    end
+    return res
+end
+
 function timetableHelper.isInStation(vehicle)
     if not(type(vehicle) == "string") then print("wrong type") return false end
     local v = api.engine.getComponent(tonumber(vehicle), 70)
