@@ -166,9 +166,12 @@ function showLineMenu()
         initLineTable()
         return menu.window:setVisible(true, true)  
     end
+    if not api.gui.util.getById('timetable.floatingLayout') then
+        local floatingLayout = api.gui.layout.FloatingLayout.new(0,1)
+        floatingLayout:setId("timetable.floatingLayout")
+    end
     -- new folting layout to arrange all members
-    local floatingLayout = api.gui.layout.FloatingLayout.new(0,1)
-    floatingLayout:setId("timetable.floatingLayout")
+
     
     UIState.boxlayout2 = api.gui.util.getById('timetable.floatingLayout')
     UIState.boxlayout2:setGravity(-1,-1)
@@ -184,9 +187,11 @@ function showLineMenu()
     menu.tabWidget:addTab(api.gui.comp.TextView.new('Lines'), wrapper)
 
 
-    -- seting up station Tab
-    local floatingLayout = api.gui.layout.FloatingLayout.new(0,1)
-    floatingLayout:setId("timetable.floatingLayoutStationTab")
+    if not api.gui.util.getById('timetable.floatingLayoutStationTab') then
+        local floatingLayout = api.gui.layout.FloatingLayout.new(0,1)
+        floatingLayout:setId("timetable.floatingLayoutStationTab")
+    end
+
     UIState.floatingLayoutStationTab = api.gui.util.getById('timetable.floatingLayoutStationTab')
     UIState.floatingLayoutStationTab:setGravity(-1,-1)
 
