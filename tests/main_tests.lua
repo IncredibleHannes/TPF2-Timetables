@@ -1,5 +1,5 @@
-timetableTests = require "tests.timetable_tests"
-timetableHelperTests = require "tests.timetable_helper_tests"
+local timetableTests = require "tests.timetable_tests"
+local timetableHelperTests = require "tests.timetable_helper_tests"
 
 
 print("running timetable tests")
