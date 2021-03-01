@@ -296,18 +296,22 @@ function timetable.beforeDepature(constraint, time)
     return not (timeMin == constraint[3] and timeSec >= constraint[4]) and not (timeMin - 1 == constraint[3]) and not (timeMin - 2 == constraint[3]) and not  (timeMin - 3 == constraint[3]) and not (timeMin - 4 == constraint[3]) and not (timeMin - 5 == constraint[3])
 end
 
---tests: timetable.getNextConstraint({{30,0,59,0},{9,0,59,0} },1200000)
+
+---Find the next valid constraint for given constraints and time
+---@param constraint table
+---@param time number
+---@return table
 function timetable.getNextConstraint(constraint, time)
-    res = {diff = 40000, value = nil}
-    timeMin = tonumber(os.date('%M', time))
-    timeSec = tonumber(os.date('%S', time))
-    for k,v in pairs(constraint) do
-        arrMin = v[1]
-        arrSec = v[2]
-        diffMin = timetable.getDifference(timeMin, arrMin)
-        diffSec = timetable.getDifference(timeSec, arrMin)
-        diff = (diffMin * 60) + diffSec
-        if(diff < res.diff) then
+    local res = {diff = 40000, value = nil}
+    local timeMin = tonumber(os.date('%M', time))
+    local timeSec = tonumber(os.date('%S', time))
+    for _, v in pairs(constraint) do
+        local arrMin = v[1]
+        local arrSec = v[2]
+        local diffMin = timetable.getDifference(timeMin, arrMin)
+        local diffSec = timetable.getDifference(timeSec, arrSec)
+        local diff = (diffMin * 60) + diffSec
+        if (diff < res.diff) then
             res = {diff = diff, value = v}
         end
     end
@@ -316,11 +320,16 @@ function timetable.getNextConstraint(constraint, time)
 end
 
 -- returns a value between 0 and 30
-function timetable.getDifference(a,b) 
-    if math.abs(a - b) < 30 then
-        return math.abs(a - b)
-    else 
-        return 60 - math.abs(a - b)
+---comment
+---@param a number
+---@param b number
+---@return number
+function timetable.getDifference(a, b)
+    local absDiff = math.abs(a - b)
+    if absDiff < 30 then
+        return absDiff
+    else
+        return 60 - absDiff
     end
 end
 
