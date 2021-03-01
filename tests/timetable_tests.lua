@@ -1,35 +1,35 @@
 package.loaded["celmi/timetables/timetable_helper"] = {}
 
-timetable = require ".res.scripts.celmi.timetables.timetable" 
+local timetable = require ".res.scripts.celmi.timetables.timetable"
 
 local timetableTests = {}
 
 timetableTests[#timetableTests + 1] = function()
-    x = { testfield = 0 }
+    local x = { testfield = 0 }
     timetable.setTimetableObject(x)
-    y = timetable.getTimetableObject()
+    local y = timetable.getTimetableObject()
     assert(x.testfield == y.testfield, "Error while setting and retriving the same object from the timetable")
 end
 
 timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
-    x = timetable.getDifference(0,0) 
+    local x = timetable.getDifference(0,0)
     assert(x == 0, "Difference between same time should be 0")
-    x = timetable.getDifference(5,5) 
+    x = timetable.getDifference(5,5)
     assert(x == 0, "Difference between same time should be 0")
-    x = timetable.getDifference(10,5) 
+    x = timetable.getDifference(10,5)
     assert(x == 5, "Difference between 2 times should be 5")
-    x = timetable.getDifference(0,5) 
+    x = timetable.getDifference(0,5)
     assert(x == 5, "Difference between 2 times should be 5")
-    x = timetable.getDifference(55,5) 
+    x = timetable.getDifference(55,5)
     assert(x == 10, "Difference between 2 times should be 10")
-    x = timetable.getDifference(10,40) 
+    x = timetable.getDifference(10,40)
     assert(x == 30, "Difference between 2 times should be 30")
 end
 
 timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
-    x = timetable.getNextConstraint({{30,0,59,0},{9,0,59,0} },1200000)
+    local x = timetable.getNextConstraint({{30,0,59,0},{9,0,59,0} },1200000)
     assert(x[1] == 30 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the closest time constraint")
     x = timetable.getNextConstraint({{30,0,59,0},{11,0,59,0} },1200000)
     assert(x[1] == 11 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the closest time constraint")
@@ -44,7 +44,7 @@ end
 
 timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
-    x = timetable.beforeDepature({0,0,30,0},1200)
+    local x = timetable.beforeDepature({0,0,30,0},1200)
     assert(x, "should be defore departure")
     x = timetable.beforeDepature({0,0,21,0},1200)
     assert(x, "should be defore departure")
