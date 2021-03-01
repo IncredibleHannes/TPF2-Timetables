@@ -275,6 +275,8 @@ function timetableGUI.fillLineTable()
             if  hasTimetable then
                 timetable.setHasTimetable(v.id,false)
                 imageVeiw:setImage("ui/checkbox0.tga", false)
+                -- start all stopped vehicles again if the timetable is disabled for this line
+                timetable.startAllLineVehicles(v.id)
             else
                 timetable.setHasTimetable(v.id,true)
                 imageVeiw:setImage("ui/checkbox1.tga", false)
@@ -742,11 +744,13 @@ end
 --------------------- OTHER ---------------------------------
 -------------------------------------------------------------
 
+
 function timetableGUI.timetableCoroutine()
     while true do
-        for vehicle,line in pairs(timetableHelper.getAllRailVehicles()) do
+        local vehiclesWithLines = timetableHelper.getAllTimetableRailVehicles(timetable.hasTimetable)
+        for vehicle,_ in pairs(vehiclesWithLines) do
             if timetableHelper.isInStation(vehicle) then
-                if timetable.hasTimetable(line) and timetable.waitingRequired(vehicle) then
+                if timetable.waitingRequired(vehicle) then
                     timetableHelper.stopVehicle(vehicle)
                 else
                     timetableHelper.startVehicle(vehicle)

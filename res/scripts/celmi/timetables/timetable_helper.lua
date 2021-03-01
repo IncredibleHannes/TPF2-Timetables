@@ -128,7 +128,7 @@ function timetableHelper.getTimeUntilDeparture(vehicle)
     if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
     if not(type(vehicle) == "number") then print("Expected String or Number") return -1 end
 
-    local v = api.engine.getComponent(vehicle, 70).timeUntilCloseDoors
+    local v = api.engine.getComponent(vehicle, 70)
     if v and v.timeUntilCloseDoors then return v.timeUntilCloseDoors else return -1 end
 end
 
@@ -347,6 +347,22 @@ function timetableHelper.mergeArray(a,b)
     return ab
 end
 
+---@param hasTimetable function lineId -> boolean
+-- returns [{vehicleID: lineID}]
+function timetableHelper.getAllTimetableRailVehicles(hasTimetable)
+    local res = {}
+    local vehicleMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
+    for k,v in pairs(vehicleMap) do
+        if (hasTimetable(k)) then
+            for _,v2 in pairs(v) do
+                res[tostring(v2)] = k
+            end
+        end
+    end
+    return res
+end
+
+
 -- returns Number, current GameTime in seconds
 function timetableHelper.getTime()
     local time = math.floor(api.engine.getComponent(0,16).gameTime/ 1000)
@@ -378,6 +394,7 @@ function timetableHelper.maximumArray(arr)
     return max
 end
 
+
 -------------------------------------------------------------
 ---------------------- Other --------------------------------
 -------------------------------------------------------------
@@ -399,7 +416,7 @@ function timetableHelper.conditionToString(cond, type)
     elseif type == "debounce" then
         if not cond[1] then cond[1] = 0 end
         if not cond[2] then cond[2] = 0 end
-        return "Unbunch Time: " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
+        return _("unbunch_time_i18n").. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
     else
         return type
     end
@@ -427,6 +444,7 @@ function timetableHelper.constraintStringToInt(i)
     --elseif i == "moreFancey" then return 4
     else return 0
     end
+
 end
 
 
