@@ -199,77 +199,78 @@ function timetable.waitingRequired(vehicle)
     local time = timetableHelper.getTime()
     local currentLine = timetableHelper.getCurrentLine(vehicle)
     local currentStop = timetableHelper.getCurrentStation(vehicle)
-    if not timetableObject[tostring(currentLine)] then return false end
-    if not timetableObject[tostring(currentLine)].stations[currentStop] then return false end
-    if not timetableObject[tostring(currentLine)].stations[currentStop].conditions then return false end
-    if not timetableObject[tostring(currentLine)].stations[currentStop].conditions.type then return false end
+    local currentLineString = tostring(currentLine)
+    if not timetableObject[currentLineString] then return false end
+    if not timetableObject[currentLineString].stations[currentStop] then return false end
+    if not timetableObject[currentLineString].stations[currentStop].conditions then return false end
+    if not timetableObject[currentLineString].stations[currentStop].conditions.type then return false end
 
     if timetableHelper.getTimeUntilDeparture(vehicle) >= 2 then return false end
 
-    if not currentlyWaiting[tostring(currentLine)] then currentlyWaiting[tostring(currentLine)] = {stations = {}} end
-    if not currentlyWaiting[tostring(currentLine)].stations[currentStop] then currentlyWaiting[tostring(currentLine)].stations[currentStop] = { currentlyWaiting = {}} end
-    if timetableObject[tostring(currentLine)].stations[currentStop].conditions.type == "ArrDep" then 
+    if not currentlyWaiting[currentLineString] then currentlyWaiting[currentLineString] = {stations = {}} end
+    if not currentlyWaiting[currentLineString].stations[currentStop] then currentlyWaiting[currentLineString].stations[currentStop] = { currentlyWaiting = {}} end
+    if timetableObject[currentLineString].stations[currentStop].conditions.type == "ArrDep" then 
         -- am I currently waiting or just arrived?
         
-        if not (currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle]) then
+        if not (currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle]) then
             -- check if is about to depart
 
-            if currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime and (currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime + 40) > time then
+            if currentlyWaiting[currentLineString].stations[currentStop].outboundTime and (currentlyWaiting[currentLineString].stations[currentStop].outboundTime + 40) > time then
                 return false
             end
 
             -- just arrived
-            local nextConstraint = timetable.getNextConstraint(timetableObject[tostring(currentLine)].stations[currentStop].conditions.ArrDep, time)
+            local nextConstraint = timetable.getNextConstraint(timetableObject[currentLineString].stations[currentStop].conditions.ArrDep, time)
             if not nextConstraint then 
                 -- no constraints set
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
                 return false 
             end
             if timetable.beforeDepature(nextConstraint, time) then
                 -- Constraint set and I need to wait
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle] = {type = "ArrDep", arrivalTime = time,  constraint = nextConstraint}
+                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle] = {type = "ArrDep", arrivalTime = time,  constraint = nextConstraint}
                 return true
             else
                 -- Constraint set and its time to depart
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime = time
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+                currentlyWaiting[currentLineString].stations[currentStop].outboundTime = time
+                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
                 return false
             end
         else
             -- already waiting
-            local arivvalTime = currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle].arrivalTime
-            local constraint = timetable.getNextConstraint(timetableObject[tostring(currentLine)].stations[currentStop].conditions.ArrDep, arivvalTime)
+            local arivvalTime = currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle].arrivalTime
+            local constraint = timetable.getNextConstraint(timetableObject[currentLineString].stations[currentStop].conditions.ArrDep, arivvalTime)
             if timetable.beforeDepature(constraint, time) then
                 -- need to continue waiting
                 return true
             else
                 -- done waiting
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime = time
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+                currentlyWaiting[currentLineString].stations[currentStop].outboundTime = time
+                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
                 return false
             end
         end
         -- edge cases, should not happen
-        currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime = time
-        currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+        currentlyWaiting[currentLineString].stations[currentStop].outboundTime = time
+        currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
         return false
 
     --------------------------------------------------------------------------------------------------------------------------------------
     --------------------------------------- DEBOUNCE ------------------------------------------------------------------------------------
     
-    elseif timetableObject[tostring(currentLine)].stations[currentStop].conditions.type == "debounce" then
+    elseif timetableObject[currentLineString].stations[currentStop].conditions.type == "debounce" then
         local previousDepartureTime = timetableHelper.getPreviousDepartureTime(tonumber(vehicle)) 
         condition = timetable.getConditions(currentLine, currentStop, "debounce")
         if not condition[1] then condition[1] = 0 end
         if not condition[2] then condition[2] = 0 end
         if time > previousDepartureTime + ((condition[1] * 60)  + condition[2]) then
-            currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+            currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
             return false
         else
             return true
         end
     else 
-        currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+        currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
         return false
     end
 end
@@ -284,6 +285,20 @@ function timetable.setHasTimetable(line, bool)
     return bool
 end
 
+--- Start all vehicles of given line.
+---@param line table line id
+function timetable.startAllLineVehicles(line)
+    for _, vehicle in pairs(timetableHelper.getVehiclesOnLine(line)) do
+        if timetableHelper.isInStation(vehicle) then
+            local currentLine = tostring(timetableHelper.getCurrentLine(vehicle))
+            local currentStop = timetableHelper.getCurrentStation(vehicle)
+            if currentlyWaiting[currentLine] and currentlyWaiting[currentLine].stations[currentStop] then
+                currentlyWaiting[currentLine].stations[currentStop].currentlyWaiting = {}
+            end
+            timetableHelper.startVehicle(vehicle)
+        end
+    end
+end
 
 
 -------------- UTILS FUNCTIONS ----------
