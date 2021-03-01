@@ -117,6 +117,7 @@ function timetableHelper.getPreviousDepartureTime(vehicle)
     local currentStopIndex = api.engine.getComponent(vehicle, 70).stopIndex
     for _,v in pairs(vehicleLineMap[line]) do
         departureTimes[#departureTimes + 1] = api.engine.getComponent(v, 70).lineStopDepartures[currentStopIndex + 1]
+
     end
     return (timetableHelper.maximumArray(departureTimes))/1000
 end
@@ -220,7 +221,6 @@ end
 function timetableHelper.getLegTimes(line)
     if type(line) == "string" then line = tonumber(line) end
     if not(type(line) == "number") then return "ERROR" end
-
     local vehicleLineMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
     if vehicleLineMap[line] == nil or vehicleLineMap[line][1] == nil then return {}end
     local vehicle = vehicleLineMap[line][1]
@@ -388,8 +388,8 @@ end
 function timetableHelper.conditionToString(cond, type)
     if (not cond) or (not type) then return "" end
     if type =="ArrDep" then
-        local arr = "Arr "
-        local dep = "Dep "
+        local arr = _("arr_i18n")
+        local dep = _("dep_i18n")
         for _,v in pairs(cond) do
             arr = arr .. string.format("%02d", v[1]) .. ":" .. string.format("%02d", v[2])  .. "|"
             dep = dep .. string.format("%02d", v[3]) .. ":" .. string.format("%02d", v[4])  .. "|"

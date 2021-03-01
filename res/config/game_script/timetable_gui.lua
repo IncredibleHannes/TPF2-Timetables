@@ -18,6 +18,30 @@ local UIState = {
 local co = nil
 local state = nil
 
+local UIStrings = {
+        arr	= _("arr_i18n"),
+		arrival	= _("arrival_i18n"),
+		dep	= _("dep_i18n"),
+		departure = _("departure_i18n"),
+		unbunch_time = _("unbunch_time_i18n"),
+		unbunch	= _("unbunch_i18n"),
+		timetable = _("timetable_i18n"),
+		timetables = _("timetables_i18n"),
+		line = _("line_i18n"),
+		lines = _("lines_i18n"),
+		min	= _("time_min_i18n"),
+		sec	= _("time_sec_i18n"),
+		stations = _("stations_i18n"),
+		frequency = _("frequency_i18n"),
+		journey_time = _("journey_time_i18n"),
+		arr_dep	= _("arr_dep_i18n"),
+		no_timetable = _("no_timetable_i18n"),
+		all	= _("all_i18n"),
+		add	= _("add_i18n"),
+		none = _("none_i18n"),
+		tooltip	= _("tooltip_i18n")
+}
+
 -------------------------------------------------------------
 ---------------------- stationTab ---------------------------
 -------------------------------------------------------------
@@ -178,7 +202,7 @@ function timetableGUI.showLineMenu()
     menu.tabWidget = api.gui.comp.TabWidget.new("NORTH")
     local wrapper = api.gui.comp.Component.new("wrapper")
     wrapper:setLayout(UIState.boxlayout2 )
-    menu.tabWidget:addTab(api.gui.comp.TextView.new('Lines'), wrapper)
+    menu.tabWidget:addTab(api.gui.comp.TextView.new(UIStrings.lines), wrapper)
 
 
     if not api.gui.util.getById('timetable.floatingLayoutStationTab') then
@@ -192,7 +216,7 @@ function timetableGUI.showLineMenu()
     timetableGUI.initStationTab()
     local wrapper2 = api.gui.comp.Component.new("wrapper2")
     wrapper2:setLayout(UIState.floatingLayoutStationTab)
-    menu.tabWidget:addTab(api.gui.comp.TextView.new('Stations'),wrapper2)
+    menu.tabWidget:addTab(api.gui.comp.TextView.new(UIStrings.stations),wrapper2)
 
     menu.tabWidget:onCurrentChanged(function(i)
         if i == 1 then
@@ -201,7 +225,7 @@ function timetableGUI.showLineMenu()
     end)
 
     -- create final window
-    menu.window = api.gui.comp.Window.new('Timetables',  menu.tabWidget)
+    menu.window = api.gui.comp.Window.new(UIStrings.timetables, menu.tabWidget)
     menu.window:addHideOnCloseHandler()
     menu.window:setMovable(true)
     menu.window:setPinButtonVisible(true)
@@ -223,7 +247,7 @@ function timetableGUI.fillLineTable()
     if not (menu.lineHeader == nil) then menu.lineHeader:deleteRows(0,menu.lineHeader:getNumRows()) end
 
     menu.lineHeader = api.gui.comp.Table.new(6, 'None')
-    local sortAll   = api.gui.comp.ToggleButton.new(api.gui.comp.TextView.new('All'))
+    local sortAll   = api.gui.comp.ToggleButton.new(api.gui.comp.TextView.new(UIStrings.all))
     local sortBus   = api.gui.comp.ToggleButton.new(api.gui.comp.ImageView.new("ui/icons/game-menu/hud_filter_road_vehicles.tga"))
     local sortTram  = api.gui.comp.ToggleButton.new(api.gui.comp.ImageView.new("ui/TimetableTramIcon.tga"))
     local sortRail  = api.gui.comp.ToggleButton.new(api.gui.comp.ImageView.new("ui/icons/game-menu/hud_filter_trains.tga"))
@@ -385,7 +409,7 @@ function timetableGUI.fillStationTable(index, bool)
     local lineID = timetableHelper.getAllRailLines()[index+1].id
 
 
-    local header1 = api.gui.comp.TextView.new("Frequency: " .. timetableHelper.getFrequency(lineID))
+    local header1 = api.gui.comp.TextView.new(UIStrings.frequency .. " " .. timetableHelper.getFrequency(lineID))
     local header2 = api.gui.comp.TextView.new("")
     local header3 = api.gui.comp.TextView.new("")
     local header4 = api.gui.comp.TextView.new("")
@@ -447,9 +471,10 @@ function timetableGUI.fillStationTable(index, bool)
 
         local stationName = api.gui.comp.TextView.new(station.name)
         stationName:setName("stationName")
+
         local jurneyTime
         if (stationLegTime and stationLegTime[k]) then
-            jurneyTime = api.gui.comp.TextView.new("Journey Time: " .. os.date('%M:%S', stationLegTime[k]))
+            jurneyTime = api.gui.comp.TextView.new(UIStrings.journey_time .. ": " .. os.date('%M:%S', stationLegTime[k]))
         else
             jurneyTime = api.gui.comp.TextView.new("")
         end
@@ -512,10 +537,10 @@ function timetableGUI.fillConstraintTable(index,lineID)
 
     -- combobox setup
     local comboBox = api.gui.comp.ComboBox.new()
-    comboBox:addItem("No Timetable")
-    comboBox:addItem("Arrival/Departure")
+    comboBox:addItem(UIStrings.no_timetable)
+    comboBox:addItem(UIStrings.arr_dep)
     --comboBox:addItem("Minimum Wait")
-    comboBox:addItem("Unbunch")
+    comboBox:addItem(UIStrings.unbunch)
     --comboBox:addItem("Every X minutes")
     comboBox:setGravity(1,0)
 
@@ -537,15 +562,9 @@ function timetableGUI.fillConstraintTable(index,lineID)
         end
     end)
 
+
     local infoImage = api.gui.comp.ImageView.new("ui/info_small.tga")
-    infoImage:setTooltip(
-        "You can add timetable constraints to each station.\n" ..
-        "When a train arrives at the station it will try to \n" ..
-        "keep the constraints. The following constraints are awailabe: \n" ..
-        "  - Arrival/Departure: Set multiple Arr/Dep times and the train \n"..
-        "                                      chooses the closes arrival time\n" ..
-        "  - Unbunch: Set a time and vehicles will only depart the station in the given interval"
-    )
+    infoImage:setTooltip(UIStrings.tooltip)
     infoImage:setName("timetable-info-icon")
 
     local table = api.gui.comp.Table.new(2, 'NONE')
@@ -560,7 +579,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     local conditions = timetable.getConditions(lineID,stationID, "ArrDep")
 
     -- setup add button
-    local addButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("Add") ,true)
+    local addButton = api.gui.comp.Button.new(api.gui.comp.TextView.new(UIStrings.add), true)
     addButton:setGravity(1,0)
     addButton:onClick(function()
         timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {{0,0,0,0}}})
@@ -574,9 +593,9 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     local headerTable = api.gui.comp.Table.new(4, 'NONE')
     headerTable:setColWidth(0,125)
     headerTable:setColWidth(1,78)
-    headerTable:setColWidth(2,38)
+    headerTable:setColWidth(2,50)
     headerTable:setColWidth(3,50)
-    headerTable:addRow({api.gui.comp.TextView.new(""),api.gui.comp.TextView.new("min"),api.gui.comp.TextView.new("sec"),addButton})
+    headerTable:addRow({api.gui.comp.TextView.new(""),api.gui.comp.TextView.new(UIStrings.min),api.gui.comp.TextView.new(UIStrings.sec),addButton})
     menu.constraintTable:addRow({headerTable})
 
 
@@ -586,7 +605,8 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
 
 
         local linetable = api.gui.comp.Table.new(5, 'NONE')
-        local arivalLabel =  api.gui.comp.TextView.new("Arrival:  ")
+        local arivalLabel =  api.gui.comp.TextView.new(UIStrings.arrival .. ":  ")
+
         arivalLabel:setMinimumSize(api.gui.util.Size.new(80, 30))
         arivalLabel:setMaximumSize(api.gui.util.Size.new(80, 30))
 
@@ -629,9 +649,8 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         })
         menu.constraintTable:addRow({linetable})
 
+        local departureLabel =  api.gui.comp.TextView.new(UIStrings.departure .. ":  ")
 
-
-        local departureLabel =  api.gui.comp.TextView.new("Departure:  ")
         departureLabel:setMinimumSize(api.gui.util.Size.new(80, 30))
         departureLabel:setMaximumSize(api.gui.util.Size.new(80, 30))
         local departureMin = api.gui.comp.DoubleSpinBox.new()
@@ -713,7 +732,7 @@ function timetableGUI.makeDebounceWindow(lineID, stationID)
         debounceSec:setValue(condition2[2],false)
     end
 
-    debounceTable:addRow({api.gui.comp.TextView.new("Unbunch Time:"), debounceMin,api.gui.comp.TextView.new(":"), debounceSec})
+    debounceTable:addRow({api.gui.comp.TextView.new(UIStrings.unbunch_time .. ":"), debounceMin,api.gui.comp.TextView.new(":"), debounceSec})
 
     menu.constraintTable:addRow({debounceTable})
 
@@ -791,8 +810,8 @@ function data()
                 -- element for the time
 				clockstate = api.gui.comp.TextView.new("gameInfo.time.label")
 
+                local buttonLabel = gui.textView_create("gameInfo.timetables.label", UIStrings.timetable)
 
-                local buttonLabel = gui.textView_create("gameInfo.timetables.label", "Timetable")
                 local button = gui.button_create("gameInfo.timetables.button", buttonLabel)
                 button:onClick(function ()
                     local err, msg = pcall(timetableGUI.showLineMenu)
