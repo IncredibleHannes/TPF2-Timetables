@@ -345,17 +345,26 @@ function timetable.getNextConstraint(constraint, time)
         local arrSec = v[2]
         local arrTime = arrMin * 60 + arrSec
 
-        local diff = math.abs(arrTime - time)
-        if diff > 1800 then
-            diff = 3600 - diff
-        end
-
+        local diff = timetable.getDifference(arrTime - time)
         if (diff < res.diff) then
             res = {diff = diff, value = v}
         end
     end
 
     return res.value
+end
+
+---comment
+---@param a number
+---@param b number
+---@return number
+function timetable.getDifference(a, b)
+    local absDiff = math.abs(a - b)
+    if absDiff > 1800 then
+        return 3600 - absDiff
+    else
+        return absDiff
+    end
 end
 
 
