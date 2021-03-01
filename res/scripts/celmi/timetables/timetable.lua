@@ -340,15 +340,16 @@ end
 ---@return table
 function timetable.getNextConstraint(constraint, time)
     local res = {diff = 40000, value = nil}
-    local timeMin = tonumber(os.date('%M', time))
-    local timeSec = tonumber(os.date('%S', time))
-
     for _, v in pairs(constraint) do
         local arrMin = v[1]
         local arrSec = v[2]
-        local diffMin = timetable.getDifference(timeMin, arrMin)
-        local diffSec = timetable.getDifference(timeSec, arrSec)
-        local diff = (diffMin * 60) + diffSec
+        local arrTime = arrMin * 60 + arrSec
+        
+        local diff = math.abs(arrTime - time)
+        if diff > 1800 then
+            diff = 3600 - diff
+        end
+        
         if (diff < res.diff) then
             res = {diff = diff, value = v}
         end
@@ -356,21 +357,6 @@ function timetable.getNextConstraint(constraint, time)
 
     return res.value
 end
-
-
----comment
----@param a number
----@param b number
----@return number
-function timetable.getDifference(a, b)
-    local absDiff = math.abs(a - b)
-    if absDiff < 30 then
-        return absDiff
-    else
-        return 60 - absDiff
-    end
-end
-
 
 
 return timetable
