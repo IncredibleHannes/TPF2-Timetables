@@ -1,11 +1,11 @@
 require "tableutil"
 local ssu = require "stylesheetutil"
- 
+
 function data()
   local result = { }
- 
+
   local a = ssu.makeAdder(result)          -- helper function
- 
+
     a("conditionString", {
       fontFamily = "Noto/NotoSansMono-Regular.ttf",
       fontSize = 10,
@@ -14,7 +14,7 @@ function data()
       padding = {7,0,0,0},
       fontSize = 14,
     })
-    
+
     a("!timetable-linecolour", {
       padding = {0,0,0,8},
       fontSize = 26,
@@ -128,7 +128,7 @@ function data()
     a("timetable-linecolour-836330", {
       color = {0.83, 0.63, 0.30, 1},
     })
-    
+
     a("timetable-stationcolour-1009312", {
       backgroundColor = {1.0, 0.93, 0.12, 1},
     })
@@ -170,17 +170,16 @@ function data()
     a("timetable-linecolour-951820", {
       color = {0.95, 0.18, 0.20, 1},
     })
-    --]]
     a("timetable-stationcolour-default", {
       backgroundColor = {1, 0, 0, 1},
     })
-    
+
     a("timetable-linecolour-default", {
         padding = {0,0,0,8},
         color = {1, 0, 0, 1},
         fontSize = 26
     })
-    
+
     a("timetable-linename", {
       padding = {3,0,3,0},
       fontSize = 15
@@ -188,7 +187,6 @@ function data()
   a("timetable-info-icon", {
     padding = {3,3,3,3}
   })
-    
- 
+
   return result
 end

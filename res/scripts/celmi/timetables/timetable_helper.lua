@@ -386,7 +386,7 @@ end
 ---@param type string, "ArrDep" |"debounce"
 -- returns String, ready to display in the UI
 function timetableHelper.conditionToString(cond, type)
-    if not (cond and type) then return "" end
+    if (not cond) or (not type) then return "" end
     if type =="ArrDep" then
         local arr = "Arr "
         local dep = "Dep "
