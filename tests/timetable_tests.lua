@@ -33,15 +33,17 @@ end
 
 timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
-    local x = timetable.getNextConstraint({{30,0,59,0},{9,0,59,0} },1200000)
+    local x = timetable.getNextConstraint({{30,0,59,0},{9,0,59,0} },1200)
     assert(x[1] == 30 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextConstraint({{30,0,59,0},{11,0,59,0} },1200000)
+    x = timetable.getNextConstraint({{30,0,59,0},{11,0,59,0} },1200)
     assert(x[1] == 11 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextConstraint({{51,0,0,0},{50,0,59,0} },1200000)
+    x = timetable.getNextConstraint({{51,0,0,0},{50,0,59,0} },1200)
     assert(x[1] == 51 and x[2] == 0 and x[3] == 0 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextConstraint({{51,0,0,0},{49,0,1,0} },1200000)
+    x = timetable.getNextConstraint({{51,0,0,0},{49,0,1,0} },1200)
     assert(x[1] == 51 and x[2] == 0 and x[3] == 0 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextConstraint({},1200000)
+    x = timetable.getNextConstraint({{0,59,1,0},{1,30,1,30} },60)
+    assert(x[1] == 0 and x[2] == 59 and x[3] == 1 and x[4] == 0, "should choose the closest time constraint")
+    x = timetable.getNextConstraint({},1200)
     assert(x == nil, "should return nil")
 end
 
