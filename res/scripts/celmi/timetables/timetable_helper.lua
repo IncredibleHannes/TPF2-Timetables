@@ -23,8 +23,8 @@ function timetableHelper.getTrainLocations(line)
     local res = {}
     local vehicles = api.engine.system.transportVehicleSystem.getLineVehicles(line)
     for _,v in pairs(vehicles) do
-        local vehicle = game.interface.getEntity(v)
-        local atTerminal = vehicle.state == "AT_TERMINAL"
+        local vehicle = api.engine.getComponent(v, api.type.ComponentType.TRANSPORT_VEHICLE)
+        local atTerminal = vehicle.state == 2
         if res[tostring(vehicle.stopIndex)] then
             local prevAtTerminal = res[tostring(vehicle.stopIndex)].atTerminal
             res[tostring(vehicle.stopIndex)] = {
@@ -155,8 +155,8 @@ function timetableHelper.lineHasType(line, lineType)
     if not(type(line) == "number") then print("Expected String or Number") return -1 end
 
     local vehicles = api.engine.system.transportVehicleSystem.getLineVehicles(line)
-    if vehicles and vehicles[1] and game.interface.getEntity(vehicles[1]).carrier then
-        return game.interface.getEntity(vehicles[1]).carrier == lineType
+    if vehicles and vehicles[1] and api.engine.getComponent(vehicles[1], api.type.ComponentType.TRANSPORT_VEHICLE).carrier then
+        return api.engine.getComponent(vehicles[1], api.type.ComponentType.TRANSPORT_VEHICLE).carrier == api.type.enum.Carrier[lineType]
     end
     return false
 end
@@ -242,7 +242,7 @@ function timetableHelper.getStation(station)
     if type(station) == "string" then station = tonumber(station) end
     if not(type(station) == "number") then return "ERROR" end
 
-    local stationObject = game.interface.getEntity(station)
+    local stationObject = api.engine.getComponent(station, api.type.ComponentType.NAME)
     if stationObject and stationObject.name then
         return { name = stationObject.name }
     else
@@ -250,23 +250,6 @@ function timetableHelper.getStation(station)
     end
 end
 
--- returns [{id : Number, name : String}]
-function timetableHelper.getRailStations()
-    local res = {}
-    local stations = api.engine.system.stationSystem.getStation2TownMap()
-    for k,_ in pairs(stations) do
-        local stationObject = game.interface.getEntity(k)
-        local stationGroup = game.interface.getEntity(stationObject.stationGroup)
-        if stationObject and stationObject.carriers and stationObject.carriers["RAIL"] then
-            res[#res + 1] = {
-                id = k,
-                name = stationGroup.name
-            }
-        end
-
-    end
-    return res
-end
 
 ---@param line number | string
 -- returns [id : Number] Array of stationIds
@@ -274,9 +257,13 @@ function timetableHelper.getAllStations(line)
     if type(line) == "string" then line = tonumber(line) end
     if not(type(line) == "number") then return "ERROR" end
 
-    local lineObject = game.interface.getEntity(line)
+    local lineObject = api.engine.getComponent(line, api.type.ComponentType.LINE)
     if lineObject and lineObject.stops then
-        return lineObject.stops
+        local res = {}
+        for k, v in pairs(lineObject.stops) do
+            res[k] = v.stationGroup
+        end
+        return res
     else
         return {}
     end
@@ -302,9 +289,9 @@ function timetableHelper.getStationID(line, stationNumber)
     if type(line) == "string" then line = tonumber(line) end
     if not(type(line) == "number") then return -1 end
 
-    local lineObject = game.interface.getEntity(line)
+    local lineObject = api.engine.getComponent(line, api.type.ComponentType.LINE)
     if lineObject and lineObject.stops and lineObject.stops[stationNumber] then
-        return lineObject.stops[stationNumber]
+        return lineObject.stops[stationNumber].stationGroup
     else
         return -1
     end
