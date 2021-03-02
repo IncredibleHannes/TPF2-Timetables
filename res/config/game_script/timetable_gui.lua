@@ -1,7 +1,8 @@
 local timetable = require "celmi/timetables/timetable"
 local timetableHelper = require "celmi/timetables/timetable_helper"
 
-local gui = require "gui"
+local uiParser = require "celmi/ui_parser/ui_parser"
+local stationTab = require "celmi/ui/ui_station_tab"
 
 local clockstate = nil
 
@@ -49,12 +50,12 @@ local UIStrings = {
 function timetableGUI.initStationTab()
     if menu.stationTabScrollArea then UIState.floatingLayoutStationTab:removeItem(menu.scrollArea) end
 
-    --left table
+    --[[ --left table
     local stationOverview = api.gui.comp.TextView.new('StationOverview')
     menu.stationTabScrollArea = api.gui.comp.ScrollArea.new(stationOverview, "timetable.stationTabStationOverviewScrollArea")
-    menu.stationTabStationTable = api.gui.comp.Table.new(1, 'SINGLE')
     menu.stationTabScrollArea:setMinimumSize(api.gui.util.Size.new(300, 700))
     menu.stationTabScrollArea:setMaximumSize(api.gui.util.Size.new(300, 700))
+    menu.stationTabStationTable = api.gui.comp.Table.new(1, 'SINGLE')
     menu.stationTabScrollArea:setContent(menu.stationTabStationTable)
     timetableGUI.fillStationTabStationTable()
     UIState.floatingLayoutStationTab:addItem(menu.stationTabScrollArea,0,0)
@@ -68,6 +69,8 @@ function timetableGUI.initStationTab()
 
     menu.stationTabLinesScrollArea:setContent(menu.stationTabLinesTable)
     UIState.floatingLayoutStationTab:addItem(menu.stationTabLinesScrollArea,1,0)
+    --]]
+    timetableGUI.fillStationTabStationTable()
 end
 
 function timetableGUI.fillStationTabStationTable()
@@ -203,8 +206,12 @@ function timetableGUI.showLineMenu()
     local wrapper = api.gui.comp.Component.new("wrapper")
     wrapper:setLayout(UIState.boxlayout2 )
     menu.tabWidget:addTab(api.gui.comp.TextView.new(UIStrings.lines), wrapper)
-
-
+    --debugPrint(stationTab)
+    print(stationTab.FloatingLayout)
+    local floatingLayout = uiParser(stationTab)
+    floatingLayout:setId("timetable.floatingLayoutStationTab")
+    --UIState.floatingLayoutStationTab = api.gui.util.getById('timetable.floatingLayoutStationTab')
+    --[[
     if not api.gui.util.getById('timetable.floatingLayoutStationTab') then
         local floatingLayout = api.gui.layout.FloatingLayout.new(0,1)
         floatingLayout:setId("timetable.floatingLayoutStationTab")
@@ -212,11 +219,12 @@ function timetableGUI.showLineMenu()
 
     UIState.floatingLayoutStationTab = api.gui.util.getById('timetable.floatingLayoutStationTab')
     UIState.floatingLayoutStationTab:setGravity(-1,-1)
+    --]]
 
-    timetableGUI.initStationTab()
-    local wrapper2 = api.gui.comp.Component.new("wrapper2")
-    wrapper2:setLayout(UIState.floatingLayoutStationTab)
-    menu.tabWidget:addTab(api.gui.comp.TextView.new(UIStrings.stations),wrapper2)
+    --timetableGUI.initStationTab()
+    --local wrapper2 = api.gui.comp.Component.new("wrapper2")
+    --wrapper2:setLayout(UIState.floatingLayoutStationTab)
+    --menu.tabWidget:addTab(api.gui.comp.TextView.new(UIStrings.stations),wrapper2)
 
     menu.tabWidget:onCurrentChanged(function(i)
         if i == 1 then
@@ -575,7 +583,6 @@ function timetableGUI.fillConstraintTable(index,lineID)
     comboBox:setSelected(constraintIndex, true)
 end
 
-
 function timetableGUI.makeArrDepWindow(lineID, stationID)
     if not menu.constraintTable then return end
     local conditions = timetable.getConditions(lineID,stationID, "ArrDep")
@@ -612,25 +619,8 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         arivalLabel:setMinimumSize(api.gui.util.Size.new(80, 30))
         arivalLabel:setMaximumSize(api.gui.util.Size.new(80, 30))
 
-        local arrivalMin = api.gui.comp.DoubleSpinBox.new()
-        arrivalMin:setMinimum(0,false)
-        arrivalMin:setMaximum(59,false)
-        arrivalMin:setValue(v[1],false)
-        arrivalMin:onChange(function(value)
-            timetable.updateArrDep(lineID, stationID, k, 1, value)
-            timetableGUI.initStationTable()
-            timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
-        end)
-
-        local arrivalSec = api.gui.comp.DoubleSpinBox.new()
-        arrivalSec:setMinimum(0,false)
-        arrivalSec:setMaximum(59,false)
-        arrivalSec:setValue(v[2],false)
-        arrivalSec:onChange(function(value)
-            timetable.updateArrDep(lineID, stationID, k, 2, value)
-            timetableGUI.initStationTable()
-            timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
-        end)
+        local arrivalMin = timetableGUI.getDoubleSpinBox(lineID, stationID, k ,v, 1)
+        local arrivalSec = timetableGUI.getDoubleSpinBox(lineID, stationID, k ,v, 2)
 
         local deleteButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("X") ,true)
         deleteButton:onClick(function()
@@ -639,7 +629,6 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
             timetableGUI.makeArrDepWindow(lineID, stationID)
             timetableGUI.initStationTable()
             timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
-
         end)
 
         linetable:addRow({
@@ -652,29 +641,11 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         menu.constraintTable:addRow({linetable})
 
         local departureLabel =  api.gui.comp.TextView.new(UIStrings.departure .. ":  ")
-
         departureLabel:setMinimumSize(api.gui.util.Size.new(80, 30))
         departureLabel:setMaximumSize(api.gui.util.Size.new(80, 30))
-        local departureMin = api.gui.comp.DoubleSpinBox.new()
-        departureMin:setMinimum(0,false)
-        departureMin:setMaximum(59,false)
-        departureMin:setValue(v[3],false)
-        departureMin:onChange(function(value)
-            timetable.updateArrDep(lineID, stationID, k, 3, value)
-            timetableGUI.initStationTable()
-            timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
-        end)
 
-        local departureSec = api.gui.comp.DoubleSpinBox.new()
-        departureSec:setMinimum(0,false)
-        departureSec:setMaximum(59,false)
-        departureSec:setValue(v[4],false)
-        departureSec:onChange(function(value)
-            timetable.updateArrDep(lineID, stationID, k, 4, value)
-            timetableGUI.initStationTable()
-            timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
-        end)
-
+        local departureMin = timetableGUI.getDoubleSpinBox(lineID, stationID, k ,v, 3)
+        local departureSec = timetableGUI.getDoubleSpinBox(lineID, stationID, k ,v, 4)
 
         local deletePlaceholder = api.gui.comp.TextView.new(" ")
         deletePlaceholder:setMinimumSize(api.gui.util.Size.new(12, 30))
@@ -689,11 +660,22 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
             deletePlaceholder
         })
         menu.constraintTable:addRow({linetable2})
-
-
         menu.constraintTable:addRow({api.gui.comp.Component.new("HorizontalLine")})
     end
 
+end
+
+function timetableGUI.getDoubleSpinBox(lineID, stationID, k ,v, i)
+    local doubleSpinBox = api.gui.comp.DoubleSpinBox.new()
+    doubleSpinBox:setMinimum(0,false)
+    doubleSpinBox:setMaximum(59,false)
+    doubleSpinBox:setValue(v[i],false)
+    doubleSpinBox:onChange(function(value)
+        timetable.updateArrDep(lineID, stationID, k, i, value)
+        timetableGUI.initStationTable()
+        timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
+    end)
+    return doubleSpinBox
 end
 
 function timetableGUI.makeDebounceWindow(lineID, stationID)
@@ -766,7 +748,6 @@ end
 function data()
     return {
         --engine Thread
-
         handleEvent = function (_, id, _, param)
             if id == "timetableUpdate" then
                 if state == nil then state = {timetable = {}} end
@@ -814,14 +795,15 @@ function data()
                 -- element for the time
 				clockstate = api.gui.comp.TextView.new("gameInfo.time.label")
 
-                local buttonLabel = gui.textView_create("gameInfo.timetables.label", UIStrings.timetable)
+                local buttonLabel = api.gui.comp.TextView.new(UIStrings.timetable)
 
-                local button = gui.button_create("gameInfo.timetables.button", buttonLabel)
+                local button = api.gui.comp.Button.new(buttonLabel, true)
                 button:onClick(function ()
                     local err, msg = pcall(timetableGUI.showLineMenu)
                     if not err then print(msg) end
                 end)
-                game.gui.boxLayout_addItem("gameInfo.layout", button.id)
+                button:setId("timetable.timetableButton")
+                game.gui.boxLayout_addItem("gameInfo.layout", "timetable.timetableButton")
 				-- add elements to ui
 				local gameInfoLayout = api.gui.util.getById("gameInfo"):getLayout()
 				gameInfoLayout:addItem(line)
