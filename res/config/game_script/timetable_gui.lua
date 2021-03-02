@@ -585,10 +585,10 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     addButton:setGravity(1,0)
     addButton:onClick(function()
         timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {{0,0,0,0}}})
-        timetableGUI.clearConstraintWindow()
-        timetableGUI.makeArrDepWindow(lineID, stationID)
         timetableGUI.initStationTable()
         timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
+        timetableGUI.clearConstraintWindow()
+        timetableGUI.makeArrDepWindow(lineID, stationID)
     end)
 
     --setup header
@@ -635,11 +635,10 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         local deleteButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("X") ,true)
         deleteButton:onClick(function()
             timetable.removeCondition(lineID, stationID, "ArrDep", k)
-            timetableGUI.clearConstraintWindow()
-            timetableGUI.makeArrDepWindow(lineID, stationID)
             timetableGUI.initStationTable()
             timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
-
+            timetableGUI.clearConstraintWindow()
+            timetableGUI.makeArrDepWindow(lineID, stationID)
         end)
 
         linetable:addRow({

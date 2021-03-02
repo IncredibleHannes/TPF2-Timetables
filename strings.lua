@@ -3,8 +3,8 @@ function data()
     return {
         en = {
             ["arr_i18n"] = "Arr: ",
-            ["arrival_i18n"] = "Arrival: ",
-            ["dep_i18n"] = "Dep",
+            ["arrival_i18n"] = "Arrival",
+            ["dep_i18n"] = "Dep: ",
             ["departure_i18n"] = "Departure",
             ["unbunch_time_i18n"] = "Unbunch Time";
             ["unbunch_i18n"] = "Unbunch",
