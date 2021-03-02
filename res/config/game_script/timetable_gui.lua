@@ -18,6 +18,8 @@ local UIState = {
 local co = nil
 local state = nil
 
+local clearConstraintWindowLaterHACK = nil
+
 local UIStrings = {
         arr	= _("arr_i18n"),
 		arrival	= _("arrival_i18n"),
@@ -585,18 +587,20 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     addButton:setGravity(1,0)
     addButton:onClick(function()
         timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {{0,0,0,0}}})
-        timetableGUI.initStationTable()
-        timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
-        timetableGUI.clearConstraintWindow()
-        timetableGUI.makeArrDepWindow(lineID, stationID)
+        clearConstraintWindowLaterHACK = function()
+            timetableGUI.initStationTable()
+            timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
+            timetableGUI.clearConstraintWindow()
+            timetableGUI.makeArrDepWindow(lineID, stationID)
+        end
     end)
 
     --setup header
     local headerTable = api.gui.comp.Table.new(4, 'NONE')
     headerTable:setColWidth(0,125)
-    headerTable:setColWidth(1,78)
+    headerTable:setColWidth(1,76)
     headerTable:setColWidth(2,50)
-    headerTable:setColWidth(3,50)
+    headerTable:setColWidth(3,48)
     headerTable:addRow({api.gui.comp.TextView.new(""),api.gui.comp.TextView.new(UIStrings.min),api.gui.comp.TextView.new(UIStrings.sec),addButton})
     menu.constraintTable:addRow({headerTable})
 
@@ -635,10 +639,12 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         local deleteButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("X") ,true)
         deleteButton:onClick(function()
             timetable.removeCondition(lineID, stationID, "ArrDep", k)
-            timetableGUI.initStationTable()
-            timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
-            timetableGUI.clearConstraintWindow()
-            timetableGUI.makeArrDepWindow(lineID, stationID)
+            clearConstraintWindowLaterHACK = function()
+                timetableGUI.initStationTable()
+                timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
+                timetableGUI.clearConstraintWindow()
+                timetableGUI.makeArrDepWindow(lineID, stationID)
+            end
         end)
 
         linetable:addRow({
@@ -804,6 +810,11 @@ function data()
 
         guiUpdate = function()
             game.interface.sendScriptEvent("timetableUpdate", "", timetable.getTimetableObject() )
+
+            if clearConstraintWindowLaterHACK then
+                clearConstraintWindowLaterHACK()
+                clearConstraintWindowLaterHACK = nil
+            end
 
             if not clockstate then
 				-- element for the divider
