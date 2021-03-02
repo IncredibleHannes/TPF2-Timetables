@@ -345,7 +345,7 @@ function timetable.getNextConstraint(constraint, time)
         local arrSec = v[2]
         local arrTime = arrMin * 60 + arrSec
 
-        local diff = timetable.getDifference(arrTime - time)
+        local diff = timetable.getDifference(arrTime, time)
         if (diff < res.diff) then
             res = {diff = diff, value = v}
         end
