@@ -335,30 +335,31 @@ end
 
 
 ---Find the next valid constraint for given constraints and time
----@param constraint table
----@param time number
----@return table
-function timetable.getNextConstraint(constraint, time)
+---@param constraints table in format like: {{30,0,59,0},{9,0,59,0}
+---@param time number in seconds
+---@return table closestConstraint example: {30,0,59,0}
+function timetable.getNextConstraint(constraints, time)
     local res = {diff = 40000, value = nil}
-    for _, v in pairs(constraint) do
-        local arrMin = v[1]
-        local arrSec = v[2]
+    for _, constraint in pairs(constraints) do
+        local arrMin = constraint[1]
+        local arrSec = constraint[2]
         local arrTime = arrMin * 60 + arrSec
 
-        local diff = timetable.getDifference(arrTime, time)
+        local diff = timetable.getTimeDifference(arrTime, time % 3600)
         if (diff < res.diff) then
-            res = {diff = diff, value = v}
+            res = {diff = diff, value = constraint}
         end
     end
 
     return res.value
 end
 
----comment
----@param a number
----@param b number
+---Calculates the time difference between two timestamps in seconds.
+---Considers that 59 mins is close to 0 mins.
+---@param a number in seconds between in range of 0-3599 (inclusive)
+---@param b number in seconds between in range of 0-3599 (inclusive)
 ---@return number
-function timetable.getDifference(a, b)
+function timetable.getTimeDifference(a, b)
     local absDiff = math.abs(a - b)
     if absDiff > 1800 then
         return 3600 - absDiff
