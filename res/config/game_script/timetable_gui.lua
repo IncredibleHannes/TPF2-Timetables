@@ -444,15 +444,16 @@ function timetableGUI.fillStationTable(index, bool)
         local x = menu.lineImage[k]
         menu.lineImage[k]:onStep(function()
             if not x then print("ERRROR") return end
-            if vehiclePositions[tostring(k-1)] then
-                if vehiclePositions[tostring(k-1)].atTerminal then
-                    if vehiclePositions[tostring(k-1)].countStr == "MANY" then
+            local vehiclePositions2 = timetableHelper.getTrainLocations(lineID)
+            if vehiclePositions2[tostring(k-1)] then
+                if vehiclePositions2[tostring(k-1)].atTerminal then
+                    if vehiclePositions2[tostring(k-1)].countStr == "MANY" then
                         x:setImage("ui/timetable_line_train_in_station_many.tga", false)
                     else
                         x:setImage("ui/timetable_line_train_in_station.tga", false)
                     end
                 else
-                    if vehiclePositions[tostring(k-1)].countStr == "MANY" then
+                    if vehiclePositions2[tostring(k-1)].countStr == "MANY" then
                         x:setImage("ui/timetable_line_train_en_route_many.tga", false)
                     else
                         x:setImage("ui/timetable_line_train_en_route.tga", false)
