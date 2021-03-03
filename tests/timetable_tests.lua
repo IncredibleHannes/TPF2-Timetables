@@ -70,6 +70,12 @@ timetableTests[#timetableTests + 1] = function()
     assert(not x, "should be after departure")
     x = timetable.beforeDepature({45,0,46,0}, ((11 * 60) + 30), {{45,0,46,0},{10,0,11,0}})
     assert(x, "should be defore departure")
+    x = timetable.beforeDepature({30,0,31,0}, ((29 * 60) ), {{30,0,31,0}})
+    assert(x, "should be defore departure")
+    x = timetable.beforeDepature({30,0,31,0}, ((31 * 60) + 1 ), {{30,0,31,0}})
+    assert(not x, "should be after departure")
+    x = timetable.beforeDepature({30,0,31,0}, ((37 * 60) + 1 ), {{30,0,31,0}})
+    assert(not x, "should be after departure")
 end
 
 timetableTests[#timetableTests + 1] = function()
