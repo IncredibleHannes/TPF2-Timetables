@@ -219,9 +219,9 @@ function timetable.waitingRequired(vehicle)
     if not timetableObject[currentLineString].stations[currentStop].conditions then return false end
     if not timetableObject[currentLineString].stations[currentStop].conditions.type then return false end
 
-    if timetableHelper.getTimeUntilDeparture(vehicle) >= 2 then return false end
+    if timetableHelper.getTimeUntilDeparture(vehicle) >= 5 then return false end
 
-  if not currentlyWaiting[currentLineString] then currentlyWaiting[currentLineString] = {stations = {}} end
+    if not currentlyWaiting[currentLineString] then currentlyWaiting[currentLineString] = {stations = {}} end
     if not currentlyWaiting[currentLineString].stations[currentStop] then
           currentlyWaiting[currentLineString].stations[currentStop] = { currentlyWaiting = {}}
     end
@@ -243,7 +243,7 @@ function timetable.waitingRequired(vehicle)
                 currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
                 return false
             end
-            if timetable.beforeDepature(nextConstraint, time) then
+            if timetable.beforeDepature(nextConstraint, time, timetableObject[currentLineString].stations[currentStop].conditions.ArrDep) then
                 -- Constraint set and I need to wait
                 currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle] = {
                     type = "ArrDep",
@@ -260,9 +260,9 @@ function timetable.waitingRequired(vehicle)
             end
         else
             -- already waiting
-            local arivvalTime = currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle].arrivalTime
-            local constraint = timetable.getNextConstraint(timetableObject[currentLineString].stations[currentStop].conditions.ArrDep, arivvalTime)
-            if timetable.beforeDepature(constraint, time) then
+            local arivalTime = currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle].arrivalTime
+            local constraint = timetable.getNextConstraint(timetableObject[currentLineString].stations[currentStop].conditions.ArrDep, arivalTime)
+            if timetable.beforeDepature(constraint, time, timetableObject[currentLineString].stations[currentStop].conditions.ArrDep) then
                 -- need to continue waiting
                 return true
             else
@@ -321,18 +321,36 @@ end
 
 -------------- UTILS FUNCTIONS ----------
 
-function timetable.beforeDepature(constraint, time)
-    local timeMin = tonumber(os.date('%M', time))
-    local timeSec = tonumber(os.date('%S', time))
-
-    return not (timeMin == constraint[3] and timeSec >= constraint[4])
-           and not (timeMin - 1 == constraint[3])
-           and not (timeMin - 2 == constraint[3])
-           and not (timeMin - 3 == constraint[3])
-           and not (timeMin - 4 == constraint[3])
-           and not (timeMin - 5 == constraint[3])
+-- This function returns true if the train is before its departure time
+---@param constraint table in format like: {9,0,59,0}
+---@param time number in seconds
+---@param allConstraints number table in format like: {{30,0,59,0},{9,0,59,0},...}
+function timetable.beforeDepature(constraint, time, allConstraints)
+    local departureTimeSec = (60 * constraint[3]) + constraint[4]
+    local normalisedTime = time % (60 * 60)
+    local nextArrivalTime = (timetable.getTimeUntilNextConstraint(constraint, allConstraints) + departureTimeSec) % (60 * 60)
+    return not (((normalisedTime > departureTimeSec) == (normalisedTime < nextArrivalTime)) ~= (departureTimeSec > nextArrivalTime))
 end
 
+-- This function calcualtes the time from a given constraint to its closest next constraint
+---@param constraint table in format like: {9,0,59,0}
+---@param allConstraints number table in format like: {{30,0,59,0},{9,0,59,0},...}
+---@return number timeUntilNextContraint: {30,0,59,0}
+function timetable.getTimeUntilNextConstraint(constraint, allConstraints)
+    local res = 40000
+    local constraintSec =((constraint[1] * 60) + constraint[2])
+    for _,v in pairs(allConstraints) do
+        local toCheckSec = ((v[1] * 60) + v[2])
+        if constraintSec > toCheckSec then
+            toCheckSec =  toCheckSec + (60*60)
+        end
+        local difference = toCheckSec - constraintSec
+        if difference > 0 and difference < res then
+            res = difference
+        end
+    end
+    return res
+end
 
 ---Find the next valid constraint for given constraints and time
 ---@param constraints table in format like: {{30,0,59,0},{9,0,59,0}

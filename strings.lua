@@ -30,6 +30,8 @@ function data()
                 "                                      chooses the closes arrival time\n" ..
                 "  - Unbunch: Set a time and vehicles will only depart the station in the given interval"
                 ),
+            ["mod_name_i18n"] = "Timetables",
+            ["mod_description_i18n"] = "This mod adds timetables to the game",
         },
 
         de = {
@@ -61,8 +63,41 @@ function data()
                 "                     wählt die naheste Ankunftszeit\n" ..
                 "  - Takt: Setze eine Zeit, so dass der Zug die Station nur zu einem bestimmten Intervall verlässt"
                 ),
+            ["mod_name_i18n"] = "Fahrpläne",
+            ["mod_description_i18n"] = "Diese Mod fügt dem Spiel Fahrpläne hinzu",
             },
-
+            ru = {
+                ["arr_i18n"] = "Приб.: ",
+                ["arrival_i18n"] = "Прибытие ",
+                ["dep_i18n"] = "Отпр.: ",
+                ["departure_i18n"] = "Отправ. ",
+                ["unbunch_time_i18n"] = "Время интервала";
+                ["unbunch_i18n"] = "Интервал",
+                ["timetable_i18n"] = "Расписание",
+                ["timetables_i18n"] = "Окно расписаний",
+                ["line_i18n"] = "Линия",
+                ["lines_i18n"] = "Линии",
+                ["time_min_i18n"] = "мин.",
+                ["time_sec_i18n"] = "сек.",
+                ["stations_i18n"] = "Станции",
+                ["frequency_i18n"] = "Частота",
+                ["journey_time_i18n"] = "Время поездки",
+                ["arr_dep_i18n"] = "Прибытие/Отправление",
+                ["no_timetable_i18n"] = "Нет расписания",
+                ["all_i18n"] = "Все",
+                ["add_i18n"] = "Добавить",
+                ["none_i18n"] = "Отсутствует",
+                ["tooltip_i18n"] = (
+                    "Вы можете отрегулировать расписание для каждой станции.\n" ..
+                    "По прибытию на станцию, поезд будет стараться следовать расписанию.\n" ..
+                    "Следующие варианты регулировки доступны: \n" ..
+                    "  - Прибытие/Отправление: установите время прибытия и отправления и поезд выберет ближайшее\n"..
+                    "    подходящее время отправления\n" ..
+                    "  - Интервал: настройте время и транспорт будет отправляться со станции согласно выбранному интервалу"
+                    ),
+                ["mod_name_i18n"] = "Расписание",
+                ["mod_description_i18n"] = "Этот мод добавляет в игру расписание.",
+            },
 --[[
         nl = {
             ["arr_i18n"] = "",
