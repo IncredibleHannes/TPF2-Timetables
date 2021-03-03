@@ -30,6 +30,8 @@ function data()
                 "                                      chooses the closes arrival time\n" ..
                 "  - Unbunch: Set a time and vehicles will only depart the station in the given interval"
                 ),
+            ["mod_name_i18n"] = "Timetables",
+            ["mod_description_i18n"] = "This mod adds timetables to the game",
         },
 
         de = {
@@ -61,6 +63,8 @@ function data()
                 "                     wählt die naheste Ankunftszeit\n" ..
                 "  - Takt: Setze eine Zeit, so dass der Zug die Station nur zu einem bestimmten Intervall verlässt"
                 ),
+            ["mod_name_i18n"] = "Fahrpläne",
+            ["mod_description_i18n"] = "Diese Mod fügt dem Spiel Fahrpläne hinzu",
             },
             ru = {
                 ["arr_i18n"] = "Приб.: ",
@@ -91,6 +95,8 @@ function data()
                     "    подходящее время отправления\n" ..
                     "  - Интервал: настройте время и транспорт будет отправляться со станции согласно выбранному интервалу"
                     ),
+                ["mod_name_i18n"] = "Расписание",
+                ["mod_description_i18n"] = "Этот мод добавляет в игру расписание.",
             },
 --[[
         nl = {
