@@ -17,6 +17,7 @@ local UIState = {
 }
 local co = nil
 local state = nil
+local count = 0
 
 local clearConstraintWindowLaterHACK = nil
 
@@ -810,8 +811,12 @@ function data()
         end,
 
         guiUpdate = function()
-            game.interface.sendScriptEvent("timetableUpdate", "", timetable.getTimetableObject() )
-
+            if count == 30 then
+                game.interface.sendScriptEvent("timetableUpdate", "", timetable.getTimetableObject())
+                count = 0
+            else
+                count = count + 1
+            end
             if clearConstraintWindowLaterHACK then
                 clearConstraintWindowLaterHACK()
                 clearConstraintWindowLaterHACK = nil
