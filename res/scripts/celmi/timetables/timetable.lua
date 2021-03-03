@@ -325,12 +325,12 @@ function timetable.beforeDepature(constraint, time)
     local timeMin = tonumber(os.date('%M', time))
     local timeSec = tonumber(os.date('%S', time))
 
-    return not (timeMin == constraint[3] and timeSec >= constraint[4])
-           and not (timeMin - 1 == constraint[3])
-           and not (timeMin - 2 == constraint[3])
-           and not (timeMin - 3 == constraint[3])
-           and not (timeMin - 4 == constraint[3])
-           and not (timeMin - 5 == constraint[3])
+    local ConstraintSec = constraint[3]*60 + constraint[4]
+    timeSec = timeMin*60 + timeSec
+
+    return ( (timeSec < ConstraintSec or timeSec > (ConstraintSec + 1800)) and ConstraintSec < 1800) or
+           (timeSec < ConstraintSec and timeSec > (ConstraintSec - 1800) and ConstraintSec  >= 1800)
+    -- MY: rewritten to account for time looping around 60 minutes
 end
 
 
@@ -340,12 +340,17 @@ end
 ---@return table
 function timetable.getNextConstraint(constraint, time)
     local res = {diff = 40000, value = nil}
+
+    local timeMin = tonumber(os.date('%M', time))
+    local timeSec = tonumber(os.date('%S', time))
+    timeSec = timeMin*60 +timeSec
+
     for _, v in pairs(constraint) do
         local arrMin = v[1]
         local arrSec = v[2]
         local arrTime = arrMin * 60 + arrSec
 
-        local diff = timetable.getDifference(arrTime, time)
+        local diff = timetable.getDifference(arrTime, timeSec)
         if (diff < res.diff) then
             res = {diff = diff, value = v}
         end
