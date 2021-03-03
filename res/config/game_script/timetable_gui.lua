@@ -761,7 +761,8 @@ function timetableGUI.timetableCoroutine()
                     timetableHelper.startVehicle(vehicle)
                 end
             end
-            coroutine.yield()
+            --coroutine.yield()
+            --force traverse through all vehicles before yielding, to fix the issue of trains not being controlled by the mod under certain circumstances
         end
         coroutine.yield()
     end
