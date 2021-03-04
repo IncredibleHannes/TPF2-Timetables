@@ -801,7 +801,7 @@ function data()
             if co == nil or coroutine.status(co) == "dead" then
                 co = coroutine.create(timetableGUI.timetableCoroutine)
             end
-            for _ = 0, 8 do
+            for _ = 0, 20 do
                 local err, msg = coroutine.resume(co)
                 if not err then print(msg) end
             end
