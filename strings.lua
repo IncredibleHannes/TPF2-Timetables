@@ -98,6 +98,38 @@ function data()
                 ["mod_name_i18n"] = "Расписание",
                 ["mod_description_i18n"] = "Этот мод добавляет в игру расписание.",
             },
+            it = {
+                ["arr_i18n"] = "Arr: ",
+                ["arrival_i18n"] = "Arrivo",
+                ["dep_i18n"] = "Part: ",
+                ["departure_i18n"] = "Partenza",
+                ["unbunch_time_i18n"] = "Tempo di distanziamento";
+                ["unbunch_i18n"] = "Distanziamento",
+                ["timetable_i18n"] = "Schede Orarie",
+                ["timetables_i18n"] = "Schede Orarie",
+                ["line_i18n"] = "Linea",
+                ["lines_i18n"] = "Linee",
+                ["time_min_i18n"] = "min",
+                ["time_sec_i18n"] = "sec",
+                ["stations_i18n"] = "Stazioni",
+                ["frequency_i18n"] = "Frequenza",
+                ["journey_time_i18n"] = "Tempo di viaggio",
+                ["arr_dep_i18n"] = "Arrivo/Partenza",
+                ["no_timetable_i18n"] = "Nessuna scheda orario",
+                ["all_i18n"] = "Tutti",
+                ["add_i18n"] = "Aggiungi",
+                ["none_i18n"] = "Nessuno",
+                ["tooltip_i18n"] = (
+                     "Puoi aggiungere una scheda orario per ogni stazione.\n" ..
+                    "Quando un treno arriva alla stazione, questo proverà \n" ..
+                    "a mantenere l'orario impostato. \n" ..
+                    "  - Arrivo/Partenza: imposta Arr/Part multipli per il treno \n"..
+                    "                                      che sceglierà l'orario di arrivo piu vicino\n" ..
+                    "  - Distanziamento: imposta un tempo per cui il veicolo partirà dalla stazione all'intervallo orario scelto"
+                    ),
+                ["mod_name_i18n"] = "Orari",
+                ["mod_description_i18n"] = "Questa mod aggiunge le schede orarie al gioco.",
+            },
 --[[
         nl = {
             ["arr_i18n"] = "",
