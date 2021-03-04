@@ -3,7 +3,7 @@ function data()
 		info = {
 			description = _("mod_description_i18n"),
 			name = _("mod_name_i18n"),
-			minorVersion = 0,
+			minorVersion = 1,
 			severityAdd = "NONE",
 			severityRemove = "WARNING",
 			params = { },
