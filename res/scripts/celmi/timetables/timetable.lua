@@ -9,7 +9,6 @@ timetable = {
 }
 
 stationInfo = {
-    
     conditions = {condition :: Condition},
     inboundTime = 1 :: int
 }
@@ -38,30 +37,34 @@ function timetable.setTimetableObject(t)
 end
 
 function timetable.setConditionType(line, stationNumber, type)
-    stationID = timetableHelper.getStationID(line, stationNumber)
+    local stationID = timetableHelper.getStationID(line, stationNumber)
     if not(line and stationNumber) then return -1 end
     if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then
         timetableObject[tostring(line)].stations[stationNumber].conditions.type = type
-        local conditionObject = timetableObject[tostring(line)].stations[stationNumber].conditions[type] 
+        local conditionObject = timetableObject[tostring(line)].stations[stationNumber].conditions[type]
         if not conditionObject then  timetableObject[tostring(line)].stations[stationNumber].conditions[type] = {} end
         timetableObject[tostring(line)].stations[stationNumber].stationID = stationID
     else
-        if not timetableObject[tostring(line)] then 
+        if not timetableObject[tostring(line)] then
             timetableObject[tostring(line)] = { hasTimetable = false, stations = {}}
         end
-        
-        timetableObject[tostring(line)].stations[stationNumber] = {inboundTime = 0,stationID = stationID, conditions = {type = type}}
-        local conditionObject = timetableObject[tostring(line)].stations[stationNumber].conditions[type] 
+
+        timetableObject[tostring(line)].stations[stationNumber] = {
+            inboundTime = 0,
+            stationID = stationID,
+            conditions = {type = type}
+        }
+        local conditionObject = timetableObject[tostring(line)].stations[stationNumber].conditions[type]
         if not conditionObject then  timetableObject[tostring(line)].stations[stationNumber].conditions[type] = {} end
     end
 end
 
 function timetable.getConditionType(line, stationNumber)
     if not(line and stationNumber) then return "ERROR" end
-    if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then 
+    if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then
         if timetableObject[tostring(line)].stations[stationNumber].conditions.type then
             return timetableObject[tostring(line)].stations[stationNumber].conditions.type
-        else 
+        else
             timetableObject[tostring(line)].stations[stationNumber].conditions.type = "None"
             return "None"
         end
@@ -72,10 +75,14 @@ end
 
 
 function timetable.getAllConditionsOfStaion(stationID)
-    res = { }
+    local res = { }
     for k,v in pairs(timetableObject) do
-        for k2,v2 in pairs(v.stations) do
-            if v2.stationID and v2.conditions and  v2.conditions.type and not (v2.conditions.type == "None") and tostring(v2.stationID) == tostring(stationID+1) then
+        for _,v2 in pairs(v.stations) do
+            if v2.stationID
+               and v2.conditions
+               and  v2.conditions.type
+               and not (v2.conditions.type == "None")
+               and tostring(v2.stationID) == tostring(stationID+1) then
                 res[k] = {
                     stationID = v2.stationID,
                     conditions = v2.conditions
@@ -87,9 +94,9 @@ function timetable.getAllConditionsOfStaion(stationID)
 end
 
 function timetable.getAllConditionsOfAllStations()
-    res = { }
+    local res = { }
     for k,v in pairs(timetableObject) do
-        for k2,v2 in pairs(v.stations) do
+        for _,v2 in pairs(v.stations) do
             if v2.stationID and v2.conditions and  v2.conditions.type and not (v2.conditions.type == "None")  then
                 if not res[v2.stationID] then res[v2.stationID] = {} end
                 res[v2.stationID][k] = {
@@ -103,7 +110,9 @@ end
 
 function timetable.getConditions(line, stationNumber, type)
     if not(line and stationNumber) then return -1 end
-    if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] and timetableObject[tostring(line)].stations[stationNumber].conditions[type] then 
+    if timetableObject[tostring(line)]
+       and timetableObject[tostring(line)].stations[stationNumber]
+       and timetableObject[tostring(line)].stations[stationNumber].conditions[type] then
         return timetableObject[tostring(line)].stations[stationNumber].conditions[type]
     else
         return -1
@@ -113,13 +122,14 @@ end
 
 -- TEST: timetable.addCondition(1,1,{type = "ArrDep", ArrDep = {{12,14,14,14}}})
 function timetable.addCondition(line, stationNumber, condition)
-    stationID = timetableHelper.getStationID(line, stationNumber)
+    local stationID = timetableHelper.getStationID(line, stationNumber)
     if not(line and stationNumber and condition) then return -1 end
 
     if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then
         if condition.type == "ArrDep" then
             timetable.setConditionType(line, stationNumber, condition.type)
-            local mergedArrays = timetableHelper.mergeArray(timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep, condition.ArrDep)
+            local arrDepCond = timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep
+            local mergedArrays = timetableHelper.mergeArray(arrDepCond, condition.ArrDep)
             timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep = mergedArrays
         elseif condition.type == "minWait" then
             timetableObject[tostring(line)].stations[stationNumber].conditions.type = "minWait"
@@ -129,24 +139,28 @@ function timetable.addCondition(line, stationNumber, condition)
             timetableObject[tostring(line)].stations[stationNumber].conditions.debounce = condition.debounce
         elseif condition.type == "moreFancey" then
             timetableObject[tostring(line)].stations[stationNumber].conditions.type = "moreFancey"
-            timetableObject[tostring(line)].stations[stationNumber].conditions.moreFancey = condition.moreFancey     
+            timetableObject[tostring(line)].stations[stationNumber].conditions.moreFancey = condition.moreFancey
         end
         timetableObject[tostring(line)].stations[stationNumber].stationID = stationID
 
     else
-        if not timetableObject[tostring(line)] then 
+        if not timetableObject[tostring(line)] then
             timetableObject[tostring(line)] = {hasTimetable = false, stations = {}}
         end
-        timetableObject[tostring(line)].stations[stationNumber] = {inboundTime = 0, stationID = stationID, conditions = condition}
+        timetableObject[tostring(line)].stations[stationNumber] = {
+            inboundTime = 0,
+            stationID = stationID,
+            conditions = condition
+        }
     end
 end
 
 function timetable.updateArrDep(line, station, indexKey, indexValue, value)
     if not (line and station and indexKey and indexValue and value) then return -1 end
-    if timetableObject[tostring(line)] and 
-       timetableObject[tostring(line)].stations[station] and 
-       timetableObject[tostring(line)].stations[station].conditions and 
-       timetableObject[tostring(line)].stations[station].conditions.ArrDep and 
+    if timetableObject[tostring(line)] and
+       timetableObject[tostring(line)].stations[station] and
+       timetableObject[tostring(line)].stations[station].conditions and
+       timetableObject[tostring(line)].stations[station].conditions.ArrDep and
        timetableObject[tostring(line)].stations[station].conditions.ArrDep[indexKey] and
        timetableObject[tostring(line)].stations[station].conditions.ArrDep[indexKey][indexValue] then
        timetableObject[tostring(line)].stations[station].conditions.ArrDep[indexKey][indexValue] = value
@@ -158,9 +172,9 @@ end
 
 function timetable.updateDebounce(line, station, indexKey, value)
     if not (line and station and indexKey and value) then return -1 end
-    if timetableObject[tostring(line)] and 
-       timetableObject[tostring(line)].stations[station] and 
-       timetableObject[tostring(line)].stations[station].conditions and 
+    if timetableObject[tostring(line)] and
+       timetableObject[tostring(line)].stations[station] and
+       timetableObject[tostring(line)].stations[station].conditions and
        timetableObject[tostring(line)].stations[station].conditions.debounce then
        timetableObject[tostring(line)].stations[station].conditions.debounce[indexKey] = value
         return 0
@@ -170,23 +184,24 @@ function timetable.updateDebounce(line, station, indexKey, value)
 end
 
 function timetable.removeCondition(line, station, type, index)
-    if not(line and station and index) or (not (timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[station])) then return -1 end
+    if not(line and station and index) or (not (timetableObject[tostring(line)]
+       and timetableObject[tostring(line)].stations[station])) then
+        return -1
+    end
 
-    if type == "ArrDep" then 
-        
+    if type == "ArrDep" then
         local tmpTable = timetableObject[tostring(line)].stations[station].conditions.ArrDep
         if tmpTable and tmpTable[index] then return table.remove(tmpTable, index) end
     else
         -- just remove the whole condition
         local tmpTable = timetableObject[tostring(line)].stations[station].conditions[type]
-        if tmpTable and tmpTable[index] then tmpTable = {} end
+        if tmpTable and tmpTable[index] then timetableObject[tostring(line)].stations[station].conditions[type] = {} end
         return 0
     end
     return -1
 end
 
 function timetable.hasTimetable(line)
-    
     if timetableObject[tostring(line)] then
         return timetableObject[tostring(line)].hasTimetable
     else
@@ -195,135 +210,181 @@ function timetable.hasTimetable(line)
 end
 
 function timetable.waitingRequired(vehicle)
-    
     local time = timetableHelper.getTime()
     local currentLine = timetableHelper.getCurrentLine(vehicle)
     local currentStop = timetableHelper.getCurrentStation(vehicle)
-    if not timetableObject[tostring(currentLine)] then return false end
-    if not timetableObject[tostring(currentLine)].stations[currentStop] then return false end
-    if not timetableObject[tostring(currentLine)].stations[currentStop].conditions then return false end
-    if not timetableObject[tostring(currentLine)].stations[currentStop].conditions.type then return false end
+    local currentLineString = tostring(currentLine)
+    if not timetableObject[currentLineString] then return false end
+    if not timetableObject[currentLineString].stations[currentStop] then return false end
+    if not timetableObject[currentLineString].stations[currentStop].conditions then return false end
+    if not timetableObject[currentLineString].stations[currentStop].conditions.type then return false end
 
-    if timetableHelper.getTimeUntilDeparture(vehicle) >= 2 then return false end
+    if timetableHelper.getTimeUntilDeparture(vehicle) >= 5 then return false end
 
-    if not currentlyWaiting[tostring(currentLine)] then currentlyWaiting[tostring(currentLine)] = {stations = {}} end
-    if not currentlyWaiting[tostring(currentLine)].stations[currentStop] then currentlyWaiting[tostring(currentLine)].stations[currentStop] = { currentlyWaiting = {}} end
-    if timetableObject[tostring(currentLine)].stations[currentStop].conditions.type == "ArrDep" then 
+    if not currentlyWaiting[currentLineString] then currentlyWaiting[currentLineString] = {stations = {}} end
+    if not currentlyWaiting[currentLineString].stations[currentStop] then
+          currentlyWaiting[currentLineString].stations[currentStop] = { currentlyWaiting = {}}
+    end
+    if timetableObject[currentLineString].stations[currentStop].conditions.type == "ArrDep" then
         -- am I currently waiting or just arrived?
-        
-        if not (currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle]) then
+
+        if not (currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle]) then
             -- check if is about to depart
 
-            if currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime and (currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime + 40) > time then
+            if currentlyWaiting[currentLineString].stations[currentStop].outboundTime
+               and (currentlyWaiting[currentLineString].stations[currentStop].outboundTime + 40) > time then
                 return false
             end
 
             -- just arrived
-            local nextConstraint = timetable.getNextConstraint(timetableObject[tostring(currentLine)].stations[currentStop].conditions.ArrDep, time)
-            if not nextConstraint then 
+            local nextConstraint = timetable.getNextConstraint(timetableObject[currentLineString].stations[currentStop].conditions.ArrDep, time)
+            if not nextConstraint then
                 -- no constraints set
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
-                return false 
+                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
+                return false
             end
-            if timetable.beforeDepature(nextConstraint, time) then
+            if timetable.beforeDepature(nextConstraint, time, timetableObject[currentLineString].stations[currentStop].conditions.ArrDep) then
                 -- Constraint set and I need to wait
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle] = {type = "ArrDep", arrivalTime = time,  constraint = nextConstraint}
+                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle] = {
+                    type = "ArrDep",
+                    arrivalTime = time,
+                    constraint = nextConstraint
+                }
+
                 return true
             else
                 -- Constraint set and its time to depart
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime = time
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+                currentlyWaiting[currentLineString].stations[currentStop].outboundTime = time
+                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
                 return false
             end
         else
             -- already waiting
-            local arivvalTime = currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting[vehicle].arrivalTime
-            local constraint = timetable.getNextConstraint(timetableObject[tostring(currentLine)].stations[currentStop].conditions.ArrDep, arivvalTime)
-            if timetable.beforeDepature(constraint, time) then
+            local arivalTime = currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle].arrivalTime
+            local constraint = timetable.getNextConstraint(timetableObject[currentLineString].stations[currentStop].conditions.ArrDep, arivalTime)
+            if timetable.beforeDepature(constraint, time, timetableObject[currentLineString].stations[currentStop].conditions.ArrDep) then
                 -- need to continue waiting
                 return true
             else
                 -- done waiting
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime = time
-                currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+                currentlyWaiting[currentLineString].stations[currentStop].outboundTime = time
+                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
                 return false
             end
         end
-        -- edge cases, should not happen
-        currentlyWaiting[tostring(currentLine)].stations[currentStop].outboundTime = time
-        currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
-        return false
 
-    --------------------------------------------------------------------------------------------------------------------------------------
-    --------------------------------------- DEBOUNCE ------------------------------------------------------------------------------------
-    
-    elseif timetableObject[tostring(currentLine)].stations[currentStop].conditions.type == "debounce" then
-        local previousDepartureTime = timetableHelper.getPreviousDepartureTime(tonumber(vehicle)) 
-        condition = timetable.getConditions(currentLine, currentStop, "debounce")
+
+    --------------------------------------------------------------------------------------------------------------------
+    --------------------------------------- DEBOUNCE -------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    elseif timetableObject[currentLineString].stations[currentStop].conditions.type == "debounce" then
+        local previousDepartureTime = timetableHelper.getPreviousDepartureTime(tonumber(vehicle))
+        local condition = timetable.getConditions(currentLine, currentStop, "debounce")
         if not condition[1] then condition[1] = 0 end
         if not condition[2] then condition[2] = 0 end
         if time > previousDepartureTime + ((condition[1] * 60)  + condition[2]) then
-            currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+            currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
             return false
         else
             return true
         end
-    else 
-        currentlyWaiting[tostring(currentLine)].stations[currentStop].currentlyWaiting = {}
+    else
+        currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
         return false
     end
 end
 
 function timetable.setHasTimetable(line, bool)
-    
     if timetableObject[tostring(line)] then
         timetableObject[tostring(line)].hasTimetable = bool
-    else 
+    else
         timetableObject[tostring(line)] = {stations = {} , hasTimetable = bool}
     end
     return bool
 end
 
+--- Start all vehicles of given line.
+---@param line table line id
+function timetable.startAllLineVehicles(line)
+    for _, vehicle in pairs(timetableHelper.getVehiclesOnLine(line)) do
+        if timetableHelper.isInStation(vehicle) then
+            local currentLine = tostring(timetableHelper.getCurrentLine(vehicle))
+            local currentStop = timetableHelper.getCurrentStation(vehicle)
+            if currentlyWaiting[currentLine] and currentlyWaiting[currentLine].stations[currentStop] then
+                currentlyWaiting[currentLine].stations[currentStop].currentlyWaiting = {}
+            end
+            timetableHelper.startVehicle(vehicle)
+        end
+    end
+end
 
 
 -------------- UTILS FUNCTIONS ----------
 
-function timetable.beforeDepature(constraint, time)
-    
-    timeMin = tonumber(os.date('%M', time))
-    timeSec = tonumber(os.date('%S', time))
-
-    return not (timeMin == constraint[3] and timeSec >= constraint[4]) and not (timeMin - 1 == constraint[3]) and not (timeMin - 2 == constraint[3]) and not  (timeMin - 3 == constraint[3]) and not (timeMin - 4 == constraint[3]) and not (timeMin - 5 == constraint[3])
+-- This function returns true if the train is before its departure time
+---@param constraint table in format like: {9,0,59,0}
+---@param time number in seconds
+---@param allConstraints number table in format like: {{30,0,59,0},{9,0,59,0},...}
+function timetable.beforeDepature(constraint, time, allConstraints)
+    local departureTimeSec = (60 * constraint[3]) + constraint[4]
+    local normalisedTime = time % (60 * 60)
+    local nextArrivalTime = (timetable.getTimeUntilNextConstraint(constraint, allConstraints) + departureTimeSec) % (60 * 60)
+    return not (((normalisedTime > departureTimeSec) == (normalisedTime < nextArrivalTime)) ~= (departureTimeSec > nextArrivalTime))
 end
 
---tests: timetable.getNextConstraint({{30,0,59,0},{9,0,59,0} },1200000)
-function timetable.getNextConstraint(constraint, time)
-    res = {diff = 40000, value = nil}
-    timeMin = tonumber(os.date('%M', time))
-    timeSec = tonumber(os.date('%S', time))
-    for k,v in pairs(constraint) do
-        arrMin = v[1]
-        arrSec = v[2]
-        diffMin = timetable.getDifference(timeMin, arrMin)
-        diffSec = timetable.getDifference(timeSec, arrMin)
-        diff = (diffMin * 60) + diffSec
-        if(diff < res.diff) then
-            res = {diff = diff, value = v}
+-- This function calcualtes the time from a given constraint to its closest next constraint
+---@param constraint table in format like: {9,0,59,0}
+---@param allConstraints number table in format like: {{30,0,59,0},{9,0,59,0},...}
+---@return number timeUntilNextContraint: {30,0,59,0}
+function timetable.getTimeUntilNextConstraint(constraint, allConstraints)
+    local res = 40000
+    local constraintSec =((constraint[1] * 60) + constraint[2])
+    for _,v in pairs(allConstraints) do
+        local toCheckSec = ((v[1] * 60) + v[2])
+        if constraintSec > toCheckSec then
+            toCheckSec =  toCheckSec + (60*60)
+        end
+        local difference = toCheckSec - constraintSec
+        if difference > 0 and difference < res then
+            res = difference
+        end
+    end
+    return res
+end
+
+---Find the next valid constraint for given constraints and time
+---@param constraints table in format like: {{30,0,59,0},{9,0,59,0}
+---@param time number in seconds
+---@return table closestConstraint example: {30,0,59,0}
+function timetable.getNextConstraint(constraints, time)
+    local res = {diff = 40000, value = nil}
+    for _, constraint in pairs(constraints) do
+        local arrMin = constraint[1]
+        local arrSec = constraint[2]
+        local arrTime = arrMin * 60 + arrSec
+
+        local diff = timetable.getTimeDifference(arrTime, time % 3600)
+        if (diff < res.diff) then
+            res = {diff = diff, value = constraint}
         end
     end
 
     return res.value
 end
 
--- returns a value between 0 and 30
-function timetable.getDifference(a,b) 
-    if math.abs(a - b) < 30 then
-        return math.abs(a - b)
-    else 
-        return 60 - math.abs(a - b)
+---Calculates the time difference between two timestamps in seconds.
+---Considers that 59 mins is close to 0 mins.
+---@param a number in seconds between in range of 0-3599 (inclusive)
+---@param b number in seconds between in range of 0-3599 (inclusive)
+---@return number
+function timetable.getTimeDifference(a, b)
+    local absDiff = math.abs(a - b)
+    if absDiff > 1800 then
+        return 3600 - absDiff
+    else
+        return absDiff
     end
 end
-
 
 
 return timetable

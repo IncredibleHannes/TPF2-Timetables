@@ -1,9 +1,9 @@
 function data()
 	return {
 		info = {
-			description = _("This mod adds timetables to the game!"),
-			name = _("Timetables"),
-			minorVersion = 0,
+			description = _("mod_description_i18n"),
+			name = _("mod_name_i18n"),
+			minorVersion = 1,
 			severityAdd = "NONE",
 			severityRemove = "WARNING",
 			params = { },
@@ -18,4 +18,3 @@ function data()
 		},
 	}
 	end
-	

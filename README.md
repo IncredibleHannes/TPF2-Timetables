@@ -19,6 +19,9 @@ If you want to contribute to this project, open yourself an issue, place it on t
 When you are done and want to integrate it, you can open a pull request into the develop branch. (You can of cause open them early to get feedback if you like).
 The pull request can be merged into the dev branch after a review.
 For every release to the workshop, a pull request into the master branch is created, and a GitHub release will be created as well.
+
+If you plan to activly contribute to this mod, please join our Discord Server and request the role of a colaborator there:
+https://discord.gg/7KbVP8Fr6Z
 ## Reporting bugs/Submitting feature request
 Please use the issue feature to submit feedback/feature requests/bug reports.
 When reporting a bug, please detail all the steps that are nectary to recreate this bug! Also please append your stdout.txt file whenever possible.

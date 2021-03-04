@@ -9,10 +9,18 @@ Timetables can be configured for each line and each station individually. There 
 Trains will depart right away when they are late without interference from the mod. The timetable mod uses the game the stop command and can therefore only enforce longer waiting times. It won't make trains drive faster or load/unload quicker.
 
 Timetables are only working when the checkbox on the line overview is ticked.
+[h2]Tutorials[/h2]
+[h3]English[/h3]
+[url=https://www.youtube.com/watch?v=DFCW1PTCoO4]Link[/url]
+[h3]German[/h3]
+[url=https://www.youtube.com/watch?v=ykh5ttBoTAs]Link[/url]
 
 [h2]Contribute[/h2]
 The source code of the timetable mod is available on GitHub. Any contributions are very welcome!
 [url=https://github.com/IncredibleHannes/TPF2-Timetables][img]https://raw.githubusercontent.com/IncredibleHannes/TPF2-Timetables/develop/github_button.png[/img][/url]
+
+If you want to actively collaborate on the future development of this mod, join our Discord server:
+[url=https://discord.gg/7KbVP8Fr6Z]Link[/url]
 
 
 [h2]Reporting bugs/Submitting feature requests[/h2]
@@ -20,4 +28,72 @@ My prefered method and therefore the most likely method to get my attention will
 
 
 If you like my mods, a donation would be greatly appreciated:
+[url=https://www.paypal.com/donate?hosted_button_id=NZWEU467XUWJ6][img]https://i.imgur.com/GpY6AzF.png[/img][/url]
+
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+[h1]Fahrpläne[/h1]
+Mit Stolz präsentiere ich heute mein neustes Project: Fahrpläne!
+Dieser Mod fügt dem Spiel Fahrpläne hinzu
+Die Fahrpläne können individuell für jede Linie und Station angepasst werden. Es gibt 2 Typen von Fahrplan Bedingungen die einer Station hinzugefügt werden können:
+[list]
+[*] [b] Arrival/Departure[/b]: Es ist möglich Ankunft/Abfahrt Slots der Station hinzuzufügen. Der ankommende Zug entscheidend anhand der Ankunftszeit welchen Slot er nimmt und wartet dann bis zur Abfahrtszeit in der Station.
+[*] [b] Unbunch[/b]: Es kann eine Frequenz gesetzt werden. Der Zug fährt in der gesetzten Frequenz am Bahnhof ab.
+[/list]
+Bei Verspätung fahren die Züge nach dem ein und ausladen direkt weiter. Der Mod verwendet das Stop Kommando aus dem Spiel und kann deshalb nur Züge länger warten lassen, jedoch keine Züge schneller fahren lassen oder die Ladezeitn beschleunigen!
+
+Damit die Fahrpläne funktionieren muss die kleine Checkbox auf der Linienübersicht aktiviert sein!
+[h2]Tutorials[/h2]
+[h3]Englisch[/h3]
+[url=https://www.youtube.com/watch?v=DFCW1PTCoO4]Link[/url]
+[h3]Deutsch[/h3]
+[url=https://www.youtube.com/watch?v=ykh5ttBoTAs]Link[/url]
+
+[h2]Contribute[/h2]
+Der Code von dem Mod ist auf GitHub verfügbar. Mitarbeit für zukünftige Features ist deutlich erwünscht!
+[url=https://github.com/IncredibleHannes/TPF2-Timetables][img]https://raw.githubusercontent.com/IncredibleHannes/TPF2-Timetables/develop/github_button.png[/img][/url]
+
+Wenn du aktiv an der Weiterentwicklung des Mods mitarbeiten möchtest, tritt bitte unserem Discord Server bei:
+[url=https://discord.gg/7KbVP8Fr6Z]Link[/url]
+
+[h2]Reporting bugs/Submitting feature requests[/h2]
+Bevorzugt über GitHub, da habt ihr die größten Erfolgsaussichten das ich es auch mitbekomme und behebe!
+
+
+Wenn du meine Mods magst freue ich mich über eine kleine Spende:
+[url=https://www.paypal.com/donate?hosted_button_id=NZWEU467XUWJ6][img]https://i.imgur.com/GpY6AzF.png[/img][/url]
+
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+[h1]Расписания[/h1]
+С гордостью представляю вам свой новейший проект: Timetables!
+Этот мод добавляет расписания в игру.
+Расписания могут настраиваться для каждой линии и станции отдельно. Есть два варианта регулировки, которые могут быть добавлены для каждой станции:
+[list]
+[] [b] Прибытие/Отправление[/b]: Вы можете добавлять время прибытия/отправления поездов. Поезд выберет ближайшее время в существующем расписаниии по прибытии на станцию, и затем адаптируется под него. 
+[] [b] Интервал[/b]: Вы можете установить временной отрезок и составы будут двигаться с указанным интервалом. 
+[/list]
+Если поезда отстают от расписания, они будут отправляться сразу после загрузки. Поскольку мод построен на игровой механике остановок, он влияет только на нее. Он не может заставить поезда двигаться быстрее или медленнее, или ускорять загрузку пассажиров.
+
+Расписания работают только тогда, когда установлена галочка в меню действующих линий.
+[h2]Гайды[/h2]
+[h3]Англоязычный[/h3]
+[url=https://www.youtube.com/watch?v=DFCW1PTCoO4]Тык[/url]
+[h3]Немецкий[/h3]
+[url=https://www.youtube.com/watch?v=ykh5ttBoTAs]Тык[/url]
+
+[h2]Благодарность[/h2]
+Оригинальный код мода доступен на платформе GitHub. Любой вклад в разработку очень приветствуется!
+[url=https://github.com/IncredibleHannes/TPF2-Timetables][img]https://raw.githubusercontent.com/IncredibleHannes/TPF2-Timetables/develop/github_button.png[/img][/url]
+
+Если вы хотите принять активное участие в будущем мода, присоединяйтесь к нашему Discord серверу:
+[url=https://discord.gg/7KbVP8Fr6Z]Link[/url]
+
+
+[h2]Сообщения о багах / Предложения по улучшению[/h2]
+Наиболее удобный метод связи со мной является платформа Github, через раздел "Issues".
+
+
+Если вам нравятся мои моды, я буду очень благодарен вам за финансовую поддержку:
 [url=https://www.paypal.com/donate?hosted_button_id=NZWEU467XUWJ6][img]https://i.imgur.com/GpY6AzF.png[/img][/url]

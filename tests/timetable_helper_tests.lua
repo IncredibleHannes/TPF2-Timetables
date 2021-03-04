@@ -1,4 +1,4 @@
-timetableHelper = require ".res.scripts.celmi.timetables.timetable_helper"
+--local timetableHelper = require ".res.scripts.celmi.timetables.timetable_helper"
 
 local tests = {}
 
