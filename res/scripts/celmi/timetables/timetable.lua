@@ -155,6 +155,33 @@ function timetable.addCondition(line, stationNumber, condition)
     end
 end
 
+function timetable.cloneCondition(line, stationNumber, type, index)
+    local stationID = timetableHelper.getStationID(line, stationNumber)
+    if not(line and stationNumber and index) then return -1 end
+
+    if timetableObject[tostring(line)] and timetableObject[tostring(line)].stations[stationNumber] then
+        if type == "ArrDep" then
+            timetable.setConditionType(line, stationNumber, type)
+            local tmpTable = timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep
+            local mergeTable = {tmpTable[index]}
+            if tmpTable and tmpTable[index] then
+                local mergedArrays = timetableHelper.mergeArray(tmpTable, mergeTable)
+                timetableObject[tostring(line)].stations[stationNumber].conditions.ArrDep = mergedArrays
+            end
+        end
+        timetableObject[tostring(line)].stations[stationNumber].stationID = stationID
+    else
+        if not timetableObject[tostring(line)] then
+            timetableObject[tostring(line)] = {hasTimetable = false, stations = {}}
+        end
+        timetableObject[tostring(line)].stations[stationNumber] = {
+            inboundTime = 0,
+            stationID = stationID,
+            conditions = condition
+        }
+    end
+end
+
 function timetable.updateArrDep(line, station, indexKey, indexValue, value)
     if not (line and station and indexKey and indexValue and value) then return -1 end
     if timetableObject[tostring(line)] and

@@ -682,18 +682,29 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
             timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
         end)
 
+        local cloneButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("C") ,true)
+        cloneButton:onClick(function()
+            timetable.cloneCondition(lineID, stationID, "ArrDep", k)
+            clearConstraintWindowLaterHACK = function()
+                timetableGUI.initStationTable()
+                timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
+                timetableGUI.clearConstraintWindow()
+                timetableGUI.makeArrDepWindow(lineID, stationID)
+            end
+        end)
 
         local deletePlaceholder = api.gui.comp.TextView.new(" ")
         deletePlaceholder:setMinimumSize(api.gui.util.Size.new(12, 30))
         deletePlaceholder:setMaximumSize(api.gui.util.Size.new(12, 30))
 
-        local linetable2 = api.gui.comp.Table.new(5, 'NONE')
+        local linetable2 = api.gui.comp.Table.new(6, 'NONE')
         linetable2:addRow({
             departureLabel,
             departureMin,
             api.gui.comp.TextView.new(":"),
             departureSec,
-            deletePlaceholder
+            deletePlaceholder,
+            cloneButton
         })
         menu.constraintTable:addRow({linetable2})
 
