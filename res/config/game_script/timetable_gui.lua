@@ -844,7 +844,11 @@ function data()
                 local button = gui.button_create("gameInfo.timetables.button", buttonLabel)
                 button:onClick(function ()
                     local err, msg = pcall(timetableGUI.showLineMenu)
-                    if not err then print(msg) end
+                    if not err then
+                        menu.window:close()
+                        menu.window = nil
+                        print(msg)
+                    end
                 end)
                 game.gui.boxLayout_addItem("gameInfo.layout", button.id)
 				-- add elements to ui
