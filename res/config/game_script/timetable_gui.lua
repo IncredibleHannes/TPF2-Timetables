@@ -787,7 +787,6 @@ function data()
         handleEvent = function (_, id, _, param)
             if id == "timetableUpdate" then
                 if state == nil then state = {timetable = {}} end
-                print("timetable update")
                 state.timetable = param
                 timetable.setTimetableObject(state.timetable)
                 timetableChanged = true
