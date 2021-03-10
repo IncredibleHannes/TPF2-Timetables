@@ -24,9 +24,9 @@ function data()
             ["none_i18n"] = "None",
             ["tooltip_i18n"] = [[
 You can add timetable constraints to each station.
-When a train arrives at the station it will try to 
-keep the constraints. The following constraints are available: 
-  - Arrival/Departure: Set multiple Arr/Dep times and the train 
+When a train arrives at the station it will try to
+keep the constraints. The following constraints are available:
+  - Arrival/Departure: Set multiple Arr/Dep times and the train
                                       chooses the closest arrival time
   - Unbunch: Set a time and vehicles will only depart the station in the given interval
             ]],
@@ -57,9 +57,9 @@ keep the constraints. The following constraints are available:
             ["none_i18n"] = "Keine",
             ["tooltip_i18n"] = [[
 Du kannst für jede Station Bedingungen setzen.
-Wenn ein Zug an einer Station ankommt, versucht er die 
-Bedingungen einzuhalten. Folgende Bedingungen gibt es: 
-  - Ankunft/Abfahrt: Setze mehrere Ank/Abf Zeiten und der Zug 
+Wenn ein Zug an einer Station ankommt, versucht er die
+Bedingungen einzuhalten. Folgende Bedingungen gibt es:
+  - Ankunft/Abfahrt: Setze mehrere Ank/Abf Zeiten und der Zug
                      wählt die naheste Ankunftszeit
   - Takt: Setze eine Zeit, so dass der Zug die Station nur zu einem bestimmten Intervall verlässt
             ]],
@@ -91,7 +91,7 @@ Bedingungen einzuhalten. Folgende Bedingungen gibt es:
             ["tooltip_i18n"] = [[
 Вы можете отрегулировать расписание для каждой станции.
 По прибытию на станцию, поезд будет стараться следовать расписанию.
-Следующие варианты регулировки доступны: 
+Следующие варианты регулировки доступны:
   - Прибытие/Отправление: установите время прибытия и отправления и поезд выберет ближайшее
     подходящее время отправления
   - Интервал: настройте время и транспорт будет отправляться со станции согласно выбранному интервалу
@@ -123,9 +123,9 @@ Bedingungen einzuhalten. Folgende Bedingungen gibt es:
             ["none_i18n"] = "Nessuno",
             ["tooltip_i18n"] = [[
 Puoi aggiungere una scheda orario per ogni stazione.
-Quando un treno arriva alla stazione, questo proverà 
-a mantenere l'orario impostato. 
-  - Arrivo/Partenza: imposta Arr/Part multipli per il treno 
+Quando un treno arriva alla stazione, questo proverà
+a mantenere l'orario impostato.
+  - Arrivo/Partenza: imposta Arr/Part multipli per il treno
                                       che sceglierà l'orario di arrivo piu vicino
   - Distanziamento: imposta un tempo per cui il veicolo partirà dalla stazione all'intervallo orario scelto
             ]],
