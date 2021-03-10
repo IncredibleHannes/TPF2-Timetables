@@ -22,14 +22,14 @@ function data()
             ["all_i18n"] = "All",
             ["add_i18n"] = "Add",
             ["none_i18n"] = "None",
-            ["tooltip_i18n"] = (
-                "You can add timetable constraints to each station.\n" ..
-                "When a train arrives at the station it will try to \n" ..
-                "keep the constraints. The following constraints are available: \n" ..
-                "  - Arrival/Departure: Set multiple Arr/Dep times and the train \n" ..
-                "                                      chooses the closest arrival time\n" ..
-                "  - Unbunch: Set a time and vehicles will only depart the station in the given interval"
-                ),
+            ["tooltip_i18n"] = [[
+You can add timetable constraints to each station.
+When a train arrives at the station it will try to 
+keep the constraints. The following constraints are available: 
+  - Arrival/Departure: Set multiple Arr/Dep times and the train 
+                                      chooses the closest arrival time
+  - Unbunch: Set a time and vehicles will only depart the station in the given interval
+            ]],
             ["mod_name_i18n"] = "Timetables",
             ["mod_description_i18n"] = "This mod adds timetables to the game",
         },
@@ -55,14 +55,14 @@ function data()
             ["all_i18n"] = "Alle",
             ["add_i18n"] = "+",
             ["none_i18n"] = "Keine",
-            ["tooltip_i18n"] = (
-                "Du kannst für jede Station Bedingungen setzen.\n" ..
-                "Wenn ein Zug an einer Station ankommt, versucht er die \n" ..
-                "Bedingungen einzuhalten. Folgende Bedingungen gibt es: \n" ..
-                "  - Ankunft/Abfahrt: Setze mehrere Ank/Abf Zeiten und der Zug \n" ..
-                "                     wählt die naheste Ankunftszeit\n" ..
-                "  - Takt: Setze eine Zeit, so dass der Zug die Station nur zu einem bestimmten Intervall verlässt"
-                ),
+            ["tooltip_i18n"] = [[
+Du kannst für jede Station Bedingungen setzen.
+Wenn ein Zug an einer Station ankommt, versucht er die 
+Bedingungen einzuhalten. Folgende Bedingungen gibt es: 
+  - Ankunft/Abfahrt: Setze mehrere Ank/Abf Zeiten und der Zug 
+                     wählt die naheste Ankunftszeit
+  - Takt: Setze eine Zeit, so dass der Zug die Station nur zu einem bestimmten Intervall verlässt
+            ]],
             ["mod_name_i18n"] = "Fahrpläne",
             ["mod_description_i18n"] = "Diese Mod fügt dem Spiel Fahrpläne hinzu",
         },
@@ -88,14 +88,14 @@ function data()
             ["all_i18n"] = "Все",
             ["add_i18n"] = "Добавить",
             ["none_i18n"] = "Отсутствует",
-            ["tooltip_i18n"] = (
-                "Вы можете отрегулировать расписание для каждой станции.\n" ..
-                "По прибытию на станцию, поезд будет стараться следовать расписанию.\n" ..
-                "Следующие варианты регулировки доступны: \n" ..
-                "  - Прибытие/Отправление: установите время прибытия и отправления и поезд выберет ближайшее\n" ..
-                "    подходящее время отправления\n" ..
-                "  - Интервал: настройте время и транспорт будет отправляться со станции согласно выбранному интервалу"
-                ),
+            ["tooltip_i18n"] = [[
+Вы можете отрегулировать расписание для каждой станции.
+По прибытию на станцию, поезд будет стараться следовать расписанию.
+Следующие варианты регулировки доступны: 
+  - Прибытие/Отправление: установите время прибытия и отправления и поезд выберет ближайшее
+    подходящее время отправления
+  - Интервал: настройте время и транспорт будет отправляться со станции согласно выбранному интервалу
+            ]],
             ["mod_name_i18n"] = "Расписание",
             ["mod_description_i18n"] = "Этот мод добавляет в игру расписание.",
         },
@@ -121,19 +121,19 @@ function data()
             ["all_i18n"] = "Tutti",
             ["add_i18n"] = "Aggiungi",
             ["none_i18n"] = "Nessuno",
-            ["tooltip_i18n"] = (
-                "Puoi aggiungere una scheda orario per ogni stazione.\n" ..
-                "Quando un treno arriva alla stazione, questo proverà \n" ..
-                "a mantenere l'orario impostato. \n" ..
-                "  - Arrivo/Partenza: imposta Arr/Part multipli per il treno \n" ..
-                "                                      che sceglierà l'orario di arrivo piu vicino\n" ..
-                "  - Distanziamento: imposta un tempo per cui il veicolo partirà dalla stazione all'intervallo orario scelto"
-                ),
+            ["tooltip_i18n"] = [[
+Puoi aggiungere una scheda orario per ogni stazione.
+Quando un treno arriva alla stazione, questo proverà 
+a mantenere l'orario impostato. 
+  - Arrivo/Partenza: imposta Arr/Part multipli per il treno 
+                                      che sceglierà l'orario di arrivo piu vicino
+  - Distanziamento: imposta un tempo per cui il veicolo partirà dalla stazione all'intervallo orario scelto
+            ]],
             ["mod_name_i18n"] = "Orari",
             ["mod_description_i18n"] = "Questa mod aggiunge le schede orarie al gioco.",
         },
 
---[[
+--[=[
         nl = {
             ["arr_i18n"] = "",
             ["arrival_i18n"] = "",
@@ -155,18 +155,12 @@ function data()
             ["all_i18n"] = "",
             ["add_i18n"] = "",
             ["none_i18n"] = "",
-            ["tooltip_i18n"] = (
-                 "\n" ..
-                "\n" ..
-                "\n" ..
-                "\n"..
-                "" ..
-                ""
-                ),
-            },
---]]
+            ["tooltip_i18n"] = [[
+            ]],
+        },
+--]=]
 
---[[
+--[=[
         es = {
             ["arr_i18n"] = "",
             ["arrival_i18n"] = "",
@@ -188,18 +182,12 @@ function data()
             ["all_i18n"] = "",
             ["add_i18n"] = "",
             ["none_i18n"] = "",
-            ["tooltip_i18n"] = (
-                 "\n" ..
-                "\n" ..
-                "\n" ..
-                "\n"..
-                "" ..
-                ""
-                ),
-            },
---]]
+            ["tooltip_i18n"] = [[
+            ]],
+        },
+--]=]
 
---[[
+--[=[
         fr = {
             ["arr_i18n"] = "",
             ["arrival_i18n"] = "",
@@ -221,18 +209,12 @@ function data()
             ["all_i18n"] = "",
             ["add_i18n"] = "",
             ["none_i18n"] = "",
-            ["tooltip_i18n"] = (
-                 "\n" ..
-                "\n" ..
-                "\n" ..
-                "\n"..
-                "" ..
-                ""
-                ),
-            },
---]]
+            ["tooltip_i18n"] = [[
+            ]],
+        },
+--]=]
 
---[[
+--[=[
         pl = {
             ["arr_i18n"] = "",
             ["arrival_i18n"] = "",
@@ -254,18 +236,12 @@ function data()
             ["all_i18n"] = "",
             ["add_i18n"] = "",
             ["none_i18n"] = "",
-            ["tooltip_i18n"] = (
-                 "\n" ..
-                "\n" ..
-                "\n" ..
-                "\n"..
-                "" ..
-                ""
-                ),
-            },
---]]
+            ["tooltip_i18n"] = [[
+            ]],
+        },
+--]=]
 
---[[
+--[=[
         ja = {
             ["arr_i18n"] = "",
             ["arrival_i18n"] = "",
@@ -287,16 +263,10 @@ function data()
             ["all_i18n"] = "",
             ["add_i18n"] = "",
             ["none_i18n"] = "",
-            ["tooltip_i18n"] = (
-                 "\n" ..
-                "\n" ..
-                "\n" ..
-                "\n"..
-                "" ..
-                ""
-                ),
-            },
---]]
+            ["tooltip_i18n"] = [[
+            ]],
+        },
+--]=]
 
         zh_CN = {
             ["arr_i18n"] = "到: ",
@@ -319,12 +289,12 @@ function data()
             ["all_i18n"] = "全部",
             ["add_i18n"] = "添加",
             ["none_i18n"] = "无",
-            ["tooltip_i18n"] = (
-                "你可以对每个站点添加时刻表约束。\n" ..
-                "列车到站后会尽量遵循约束条件。可用的约束模式包括：\n" ..
-                " – 到发时刻：设定多组到发时刻，列车会选择最近的时刻\n" ..
-                " - 间隔控制：设定时间长度，载具以给定间隔发车"
-                ),
+            ["tooltip_i18n"] = [[
+你可以对每个站点添加时刻表约束。
+列车到站后会尽量遵循约束条件。可用的约束模式包括：
+ – 到发时刻：设定多组到发时刻，列车会选择最近的时刻
+ - 间隔控制：设定时间长度，载具以给定间隔发车
+                ]],
             ["mod_name_i18n"] = "时刻表",
             ["mod_description_i18n"] = "本模组为游戏添加时刻表系统",
         },
@@ -350,12 +320,12 @@ function data()
             ["all_i18n"] = "全部",
             ["add_i18n"] = "添加",
             ["none_i18n"] = "無",
-            ["tooltip_i18n"] = (
-                "你可以對各個站點添加時刻表約束。\n" ..
-                "列車到站後會儘量遵循約束條件。可用的約束模式包括：\n" ..
-                " – 到發時刻：設定多組到發時刻，列車會選擇最近的時刻\n" ..
-                " - 間隔控制：設定時間長度，載具以給定間隔發車"
-                ),
+            ["tooltip_i18n"] = [[
+你可以對各個站點添加時刻表約束。
+列車到站後會儘量遵循約束條件。可用的約束模式包括：
+ – 到發時刻：設定多組到發時刻，列車會選擇最近的時刻
+ - 間隔控制：設定時間長度，載具以給定間隔發車
+                ]],
             ["mod_name_i18n"] = "時刻表",
             ["mod_description_i18n"] = "本模組爲遊戲添加時刻表系統",
         },
