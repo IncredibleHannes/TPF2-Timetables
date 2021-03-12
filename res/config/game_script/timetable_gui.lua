@@ -17,8 +17,8 @@ local UIState = {
 }
 local co = nil
 local state = nil
-local count = 0
 
+local timetableChanged = false
 local clearConstraintWindowLaterHACK = nil
 
 local UIStrings = {
@@ -277,11 +277,13 @@ function timetableGUI.fillLineTable()
             local hasTimetable = timetable.hasTimetable(v.id)
             if  hasTimetable then
                 timetable.setHasTimetable(v.id,false)
+                timetableChanged = true
                 imageVeiw:setImage("ui/checkbox0.tga", false)
                 -- start all stopped vehicles again if the timetable is disabled for this line
                 timetable.startAllLineVehicles(v.id)
             else
                 timetable.setHasTimetable(v.id,true)
+                timetableChanged = true
                 imageVeiw:setImage("ui/checkbox1.tga", false)
             end
         end)
@@ -556,6 +558,7 @@ function timetableGUI.fillConstraintTable(index,lineID)
     comboBox:onIndexChanged(function (i)
         if i == -1 then return end
         timetable.setConditionType(lineID, index, timetableHelper.constraintIntToString(i))
+        timetableChanged = true
         timetableGUI.initStationTable()
         timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
         UIState.currentlySelectedConstraintType = i
@@ -589,6 +592,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     addButton:setGravity(1,0)
     addButton:onClick(function()
         timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {{0,0,0,0}}})
+        timetableChanged = true
         clearConstraintWindowLaterHACK = function()
             timetableGUI.initStationTable()
             timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
@@ -624,6 +628,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         arrivalMin:setValue(v[1],false)
         arrivalMin:onChange(function(value)
             timetable.updateArrDep(lineID, stationID, k, 1, value)
+            timetableChanged = true
             timetableGUI.initStationTable()
             timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
         end)
@@ -634,6 +639,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         arrivalSec:setValue(v[2],false)
         arrivalSec:onChange(function(value)
             timetable.updateArrDep(lineID, stationID, k, 2, value)
+            timetableChanged = true
             timetableGUI.initStationTable()
             timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
         end)
@@ -641,6 +647,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         local deleteButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("X") ,true)
         deleteButton:onClick(function()
             timetable.removeCondition(lineID, stationID, "ArrDep", k)
+            timetableChanged = true
             clearConstraintWindowLaterHACK = function()
                 timetableGUI.initStationTable()
                 timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
@@ -668,6 +675,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         departureMin:setValue(v[3],false)
         departureMin:onChange(function(value)
             timetable.updateArrDep(lineID, stationID, k, 3, value)
+            timetableChanged = true
             timetableGUI.initStationTable()
             timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
         end)
@@ -678,6 +686,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         departureSec:setValue(v[4],false)
         departureSec:onChange(function(value)
             timetable.updateArrDep(lineID, stationID, k, 4, value)
+            timetableChanged = true
             timetableGUI.initStationTable()
             timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
         end)
@@ -719,6 +728,7 @@ function timetableGUI.makeDebounceWindow(lineID, stationID)
 
     debounceMin:onChange(function(value)
         timetable.updateDebounce(lineID, stationID,  1, value)
+        timetableChanged = true
         timetableGUI.initStationTable()
         timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
     end)
@@ -734,6 +744,7 @@ function timetableGUI.makeDebounceWindow(lineID, stationID)
 
     debounceSec:onChange(function(value)
         timetable.updateDebounce(lineID, stationID, 2, value)
+        timetableChanged = true
         timetableGUI.initStationTable()
         timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
     end)
@@ -769,7 +780,6 @@ function timetableGUI.timetableCoroutine()
     end
 end
 
-
 function data()
     return {
         --engine Thread
@@ -779,6 +789,7 @@ function data()
                 if state == nil then state = {timetable = {}} end
                 state.timetable = param
                 timetable.setTimetableObject(state.timetable)
+                timetableChanged = true
             end
         end,
 
@@ -811,11 +822,9 @@ function data()
         end,
 
         guiUpdate = function()
-            if count == 30 then
+            if timetableChanged then
                 game.interface.sendScriptEvent("timetableUpdate", "", timetable.getTimetableObject())
-                count = 0
-            else
-                count = count + 1
+                timetableChanged = false
             end
             if clearConstraintWindowLaterHACK then
                 clearConstraintWindowLaterHACK()
@@ -835,7 +844,11 @@ function data()
                 local button = gui.button_create("gameInfo.timetables.button", buttonLabel)
                 button:onClick(function ()
                     local err, msg = pcall(timetableGUI.showLineMenu)
-                    if not err then print(msg) end
+                    if not err then
+                        menu.window:close()
+                        menu.window = nil
+                        print(msg)
+                    end
                 end)
                 game.gui.boxLayout_addItem("gameInfo.layout", button.id)
 				-- add elements to ui

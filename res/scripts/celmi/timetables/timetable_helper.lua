@@ -195,7 +195,7 @@ function timetableHelper.getFrequency(line)
     if lineEntity and lineEntity.frequency then
         if lineEntity.frequency == 0 then return "--" end
         local x = 1 / lineEntity.frequency
-        return os.date('%M:%S', x)
+        return math.floor(x / 60) .. ":" .. os.date('%S', x)
     else
         return "--"
     end
