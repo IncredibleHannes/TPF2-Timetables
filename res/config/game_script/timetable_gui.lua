@@ -845,7 +845,9 @@ function data()
                 button:onClick(function ()
                     local err, msg = pcall(timetableGUI.showLineMenu)
                     if not err then
-                        menu.window:close()
+                        if menu and menu.window then
+                            menu.window:close()
+                        end
                         menu.window = nil
                         print(msg)
                     end
