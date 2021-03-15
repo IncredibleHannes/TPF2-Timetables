@@ -186,34 +186,37 @@ a mantenere l'orario impostato.
             ]],
         },
 --]=]
-
---[=[
-        fr = {
-            ["arr_i18n"] = "",
-            ["arrival_i18n"] = "",
-            ["dep_i18n"] = "",
-            ["departure_i18n"] = "",
-            ["unbunch_time_i18n"] = "",
-            ["unbunch_i18n"] = "",
-            ["timetable_i18n"] = "",
-            ["timetables_i18n"] = "",
-            ["line_i18n"] = "",
-            ["lines_i18n"] = "",
-            ["time_min_i18n"] = "",
-            ["time_sec_i18n"] = "",
-            ["stations_i18n"] = "",
-            ["frequency_i18n"] = "",
-            ["journey_time_i18n"] = "",
-            ["arr_dep_i18n"] = "",
-            ["no_timetable_i18n"] = "",
-            ["all_i18n"] = "",
-            ["add_i18n"] = "",
-            ["none_i18n"] = "",
-            ["tooltip_i18n"] = [[
-            ]],
-        },
---]=]
-
+    fr = {
+    ["arr_i18n"] = "Arr:",
+        ["arrival_i18n"] = "Arrivée",
+        ["dep_i18n"] = "Dep:",
+        ["departure_i18n"] = "Départ",
+        ["unbunch_time_i18n"] = "Intervalle de regulation",
+        ["unbunch_i18n"] = "Regulation",
+        ["timetable_i18n"] = "Horaire",
+        ["timetables_i18n"] = "Horaires",
+        ["line_i18n"] = "Ligne",
+        ["lines_i18n"] = "Lignes",
+        ["time_min_i18n"] = "min",
+        ["time_sec_i18n"] = "sec",
+        ["stations_i18n"] = "Gares",
+        ["frequency_i18n"] = "Fréquence",
+        ["journey_time_i18n"] = "Temps de trajet",
+        ["arr_dep_i18n"] = "Arrivée / Départ",
+        ["no_timetable_i18n"] = "Pas d'horaire",
+        ["all_i18n"] = "Tout",
+        ["add_i18n"] = "Ajouter",
+        ["none_i18n"] = "Aucun",
+        ["tooltip_i18n"] = (
+            "Vous pouvez définir des contraites horaires spécifiques à chaque arrêt / station.\n" ..
+            "Quand le train arrive en gare, il essayera de respecter les contraites.\n" ..
+            "Les contraintes disponibles sont les suivantes :\n" ..
+            "  - Arrivée/Départ: avec des horaires prédéfinis, le train choisira l'horaire d'arrivée le plus proche.\n"..
+            "  - Regulation: Les trains partiront tous les x temps selon un intervalle de temps défini."
+            ),
+        ["mod_name_i18n"] = "Fréquence / Horaire",
+        ["mod_description_i18n"] = "Ce mod ajoute les gestion des horaires et de la fréquence de passage dans le jeu.",
+    },
 --[=[
         pl = {
             ["arr_i18n"] = "",
