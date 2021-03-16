@@ -21,6 +21,11 @@ local state = nil
 local timetableChanged = false
 local clearConstraintWindowLaterHACK = nil
 
+local stationTableScrollOffset
+local lineTableScrollOffset
+local constraintTableScrollOffset
+
+
 local UIStrings = {
         arr	= _("arr_i18n"),
 		arrival	= _("arrival_i18n"),
@@ -134,7 +139,12 @@ end
 -------------------------------------------------------------
 
 function timetableGUI.initLineTable()
-    if menu.scrollArea then UIState.boxlayout2:removeItem(menu.scrollArea) end
+    if menu.scrollArea then
+        lineTableScrollOffset = menu.scrollArea:getScrollOffset()
+        UIState.boxlayout2:removeItem(menu.scrollArea)
+    else
+        lineTableScrollOffset = api.type.Vec2i.new()
+    end
     if menu.lineHeader then UIState.boxlayout2:removeItem(menu.lineHeader) end
 
 
@@ -160,7 +170,12 @@ function timetableGUI.initLineTable()
 end
 
 function timetableGUI.initStationTable()
-    if menu.stationScrollArea then UIState.boxlayout2:removeItem(menu.stationScrollArea) end
+    if menu.stationScrollArea then
+        stationTableScrollOffset = menu.stationScrollArea:getScrollOffset()
+        UIState.boxlayout2:removeItem(menu.stationScrollArea)
+    else
+        stationTableScrollOffset = api.type.Vec2i.new()
+    end
 
     menu.stationScrollArea = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('stationScrollArea'), "timetable.stationScrollArea")
     menu.stationTable = api.gui.comp.Table.new(4, 'SINGLE')
@@ -173,7 +188,12 @@ function timetableGUI.initStationTable()
 end
 
 function timetableGUI.initConstraintTable()
-    if menu.scrollAreaConstraint then UIState.boxlayout2:removeItem(menu.scrollAreaConstraint) end
+    if menu.scrollAreaConstraint then
+        constraintTableScrollOffset = menu.scrollAreaConstraint:getScrollOffset()
+        UIState.boxlayout2:removeItem(menu.scrollAreaConstraint)
+    else
+        constraintTableScrollOffset = api.type.Vec2i.new()
+    end
 
     menu.scrollAreaConstraint = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('scrollAreaConstraint'), "timetable.scrollAreaConstraint")
     menu.constraintTable = api.gui.comp.Table.new(1, 'NONE')
@@ -394,6 +414,7 @@ function timetableGUI.fillLineTable()
     end)
 
     UIState.boxlayout2:addItem(menu.lineHeader,0,0)
+    menu.scrollArea:setScrollOffset(lineTableScrollOffset)
 
 end
 
@@ -521,7 +542,7 @@ function timetableGUI.fillStationTable(index, bool)
             menu.stationTable:select(UIState.currentlySelectedStationIndex, bool)
         end
     end
-
+    menu.stationScrollArea:setScrollOffset(stationTableScrollOffset)
 end
 
 -------------------------------------------------------------
@@ -580,6 +601,7 @@ function timetableGUI.fillConstraintTable(index,lineID)
     table:addRow({infoImage,comboBox})
     menu.constraintTable:addRow({table})
     comboBox:setSelected(constraintIndex, true)
+    menu.scrollAreaConstraint:setScrollOffset(constraintTableScrollOffset)
 end
 
 
