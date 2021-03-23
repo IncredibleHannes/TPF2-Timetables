@@ -261,16 +261,16 @@ end
 function data()
     local result = { }
     local lookup = { }
-  
+
     local a = ssu.makeAdder(result)          -- helper function
-    
+
     for _, schema in ipairs(availableColorSchemes) do
         for _, color in ipairs(schema) do
             local colorString = getColorString(color[1], color[2], color[3])
             if not lookup[colorString] then
                 -- It is possible that a color is part of two color mods, but we only need one style for it.
                 lookup[colorString] = true
-            
+
                 local colorArray = {color[1], color[2], color[3], 1}
 
                 a("timetable-stationcolour-" .. colorString, {
@@ -282,6 +282,6 @@ function data()
             end
         end
     end
-  
+
     return result
 end
