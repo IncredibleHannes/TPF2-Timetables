@@ -140,7 +140,8 @@ end
 
 function timetableGUI.initLineTable()
     if menu.scrollArea then
-        lineTableScrollOffset = menu.scrollArea:getScrollOffset()
+        local tmp = menu.scrollArea:getScrollOffset()
+        lineTableScrollOffset = api.type.Vec2i.new(tmp.x, tmp.y)
         UIState.boxlayout2:removeItem(menu.scrollArea)
     else
         lineTableScrollOffset = api.type.Vec2i.new()
@@ -171,7 +172,8 @@ end
 
 function timetableGUI.initStationTable()
     if menu.stationScrollArea then
-        stationTableScrollOffset = menu.stationScrollArea:getScrollOffset()
+        local tmp = menu.stationScrollArea:getScrollOffset()
+        stationTableScrollOffset = api.type.Vec2i.new(tmp.x, tmp.y)
         UIState.boxlayout2:removeItem(menu.stationScrollArea)
     else
         stationTableScrollOffset = api.type.Vec2i.new()
@@ -189,7 +191,8 @@ end
 
 function timetableGUI.initConstraintTable()
     if menu.scrollAreaConstraint then
-        constraintTableScrollOffset = menu.scrollAreaConstraint:getScrollOffset()
+        local tmp = menu.scrollAreaConstraint:getScrollOffset()
+        constraintTableScrollOffset = api.type.Vec2i.new(tmp.x, tmp.y)
         UIState.boxlayout2:removeItem(menu.scrollAreaConstraint)
     else
         constraintTableScrollOffset = api.type.Vec2i.new()
@@ -414,7 +417,7 @@ function timetableGUI.fillLineTable()
     end)
 
     UIState.boxlayout2:addItem(menu.lineHeader,0,0)
-    menu.scrollArea:setScrollOffset(lineTableScrollOffset)
+    menu.scrollArea:invokeLater( function () menu.scrollArea:invokeLater(function () menu.scrollArea:setScrollOffset(lineTableScrollOffset) end) end)
 
 end
 
@@ -542,7 +545,9 @@ function timetableGUI.fillStationTable(index, bool)
             menu.stationTable:select(UIState.currentlySelectedStationIndex, bool)
         end
     end
-    menu.stationScrollArea:setScrollOffset(stationTableScrollOffset)
+    menu.stationScrollArea:invokeLater(
+        function () menu.stationScrollArea:invokeLater(
+            function () menu.stationScrollArea:setScrollOffset(stationTableScrollOffset) end) end)
 end
 
 -------------------------------------------------------------
@@ -601,7 +606,9 @@ function timetableGUI.fillConstraintTable(index,lineID)
     table:addRow({infoImage,comboBox})
     menu.constraintTable:addRow({table})
     comboBox:setSelected(constraintIndex, true)
-    menu.scrollAreaConstraint:setScrollOffset(constraintTableScrollOffset)
+    menu.scrollAreaConstraint:invokeLater(
+        function () menu.scrollAreaConstraint:invokeLater(
+            function () menu.scrollAreaConstraint:setScrollOffset(constraintTableScrollOffset) end) end)
 end
 
 
