@@ -114,7 +114,9 @@ function timetableHelper.getPreviousDepartureTime(vehicle)
     local vehicleLineMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
     local line = timetableHelper.getCurrentLine(vehicle)
     local departureTimes = {}
-    local currentStopIndex = api.engine.getComponent(vehicle, 70).stopIndex
+    local compontent = api.engine.getComponent(vehicle, 70)
+    if (not compontent) or (not compontent.stopIndex) then return -1 end
+    local currentStopIndex = compontent.stopIndex
     for _,v in pairs(vehicleLineMap[line]) do
         departureTimes[#departureTimes + 1] = api.engine.getComponent(v, 70).lineStopDepartures[currentStopIndex + 1]
 
@@ -155,8 +157,9 @@ function timetableHelper.lineHasType(line, lineType)
     if not(type(line) == "number") then print("Expected String or Number") return -1 end
 
     local vehicles = api.engine.system.transportVehicleSystem.getLineVehicles(line)
-    if vehicles and vehicles[1] and api.engine.getComponent(vehicles[1], api.type.ComponentType.TRANSPORT_VEHICLE).carrier then
-        return api.engine.getComponent(vehicles[1], api.type.ComponentType.TRANSPORT_VEHICLE).carrier == api.type.enum.Carrier[lineType]
+    local component = api.engine.getComponent(vehicles[1], api.type.ComponentType.TRANSPORT_VEHICLE)
+    if vehicles and vehicles[1] and component and component.carrier then
+        return component.carrier  == api.type.enum.Carrier[lineType]
     end
     return false
 end
@@ -182,7 +185,12 @@ end
 function timetableHelper.getLineName(line)
     if type(line) == "string" then line = tonumber(line) end
     if not(type(line) == "number") then return "ERROR" end
-    return api.engine.getComponent(tonumber(line), api.type.ComponentType.NAME).name
+    local component = api.engine.getComponent(tonumber(line), api.type.ComponentType.NAME)
+    if component and component.name then
+        return component.name
+    else
+        return "ERROR"
+    end
 end
 
 ---@param line number | string
