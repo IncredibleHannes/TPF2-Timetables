@@ -1,7 +1,7 @@
 require "tableutil"
 local ssu = require "stylesheetutil"
 
--- extract colors with common api
+-- extract colors with common api, default ingame console seems to output always the default colors!?
 -- for _, c in ipairs(game.config.gui.lineColors) do; print("{" .. c[1] .. ", "  .. c[2] .. ", "  .. c[3] .. "}"); end;
 
 local defaultColors = {
@@ -250,7 +250,8 @@ local availableColorSchemes = {
 }
 
 -- copied from timetable_helper.lua, import is not possible
-local function getColourString(r, g, b)
+-- if you change it here, also change it there!
+local function getColorString(r, g, b)
     local x = string.format("%03.0f", (r * 100))
     local y = string.format("%03.0f", (g * 100))
     local z = string.format("%03.0f", (b * 100))
@@ -265,8 +266,9 @@ function data()
     
     for _, schema in ipairs(availableColorSchemes) do
         for _, color in ipairs(schema) do
-            local colorString = getColourString(color[1], color[2], color[3])
+            local colorString = getColorString(color[1], color[2], color[3])
             if not lookup[colorString] then
+                -- It is possible that a color is part of two color mods, but we only need one style for it.
                 lookup[colorString] = true
             
                 local colorArray = {color[1], color[2], color[3], 1}

@@ -164,14 +164,14 @@ function timetableHelper.lineHasType(line, lineType)
     return false
 end
 
-local function getColourString(r, g, b)
+-- similar function in timetable_colors.lua stylesheet, import is not possible
+-- if you change it here, also change it there!
+local function getColorString(r, g, b)
     local x = string.format("%03.0f", (r * 100))
     local y = string.format("%03.0f", (g * 100))
     local z = string.format("%03.0f", (b * 100))
     return x .. y .. z
 end
-
-timetableHelper.getColourString = getColourString
 
 ---@param line number | string
 -- returns String, RGB value string eg: "204060" with Red 20, Green 40, Blue 60
@@ -180,13 +180,11 @@ function timetableHelper.getLineColour(line)
     if not(type(line) == "number") then return "default" end
     local colour = api.engine.getComponent(line, api.type.ComponentType.COLOR)
     if (colour and  colour.color) then
-        return getColourString(colour.color.x, colour.color.y, colour.color.z)
+        return getColorString(colour.color.x, colour.color.y, colour.color.z)
     else
         return "default"
     end
 end
-
-
 
 ---@param line number | string
 -- returns lineName : String
