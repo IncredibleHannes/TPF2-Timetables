@@ -157,9 +157,11 @@ function timetableHelper.lineHasType(line, lineType)
     if not(type(line) == "number") then print("Expected String or Number") return -1 end
 
     local vehicles = api.engine.system.transportVehicleSystem.getLineVehicles(line)
-    local component = api.engine.getComponent(vehicles[1], api.type.ComponentType.TRANSPORT_VEHICLE)
-    if vehicles and vehicles[1] and component and component.carrier then
-        return component.carrier  == api.type.enum.Carrier[lineType]
+    if vehicles and vehicles[1] then
+        local component = api.engine.getComponent(vehicles[1], api.type.ComponentType.TRANSPORT_VEHICLE)
+        if component and component.carrier then
+            return component.carrier  == api.type.enum.Carrier[lineType]
+        end
     end
     return false
 end
