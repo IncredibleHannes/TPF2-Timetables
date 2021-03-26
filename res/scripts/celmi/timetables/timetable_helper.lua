@@ -157,11 +157,22 @@ function timetableHelper.lineHasType(line, lineType)
     if not(type(line) == "number") then print("Expected String or Number") return -1 end
 
     local vehicles = api.engine.system.transportVehicleSystem.getLineVehicles(line)
-    local component = api.engine.getComponent(vehicles[1], api.type.ComponentType.TRANSPORT_VEHICLE)
-    if vehicles and vehicles[1] and component and component.carrier then
-        return component.carrier  == api.type.enum.Carrier[lineType]
+    if vehicles and vehicles[1] then
+        local component = api.engine.getComponent(vehicles[1], api.type.ComponentType.TRANSPORT_VEHICLE)
+        if component and component.carrier then
+            return component.carrier  == api.type.enum.Carrier[lineType]
+        end
     end
     return false
+end
+
+-- similar function in timetable_colors.lua stylesheet, import is not possible
+-- if you change it here, also change it there!
+local function getColorString(r, g, b)
+    local x = string.format("%03.0f", (r * 100))
+    local y = string.format("%03.0f", (g * 100))
+    local z = string.format("%03.0f", (b * 100))
+    return x .. y .. z
 end
 
 ---@param line number | string
@@ -171,10 +182,7 @@ function timetableHelper.getLineColour(line)
     if not(type(line) == "number") then return "default" end
     local colour = api.engine.getComponent(line, api.type.ComponentType.COLOR)
     if (colour and  colour.color) then
-        local a = string.format("%02d", (colour.color.x * 100))
-        local b = string.format("%02d", (colour.color.y * 100))
-        local c = string.format("%02d", (colour.color.z * 100))
-        return a .. b .. c
+        return getColorString(colour.color.x, colour.color.y, colour.color.z)
     else
         return "default"
     end
