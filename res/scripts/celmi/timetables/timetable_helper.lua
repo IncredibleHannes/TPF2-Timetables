@@ -1,5 +1,11 @@
 local timetableHelper = {}
 
+local UIStrings = {
+    arr = _("arr_i18n"),
+    dep = _("dep_i18n"),
+    unbunchTime = _("unbunch_time_i18n")
+}
+
 -------------------------------------------------------------
 ---------------------- Vehicle related ----------------------
 -------------------------------------------------------------
@@ -408,8 +414,8 @@ end
 function timetableHelper.conditionToString(cond, type)
     if (not cond) or (not type) then return "" end
     if type =="ArrDep" then
-        local arr = _("arr_i18n")
-        local dep = _("dep_i18n")
+        local arr = UIStrings.arr
+        local dep = UIStrings.dep
         for _,v in pairs(cond) do
             arr = arr .. string.format("%02d", v[1]) .. ":" .. string.format("%02d", v[2])  .. "|"
             dep = dep .. string.format("%02d", v[3]) .. ":" .. string.format("%02d", v[4])  .. "|"
@@ -419,7 +425,7 @@ function timetableHelper.conditionToString(cond, type)
     elseif type == "debounce" then
         if not cond[1] then cond[1] = 0 end
         if not cond[2] then cond[2] = 0 end
-        return _("unbunch_time_i18n").. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
+        return UIStrings.unbunchTime .. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
     else
         return type
     end
