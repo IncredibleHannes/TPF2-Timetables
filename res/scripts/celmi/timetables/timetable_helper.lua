@@ -300,7 +300,7 @@ function timetableHelper.getStationName(station)
     local err, res = pcall(function()
         return api.engine.getComponent(station, api.type.ComponentType.NAME)
     end)
-    if err then return res.name else return "ERROR" end
+    if err and res then return res.name else return "ERROR" end
 end
 
 
