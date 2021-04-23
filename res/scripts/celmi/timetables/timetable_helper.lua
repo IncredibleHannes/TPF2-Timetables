@@ -199,8 +199,12 @@ end
 function timetableHelper.getLineName(line)
     if type(line) == "string" then line = tonumber(line) end
     if not(type(line) == "number") then return "ERROR" end
-    local component = api.engine.getComponent(tonumber(line), api.type.ComponentType.NAME)
-    if component and component.name then
+
+    local err, res = pcall(function()
+        return api.engine.getComponent(line, api.type.ComponentType.NAME)
+    end)
+    local component = res
+    if err and component and component.name then
         return component.name
     else
         return "ERROR"
@@ -374,8 +378,13 @@ end
 
 -- returns Number, current GameTime in seconds
 function timetableHelper.getTime()
-    local time = math.floor(api.engine.getComponent(0,16).gameTime/ 1000)
-    return time
+    local time = api.engine.getComponent(0,16).gameTime
+    if time then
+        time = math.floor(time/ 1000)
+        return time
+    else
+        return 0
+    end
 end
 
 ---@param tab table
