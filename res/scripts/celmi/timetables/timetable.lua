@@ -386,6 +386,26 @@ function timetable.getTimeDifference(a, b)
     end
 end
 
+---Shifts a time in minutes and seconds by some offset
+---Helper function for shiftConstraint() 
+---@param time table in format like: {28,45}
+---@param offset number in seconds 
+---@return table shifted time, example: {30,0}
+function timetable.shiftTime(time, offset)
+    local timeSeconds = (time[1] * 60 + time[2] + offset) % 3600
+    return {math.floor(timeSeconds / 60), timeSeconds % 60}
+end
+
+
+---Shifts a constraint by some offset
+---@param constraint table in format like: {30,0,59,0}
+---@param offset number in seconds 
+---@return constraint table shifted time, example: {31,0,0,0}
+function timetable.shiftConstraint(constraint, offset)
+    local shiftArr = timetable.shiftTime({constraint[1], constraint[2]}, offset)
+    local shiftDep = timetable.shiftTime({constraint[3], constraint[4]}, offset)
+    return {shiftArr[1], shiftArr[2], shiftDep[1], shiftDep[2]}
+end
 
 return timetable
 

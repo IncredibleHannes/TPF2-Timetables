@@ -617,7 +617,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     local conditions = timetable.getConditions(lineID,stationID, "ArrDep")
 
     -- setup separation selector
-    local separationList = {1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30}
+    local separationList = {1, 1.5, 2, 2.5, 3, 4, 5, 6, 7.5, 10, 12, 15, 20, 30}
     local separationCombo = api.gui.comp.ComboBox.new()
     for k,v in ipairs(separationList) do 
         separationCombo:addItem(v .. " min (" .. 60 / v .. "/h)")
@@ -639,14 +639,9 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         end
 
         -- generate recurring conditions
-        local separation = separationList[separationCombo:getCurrentIndex()+1]
-        for i = 1, 60/separation-1 do
-            timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {{
-                (templateArrDep[1] + i*separation) % 60,    -- arrival minute
-                templateArrDep[2],                          -- arrival second
-                (templateArrDep[3] + i*separation) % 60,    -- departure minute
-                templateArrDep[4]                           -- departure second
-            }}})
+        local separation = separationList[separationCombo:getCurrentIndex() + 1]
+        for i = 1, 60 / separation - 1 do
+            timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {timetable.shiftConstraint(templateArrDep, i * separation * 60)}})
         end
 
         -- cleanup
