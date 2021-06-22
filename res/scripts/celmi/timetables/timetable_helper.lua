@@ -96,8 +96,9 @@ function timetableHelper.startVehicle(vehicle)
     if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
     if not(type(vehicle) == "number") then print("Expected String or Number") return false end
 
-    api.cmd.sendCommand(api.cmd.make.setVehicleShouldDepart(vehicle))
+    --api.cmd.sendCommand(api.cmd.make.setVehicleShouldDepart(vehicle))
     api.cmd.sendCommand(api.cmd.make.setUserStopped(vehicle,false))
+    api.cmd.sendCommand(api.cmd.make.setVehicleManualDeparture(vehicle,false))
     return nil
 end
 
@@ -365,7 +366,8 @@ end
 ---@param hasTimetable function lineId -> boolean
 -- returns [{vehicleID: lineID}]
 function timetableHelper.getAllTimetableRailVehicles(hasTimetable)
-    local res = {}
+    return api.engine.system.transportVehicleSystem.getVehiclesWithState(api.type.enum.TransportVehicleState.AT_TERMINAL)
+    --[[local res = {}
     local vehicleMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
     for k,v in pairs(vehicleMap) do
         if (hasTimetable(k)) then
@@ -374,7 +376,7 @@ function timetableHelper.getAllTimetableRailVehicles(hasTimetable)
             end
         end
     end
-    return res
+    return res]]--
 end
 
 

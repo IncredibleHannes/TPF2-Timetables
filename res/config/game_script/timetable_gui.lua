@@ -795,7 +795,7 @@ end
 function timetableGUI.timetableCoroutine()
     while true do
         local vehiclesWithLines = timetableHelper.getAllTimetableRailVehicles(timetable.hasTimetable)
-        for vehicle,_ in pairs(vehiclesWithLines) do
+        for _,vehicle in pairs(vehiclesWithLines) do
             if timetableHelper.isInStation(vehicle) then
                 if timetable.waitingRequired(vehicle) then
                     timetableHelper.stopVehicle(vehicle)
