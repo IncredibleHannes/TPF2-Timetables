@@ -36,6 +36,16 @@ function timetable.setTimetableObject(t)
     end
 end
 
+function timetable.getCurrentlyWaiting()
+    return currentlyWaiting
+end
+
+function timetable.setCurrentlyWaiting(t)
+    if t then
+        currentlyWaiting = t
+    end
+end
+
 function timetable.setConditionType(line, stationNumber, type)
     local stationID = timetableHelper.getStationID(line, stationNumber)
     if not(line and stationNumber) then return -1 end

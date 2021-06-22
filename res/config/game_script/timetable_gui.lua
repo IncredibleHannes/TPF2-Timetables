@@ -833,6 +833,12 @@ function data()
                     timetable.setTimetableObject(loadedState.timetable)
                 end
             end
+
+            if loadedState.currentlyWaiting then
+                if state == nil then
+                    timetable.setCurrentlyWaiting(loadedState.currentlyWaiting)
+                end
+            end
             state = loadedState or {timetable = {}}
         end,
 
@@ -847,6 +853,7 @@ function data()
             end
 
             state.timetable = timetable.getTimetableObject()
+            state.currentlyWaiting = timetable.getCurrentlyWaiting()
 
         end,
 
