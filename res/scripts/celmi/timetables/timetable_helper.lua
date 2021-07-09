@@ -382,7 +382,7 @@ end
 
 -- returns Number, current GameTime in seconds
 function timetableHelper.getTime()
-    local time = api.engine.getComponent(0,16).gameTime
+    local time = api.engine.getComponent(api.engine.util.getWorld(), api.type.ComponentType.GAME_TIME).gameTime
     if time then
         time = math.floor(time/ 1000)
         return time
