@@ -796,13 +796,13 @@ function timetableGUI.timetableCoroutine()
     while true do
         local vehiclesWithLines = timetableHelper.getAllTimetableRailVehicles(timetable.hasTimetable)
         for _,vehicle in pairs(vehiclesWithLines) do
-            if timetableHelper.isInStation(vehicle) then
-                if timetable.waitingRequired(vehicle) then
-                    timetableHelper.stopVehicle(vehicle)
+            --if timetableHelper.isInStation(vehicle) then
+                if timetable.waitingRequired(tostring(vehicle)) then
+                    timetableHelper.stopVehicle(tostring(vehicle))
                 else
-                    timetableHelper.startVehicle(vehicle)
+                    timetableHelper.startVehicle(tostring(vehicle))
                 end
-            end
+            --end
             coroutine.yield()
         end
         coroutine.yield()
