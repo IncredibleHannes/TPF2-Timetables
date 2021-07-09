@@ -10,6 +10,27 @@ function data()
       fontFamily = "Noto/NotoSansMono-Regular.ttf",
       fontSize = 10,
     })
+    
+    a("!timetable-mono-sc", {
+      fontFamily = "Noto/NotoSansMonoCJKsc-Regular.otf",
+      fontSize = 10,
+    })
+
+    a("!timetable-mono-tc", {
+      fontFamily = "Noto/NotoSansMonoCJKtc-Regular.otf",
+      fontSize = 10,
+    })
+
+    a("!timetable-mono-ja", {
+      fontFamily = "Noto/NotoSansMonoCJKjp-Regular.otf",
+      fontSize = 10,
+    })
+
+    a("!timetable-mono-kr", {
+      fontFamily = "Noto/NotoSansMonoCJKkr-Regular.otf",
+      fontSize = 10,
+    })
+
     a("stationName", {
       padding = {7,0,0,0},
       fontSize = 14,

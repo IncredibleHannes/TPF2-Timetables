@@ -50,6 +50,12 @@ local UIStrings = {
 		tooltip	= _("tooltip_i18n")
 }
 
+local local_styles = {
+    zh_CN = "timetable-mono-sc",
+    zh_TW = "timetable-mono-tc",
+    ja = "timetable-mono-ja",
+    kr = "timetable-mono-kr"
+}
 -------------------------------------------------------------
 ---------------------- stationTab ---------------------------
 -------------------------------------------------------------
@@ -102,6 +108,10 @@ function timetableGUI.fillStationTabStationTable()
 end
 
 function timetableGUI.fillStationTabLineTable(index)
+    
+    local lang = api.util.getLanguage()
+    local local_style = {local_styles[lang.code]}
+
     if index == - 1 then return end
     UIState.currentlySelectedStationTabStation = index
     menu.stationTabLinesTable:deleteAll()
@@ -127,6 +137,7 @@ function timetableGUI.fillStationTabLineTable(index)
         local type = timetableHelper.conditionToString(v.conditions[v.conditions.type], v.conditions.type)
         local stConditionString = api.gui.comp.TextView.new(type)
         stConditionString:setName("conditionString")
+        stConditionString:setStyleClassList(local_style)
         menu.stationTabLinesTable:addRow({lineColour2, api.gui.comp.TextView.new(lineName), stConditionString})
     end
     local order = timetableHelper.getOrderOfArray(lineNames2)
@@ -429,6 +440,9 @@ end
 -- index: index of currently selected line
 -- bool: emit select signal when building table
 function timetableGUI.fillStationTable(index, bool)
+    local lang = api.util.getLanguage()
+    local local_style = {local_styles[lang.code]}
+
     --initial checks
     if not index then return end
     if not(timetableHelper.getAllRailLines()[index+1]) or (not menu.stationTable)then return end
@@ -511,6 +525,7 @@ function timetableGUI.fillStationTable(index, bool)
             jurneyTime = api.gui.comp.TextView.new("")
         end
         jurneyTime:setName("conditionString")
+        jurneyTime:setStyleClassList(local_style)
 
         local stationNameTable = api.gui.comp.Table.new(1, 'NONE')
         stationNameTable:addRow({stationName})
@@ -522,6 +537,7 @@ function timetableGUI.fillStationTable(index, bool)
         local condStr = timetableHelper.conditionToString(timetable.getConditions(lineID, k, conditionType), conditionType)
         local conditionString = api.gui.comp.TextView.new(condStr)
         conditionString:setName("conditionString")
+        conditionString:setStyleClassList(local_style)
 
 
         conditionString:setMinimumSize(api.gui.util.Size.new(285,50))
