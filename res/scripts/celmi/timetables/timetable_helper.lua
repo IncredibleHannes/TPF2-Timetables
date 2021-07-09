@@ -363,9 +363,9 @@ function timetableHelper.mergeArray(a,b)
     return ab
 end
 
----@param hasTimetable function lineId -> boolean
+
 -- returns [{vehicleID: lineID}]
-function timetableHelper.getAllTimetableRailVehicles(hasTimetable)
+function timetableHelper.getAllTimetableRailVehicles()
     return api.engine.system.transportVehicleSystem.getVehiclesWithState(api.type.enum.TransportVehicleState.AT_TERMINAL)
     --[[local res = {}
     local vehicleMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()

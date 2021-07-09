@@ -108,7 +108,7 @@ function timetableGUI.fillStationTabStationTable()
 end
 
 function timetableGUI.fillStationTabLineTable(index)
-    
+
     local lang = api.util.getLanguage()
     local local_style = {local_styles[lang.code]}
 
