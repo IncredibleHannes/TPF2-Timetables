@@ -96,7 +96,9 @@ function timetableHelper.startVehicle(vehicle)
     if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
     if not(type(vehicle) == "number") then print("Expected String or Number") return false end
 
+    --api.cmd.sendCommand(api.cmd.make.setVehicleShouldDepart(vehicle))
     api.cmd.sendCommand(api.cmd.make.setUserStopped(vehicle,false))
+    api.cmd.sendCommand(api.cmd.make.setVehicleManualDeparture(vehicle,false))
     return nil
 end
 
@@ -106,7 +108,8 @@ function timetableHelper.stopVehicle(vehicle)
     if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
     if not(type(vehicle) == "number") then print("Expected String or Number") return false end
 
-    api.cmd.sendCommand(api.cmd.make.setUserStopped(vehicle,true))
+    api.cmd.sendCommand(api.cmd.make.setVehicleManualDeparture(vehicle,true))
+    --api.cmd.sendCommand(api.cmd.make.setUserStopped(vehicle,true))
 
     return nil
 end
@@ -360,10 +363,11 @@ function timetableHelper.mergeArray(a,b)
     return ab
 end
 
----@param hasTimetable function lineId -> boolean
+
 -- returns [{vehicleID: lineID}]
-function timetableHelper.getAllTimetableRailVehicles(hasTimetable)
-    local res = {}
+function timetableHelper.getAllTimetableRailVehicles()
+    return api.engine.system.transportVehicleSystem.getVehiclesWithState(api.type.enum.TransportVehicleState.AT_TERMINAL)
+    --[[local res = {}
     local vehicleMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
     for k,v in pairs(vehicleMap) do
         if (hasTimetable(k)) then
@@ -372,13 +376,13 @@ function timetableHelper.getAllTimetableRailVehicles(hasTimetable)
             end
         end
     end
-    return res
+    return res]]--
 end
 
 
 -- returns Number, current GameTime in seconds
 function timetableHelper.getTime()
-    local time = api.engine.getComponent(0,16).gameTime
+    local time = api.engine.getComponent(api.engine.util.getWorld(), api.type.ComponentType.GAME_TIME).gameTime
     if time then
         time = math.floor(time/ 1000)
         return time

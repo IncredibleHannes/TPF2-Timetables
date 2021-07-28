@@ -336,9 +336,11 @@ end
 ---@param time number in seconds
 ---@param allConstraints number table in format like: {{30,0,59,0},{9,0,59,0},...}
 function timetable.beforeDepature(constraint, time, allConstraints)
+    local arrivalTimeSec = (60 * constraint[3]) + constraint[4]
     local departureTimeSec = (60 * constraint[3]) + constraint[4]
     local normalisedTime = time % (60 * 60)
-    local nextArrivalTime = (timetable.getTimeUntilNextConstraint(constraint, allConstraints) + departureTimeSec) % (60 * 60)
+    local nextArrivalTime = (timetable.getTimeUntilNextConstraint(constraint, allConstraints) + arrivalTimeSec) % (60 * 60)
+    --print( normalisedTime/60, departureTimeSec/60, nextArrivalTime/60)
     return not (((normalisedTime > departureTimeSec) == (normalisedTime < nextArrivalTime)) ~= (departureTimeSec > nextArrivalTime))
 end
 
@@ -347,7 +349,7 @@ end
 ---@param allConstraints number table in format like: {{30,0,59,0},{9,0,59,0},...}
 ---@return number timeUntilNextContraint: {30,0,59,0}
 function timetable.getTimeUntilNextConstraint(constraint, allConstraints)
-    local res = 40000
+    local res = 60*60
     local constraintSec =((constraint[1] * 60) + constraint[2])
     for _,v in pairs(allConstraints) do
         local toCheckSec = ((v[1] * 60) + v[2])
