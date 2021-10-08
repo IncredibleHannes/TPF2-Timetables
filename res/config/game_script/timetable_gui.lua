@@ -632,6 +632,50 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     if not menu.constraintTable then return end
     local conditions = timetable.getConditions(lineID,stationID, "ArrDep")
 
+    -- setup separation selector
+    local separationList = {30, 20, 15, 12, 10, 7.5, 6, 5, 4, 3, 2.5, 2, 1.5, 1}
+    local separationCombo = api.gui.comp.ComboBox.new()
+    for k,v in ipairs(separationList) do 
+        separationCombo:addItem(v .. " min (" .. 60 / v .. "/h)")
+    end
+    separationCombo:setGravity(1,0)
+    
+    -- setup generate button
+    local generateButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("Generate"), true)
+    generateButton:setGravity(1, 0)
+    generateButton:onClick(function()
+        -- preparation
+        if not conditions[1] then return end                        -- template condition not found
+        if separationCombo:getCurrentIndex() == -1 then return end  -- no separation selected
+        templateArrDep = conditions[1]
+
+        -- remove all conditions after the template
+        while conditions[2] do
+            timetable.removeCondition(lineID, stationID, "ArrDep", 2)
+        end
+
+        -- generate recurring conditions
+        local separation = separationList[separationCombo:getCurrentIndex() + 1]
+        for i = 1, 60 / separation - 1 do
+            timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {timetable.shiftConstraint(templateArrDep, i * separation * 60)}})
+        end
+
+        -- cleanup
+        timetableChanged = true
+        clearConstraintWindowLaterHACK = function()
+            timetableGUI.initStationTable()
+            timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
+            timetableGUI.clearConstraintWindow()
+            timetableGUI.makeArrDepWindow(lineID, stationID)
+        end
+    end)
+
+    -- setup recurring departure generator
+    local recurringTable = api.gui.comp.Table.new(3, 'NONE')
+    recurringTable:addRow({api.gui.comp.TextView.new("Separation"),separationCombo,generateButton})
+    menu.constraintTable:addRow({recurringTable})
+
+
     -- setup add button
     local addButton = api.gui.comp.Button.new(api.gui.comp.TextView.new(UIStrings.add), true)
     addButton:setGravity(1,0)
