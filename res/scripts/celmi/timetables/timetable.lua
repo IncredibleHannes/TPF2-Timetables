@@ -311,7 +311,7 @@ function timetable.startAllLineVehicles(line)
             local currentLine = tostring(timetableHelper.getCurrentLine(vehicle))
             local currentStop = timetableHelper.getCurrentStation(vehicle)
             if currentlyWaiting[currentLine] and currentlyWaiting[currentLine].stations[currentStop] then
-                currentlyWaiting[currentLine].stations[currentStop].currentlyWaiting[vechile] = nil
+                currentlyWaiting[currentLine].stations[currentStop].currentlyWaiting[vehicle] = nil
             end
             timetableHelper.startVehicle(vehicle)
         end
