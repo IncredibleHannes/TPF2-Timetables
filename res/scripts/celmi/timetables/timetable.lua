@@ -237,7 +237,7 @@ function timetable.waitingRequired(vehicle)
             end
 
             -- just arrived
-            local nextConstraint = timetable.getNextConstraint(timetableObject[currentLineString].stations[currentStop].conditions.ArrDep, time)
+            local nextConstraint = timetable.getNextConstraint(timetableObject[currentLineString].stations[currentStop].conditions.ArrDep, time, currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting)
             if not nextConstraint then
                 -- no constraints set
                 currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
@@ -359,17 +359,27 @@ end
 ---Find the next valid constraint for given constraints and time
 ---@param constraints table in format like: {{30,0,59,0},{9,0,59,0}}
 ---@param time number in seconds
+---@param used_constraints table in format like: {{30,0,59,0},{9,0,59,0}}
 ---@return table closestConstraint example: {30,0,59,0}
-function timetable.getNextConstraint(constraints, time)
+function timetable.getNextConstraint(constraints, time, used_constraints)
     local res = {diff = 40000, value = nil}
     for _, constraint in pairs(constraints) do
         local arrMin = constraint[1]
         local arrSec = constraint[2]
         local arrTime = arrMin * 60 + arrSec
-
         local diff = timetable.getTimeDifference(arrTime, time % 3600)
+
         if (diff < res.diff) then
-            res = {diff = diff, value = constraint}
+            local found = false
+            for _, used_constraint in pairs(used_constraints) do
+                if constraint == used_constraint then
+                    found = true
+                end
+            end
+
+            if not found then
+                res = {diff = diff, value = constraint}
+            end
         end
     end
 

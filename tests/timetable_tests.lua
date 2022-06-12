@@ -35,17 +35,25 @@ end
 
 timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
-    local x = timetable.getNextConstraint({{30,0,59,0},{9,0,59,0} },1200)
+    local x = timetable.getNextConstraint({{30,0,59,0},{9,0,59,0} },1200, {})
     assert(x[1] == 30 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextConstraint({{30,0,59,0},{11,0,59,0} },1200)
+    x = timetable.getNextConstraint({{30,0,59,0},{11,0,59,0} },1200, {})
     assert(x[1] == 11 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextConstraint({{51,0,0,0},{50,0,59,0} },1200)
+    x = timetable.getNextConstraint({{51,0,0,0},{50,0,59,0} },1200, {})
     assert(x[1] == 51 and x[2] == 0 and x[3] == 0 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextConstraint({{51,0,0,0},{49,0,1,0} },1200)
+    x = timetable.getNextConstraint({{51,0,0,0},{49,0,1,0} },1200, {})
     assert(x[1] == 51 and x[2] == 0 and x[3] == 0 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextConstraint({{0,59,1,0},{1,30,1,30} },60)
+    x = timetable.getNextConstraint({{0,59,1,0},{1,30,1,30} },60, {})
     assert(x[1] == 0 and x[2] == 59 and x[3] == 1 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextConstraint({},1200)
+    x = timetable.getNextConstraint({},1200, {})
+    assert(x == nil, "should return nil")
+
+    local a = {30,0,59,0}
+    x = timetable.getNextConstraint({a,{9,0,59,0} },1200, {a})
+    assert(x[1] == 9 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the only available time constraint")
+    x = timetable.getNextConstraint({a,{30,0,59,0} },1200, {a})
+    assert(x[1] == 30 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the only available time constraint")
+    x = timetable.getNextConstraint({a },1200, {a})
     assert(x == nil, "should return nil")
 end
 
@@ -103,27 +111,27 @@ timetableTests[#timetableTests + 1] = function()
     assert(x == 52*60 + 30, "time to closest constraint should be 55 min instead of ".. x)
 end
 
--- All tests here done with line and station IDs of 0 for simplicity
+-- All tests here done with line and station IDs of 1 for simplicity
 timetableTests[#timetableTests + 1] = function()
     timetableHelper.getStationID = function(line, stationNumber)
-        assert(line == 0)
-        assert(stationNumber == 0)
-        return 0
+        assert(line == 1)
+        assert(stationNumber == 1)
+        return 1
     end
     timetableHelper.getCurrentLine = function(vehicle)
         assert(vehicle == 1 or vechile == 2)
-        return 0
+        return 1
     end
     timetableHelper.getCurrentStation = function(vehicle)
         assert(vehicle == 1 or vechile == 2)
-        return 0
+        return 1
     end
     timetableHelper.getTimeUntilDeparture = function(vehicle)
         assert(vehicle == 1 or vechile == 2)
-        return 0
+        return 1
     end
     timetable.setTimetableObject({})
-    timetable.addCondition(0, 0, {type = "ArrDep", ArrDep = {{3, 0, 6, 0}, {5, 0, 8, 0}, {7, 0, 10, 0}}})
+    timetable.addCondition(1, 1, {type = "ArrDep", ArrDep = {{3, 0, 6, 0}, {5, 0, 8, 0}, {7, 0, 10, 0}}})
 
     timetableHelper.getTime = function()
         return (5*60) + 8 -- 5:08
