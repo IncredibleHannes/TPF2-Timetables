@@ -152,6 +152,12 @@ timetableTests[#timetableTests + 1] = function()
     assert(not x, "Shouldn't wait for train")
 
     timetableHelper.getTime = function()
+        return (0*60) + 1 -- 00:01
+    end
+    x = timetable.waitingRequired(1)
+    assert(not x, "Shouldn't wait for train")
+
+    timetableHelper.getTime = function()
         return (0*60) + 0 -- 00:00
     end
     x = timetable.waitingRequired(2)
@@ -159,6 +165,12 @@ timetableTests[#timetableTests + 1] = function()
 
     timetableHelper.getTime = function()
         return (2*60) + 0 -- 02:00
+    end
+    x = timetable.waitingRequired(2)
+    assert(not x, "Shouldn't wait for train")
+
+    timetableHelper.getTime = function()
+        return (2*60) + 1 -- 02:01
     end
     x = timetable.waitingRequired(2)
     assert(not x, "Shouldn't wait for train")
