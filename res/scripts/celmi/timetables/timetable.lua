@@ -359,7 +359,7 @@ end
 ---Find the next valid constraint for given constraints and time
 ---@param constraints table in format like: {{30,0,59,0},{9,0,59,0}}
 ---@param time number in seconds
----@param used_constraints table in format like: {{30,0,59,0},{9,0,59,0}}
+---@param used_constraints table in format like: {constraint={30,0,59,0},constraint={9,0,59,0}}
 ---@return table closestConstraint example: {30,0,59,0}
 function timetable.getNextConstraint(constraints, time, used_constraints)
     local res = {diff = 40000, value = nil}
@@ -372,7 +372,7 @@ function timetable.getNextConstraint(constraints, time, used_constraints)
         if (diff < res.diff) then
             local found = false
             for _, used_constraint in pairs(used_constraints) do
-                if constraint == used_constraint then
+                if constraint == used_constraint.constraint then
                     found = true
                 end
             end
