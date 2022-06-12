@@ -210,7 +210,7 @@ function timetable.hasTimetable(line)
 end
 
 function timetable.waitingRequired(vehicle)
-    local time = timetableHelper.getTime() % 3600
+    local time = timetableHelper.getTime()
     local currentLine = timetableHelper.getCurrentLine(vehicle)
     local currentStop = timetableHelper.getCurrentStation(vehicle)
     local currentLineString = tostring(currentLine)
@@ -326,6 +326,8 @@ end
 ---@param constraint table in format like: {9,0,59,0}
 ---@param time number in seconds
 function timetable.beforeDepature(arrivalTime, constraint, currentTime)
+    arrivalTime = arrivalTime % 3600
+    currentTime = currentTime % 3600
     local departureTime = (60 * constraint[3]) + constraint[4]
     if arrivalTime < departureTime then
         -- Eg. the arrival time is 10:00 and the departure is 12:00
