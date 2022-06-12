@@ -1,9 +1,9 @@
 local timetableHelper = {}
 
 local UIStrings = {
-    arr = _("arr_i18n"),
-    dep = _("dep_i18n"),
-    unbunchTime = _("unbunch_time_i18n")
+    arr = "arr_i18n",
+    dep = "dep_i18n",
+    unbunchTime = "unbunch_time_i18n"
 }
 
 -------------------------------------------------------------

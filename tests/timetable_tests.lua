@@ -1,4 +1,6 @@
-package.loaded["celmi/timetables/timetable_helper"] = {}
+local timetableHelper = {}
+
+package.loaded["celmi/timetables/timetable_helper"] = timetableHelper
 
 local timetable = require ".res.scripts.celmi.timetables.timetable"
 
@@ -47,35 +49,36 @@ timetableTests[#timetableTests + 1] = function()
     assert(x == nil, "should return nil")
 end
 
+timetableTests[#timetableTests + 1] = function()
+    timetable.setTimetableObject({})
+    local x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 0 * 60)
+    assert(not x, "shouldn't be defore departure")
+    x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 10 * 60)
+    assert(not x, "shouldn't be defore departure")
+    x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 20 * 60)
+    assert(x, "should be defore departure")
+    x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 30 * 60)
+    assert(x, "should be defore departure")
+    x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 40 * 60)
+    assert(not x, "shouldn't be defore departure")
+    x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 50 * 60)
+    assert(not x, "shouldn't be defore departure")
+end
 
 timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
-    local x = timetable.beforeDepature({29,0,30,0}, ((29 * 60) + 30), {{29,0,30,0},{39,0,40,0}})
+    local x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 0 * 60)
     assert(x, "should be defore departure")
-    x = timetable.beforeDepature({29,0,30,0}, ((24 * 60) + 30), {{29,0,30,0},{39,0,40,0}})
+    x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 10 * 60)
     assert(x, "should be defore departure")
-    x = timetable.beforeDepature({29,0,30,0}, ((46 * 60) + 30), {{29,0,30,0},{39,0,40,0}})
+    x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 20 * 60)
+    assert(not x, "shouldn't be defore departure")
+    x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 30 * 60)
+    assert(not x, "shouldn't be defore departure")
+    x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 40 * 60)
     assert(x, "should be defore departure")
-    x = timetable.beforeDepature({29,0,30,0}, ((31 * 60) + 30), {{29,0,30,0},{39,0,40,0}})
-    assert(not x, "should be after departure")
-    x = timetable.beforeDepature({29,0,30,0}, ((34 * 60) + 30), {{29,0,30,0},{39,0,40,0}})
-    assert(not x, "should be after departure")
-    x = timetable.beforeDepature({45,0,46,0}, ((45 * 60) + 30), {{45,0,46,0},{10,0,11,0}})
+    x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 50 * 60)
     assert(x, "should be defore departure")
-    x = timetable.beforeDepature({45,0,46,0}, ((46 * 60) + 30), {{45,0,46,0},{10,0,11,0}})
-    assert(not x, "should be after departure")
-    x = timetable.beforeDepature({45,0,46,0}, ((1 * 60) + 30), {{45,0,46,0},{10,0,11,0}})
-    assert(not x, "should be after departure")
-    x = timetable.beforeDepature({45,0,46,0}, ((9 * 60) + 30), {{45,0,46,0},{10,0,11,0}})
-    assert(not x, "should be after departure")
-    x = timetable.beforeDepature({45,0,46,0}, ((11 * 60) + 30), {{45,0,46,0},{10,0,11,0}})
-    assert(x, "should be defore departure")
-    x = timetable.beforeDepature({30,0,31,0}, ((29 * 60) ), {{30,0,31,0}})
-    assert(x, "should be defore departure")
-    x = timetable.beforeDepature({30,0,31,0}, ((31 * 60) + 1 ), {{30,0,31,0}})
-    assert(not x, "should be after departure")
-    x = timetable.beforeDepature({30,0,31,0}, ((37 * 60) + 1 ), {{30,0,31,0}})
-    assert(not x, "should be after departure")
 end
 
 timetableTests[#timetableTests + 1] = function()
@@ -98,6 +101,49 @@ timetableTests[#timetableTests + 1] = function()
     assert(x == 53*60, "time to closest constraint should be 55 min instead of ".. x)
     x = timetable.getTimeUntilNextConstraint({1,30,_,_}, {{55,00,_,_},{1,30,_,_},{54,0,_,_}})
     assert(x == 52*60 + 30, "time to closest constraint should be 55 min instead of ".. x)
+end
+
+-- All tests here done with line and station IDs of 0 for simplicity
+timetableTests[#timetableTests + 1] = function()
+    timetableHelper.getStationID = function(line, stationNumber)
+        assert(line == 0)
+        assert(stationNumber == 0)
+        return 0
+    end
+    timetableHelper.getCurrentLine = function(vehicle)
+        assert(vehicle == 1 or vechile == 2)
+        return 0
+    end
+    timetableHelper.getCurrentStation = function(vehicle)
+        assert(vehicle == 1 or vechile == 2)
+        return 0
+    end
+    timetableHelper.getTimeUntilDeparture = function(vehicle)
+        assert(vehicle == 1 or vechile == 2)
+        return 0
+    end
+    timetable.setTimetableObject({})
+    timetable.addCondition(0, 0, {type = "ArrDep", ArrDep = {{3, 0, 6, 0}, {5, 0, 8, 0}, {7, 0, 10, 0}}})
+
+    timetableHelper.getTime = function()
+        return (5*60) + 8 -- 5:08
+    end
+    local x = timetable.waitingRequired(1)
+    assert(x, "Should wait for train")
+
+    timetableHelper.getTime = function()
+        return (7*60) -- 7:00
+    end
+    x = timetable.waitingRequired(1)
+    assert(x, "Should wait for train")
+
+    timetableHelper.getTime = function()
+        return (8*60) + 1 -- 8:00
+    end
+    x = timetable.waitingRequired(1)
+    assert(not x, "Shouldn't wait for train")
+
+    timetableHelper = {}
 end
 
 return {

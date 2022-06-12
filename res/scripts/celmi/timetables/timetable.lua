@@ -210,7 +210,7 @@ function timetable.hasTimetable(line)
 end
 
 function timetable.waitingRequired(vehicle)
-    local time = timetableHelper.getTime()
+    local time = timetableHelper.getTime() % 3600
     local currentLine = timetableHelper.getCurrentLine(vehicle)
     local currentStop = timetableHelper.getCurrentStation(vehicle)
     local currentLineString = tostring(currentLine)
@@ -243,7 +243,7 @@ function timetable.waitingRequired(vehicle)
                 currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
                 return false
             end
-            if timetable.beforeDepature(nextConstraint, time, timetableObject[currentLineString].stations[currentStop].conditions.ArrDep) then
+            if timetable.beforeDepature(time, nextConstraint, time) then
                 -- Constraint set and I need to wait
                 currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle] = {
                     type = "ArrDep",
@@ -255,20 +255,20 @@ function timetable.waitingRequired(vehicle)
             else
                 -- Constraint set and its time to depart
                 currentlyWaiting[currentLineString].stations[currentStop].outboundTime = time
-                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
+                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle] = nil
                 return false
             end
         else
             -- already waiting
-            local arivalTime = currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle].arrivalTime
-            local constraint = timetable.getNextConstraint(timetableObject[currentLineString].stations[currentStop].conditions.ArrDep, arivalTime)
-            if timetable.beforeDepature(constraint, time, timetableObject[currentLineString].stations[currentStop].conditions.ArrDep) then
+            local arrivalTime = currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle].arrivalTime
+            local constraint = currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle].constraint
+            if timetable.beforeDepature(arrivalTime, constraint, time) then
                 -- need to continue waiting
                 return true
             else
                 -- done waiting
                 currentlyWaiting[currentLineString].stations[currentStop].outboundTime = time
-                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
+                currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle] = nil
                 return false
             end
         end
@@ -283,13 +283,13 @@ function timetable.waitingRequired(vehicle)
         if not condition[1] then condition[1] = 0 end
         if not condition[2] then condition[2] = 0 end
         if time > previousDepartureTime + ((condition[1] * 60)  + condition[2]) then
-            currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
+            currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle] = nil
             return false
         else
             return true
         end
     else
-        currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting = {}
+        currentlyWaiting[currentLineString].stations[currentStop].currentlyWaiting[vehicle] = nil
         return false
     end
 end
@@ -311,7 +311,7 @@ function timetable.startAllLineVehicles(line)
             local currentLine = tostring(timetableHelper.getCurrentLine(vehicle))
             local currentStop = timetableHelper.getCurrentStation(vehicle)
             if currentlyWaiting[currentLine] and currentlyWaiting[currentLine].stations[currentStop] then
-                currentlyWaiting[currentLine].stations[currentStop].currentlyWaiting = {}
+                currentlyWaiting[currentLine].stations[currentStop].currentlyWaiting[vechile] = nil
             end
             timetableHelper.startVehicle(vehicle)
         end
@@ -322,14 +322,18 @@ end
 -------------- UTILS FUNCTIONS ----------
 
 -- This function returns true if the train is before its departure time
+---@param arrivalTime number in seconds
 ---@param constraint table in format like: {9,0,59,0}
 ---@param time number in seconds
----@param allConstraints number table in format like: {{30,0,59,0},{9,0,59,0},...}
-function timetable.beforeDepature(constraint, time, allConstraints)
-    local departureTimeSec = (60 * constraint[3]) + constraint[4]
-    local normalisedTime = time % (60 * 60)
-    local nextArrivalTime = (timetable.getTimeUntilNextConstraint(constraint, allConstraints) + departureTimeSec) % (60 * 60)
-    return not (((normalisedTime > departureTimeSec) == (normalisedTime < nextArrivalTime)) ~= (departureTimeSec > nextArrivalTime))
+function timetable.beforeDepature(arrivalTime, constraint, currentTime)
+    local departureTime = (60 * constraint[3]) + constraint[4]
+    if arrivalTime < departureTime then
+        -- Eg. the arrival time is 10:00 and the departure is 12:00
+        return arrivalTime <= currentTime and currentTime < departureTime
+    else
+        -- Eg. the arrival time is 59:00 and the departure is 01:00
+        return arrivalTime <= currentTime or currentTime < departureTime
+    end
 end
 
 -- This function calcualtes the time from a given constraint to its closest next constraint
@@ -353,7 +357,7 @@ function timetable.getTimeUntilNextConstraint(constraint, allConstraints)
 end
 
 ---Find the next valid constraint for given constraints and time
----@param constraints table in format like: {{30,0,59,0},{9,0,59,0}
+---@param constraints table in format like: {{30,0,59,0},{9,0,59,0}}
 ---@param time number in seconds
 ---@return table closestConstraint example: {30,0,59,0}
 function timetable.getNextConstraint(constraints, time)
