@@ -343,10 +343,10 @@ end
 
 -------------- UTILS FUNCTIONS ----------
 
--- This function returns true if the train is before its departure time
+--- This function returns true if the train is before its departure time and after its arrival time
 ---@param arrivalTime number in seconds
 ---@param constraint table in format like: {9,0,59,0}
----@param time number in seconds
+---@param currentTime number in seconds
 function timetable.beforeDepature(arrivalTime, constraint, currentTime)
     arrivalTime = arrivalTime % 3600
     currentTime = currentTime % 3600
@@ -360,7 +360,7 @@ function timetable.beforeDepature(arrivalTime, constraint, currentTime)
     end
 end
 
--- This function calcualtes the time from a given constraint to its closest next constraint
+--- This function calcualtes the time from a given constraint to its closest next constraint
 ---@param constraint table in format like: {9,0,59,0}
 ---@param allConstraints number table in format like: {{30,0,59,0},{9,0,59,0},...}
 ---@return number timeUntilNextContraint: {30,0,59,0}
@@ -386,13 +386,14 @@ end
 ---@param used_constraints table in format like: {constraint={30,0,59,0},constraint={9,0,59,0}}
 ---@return table closestConstraint example: {30,0,59,0}
 function timetable.getNextConstraint(constraints, time, used_constraints)
+    -- Put the constraints in chronological order by arrival time
     table.sort(constraints, function(a, b)
         local aTime = timetable.getArrivalTimeFrom(a)
         local bTime = timetable.getArrivalTimeFrom(b)
         return aTime < bTime
     end)
 
-    --- Find the constraint with the closest arrival time
+    -- Find the constraint with the closest arrival time
     local res = {diff = 40000, value = nil}
     for index, constraint in pairs(constraints) do
         local arrTime = timetable.getArrivalTimeFrom(constraint)
@@ -403,7 +404,7 @@ function timetable.getNextConstraint(constraints, time, used_constraints)
         end
     end
 
-    -- return nil when there are no contraints
+    -- Return nil when there are no contraints
     if not res.index then return nil end
 
     -- Find if the constraint with the closest arrival time is currently being used
