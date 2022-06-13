@@ -131,7 +131,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # Visual studio and vs code
-.vs
-.vscode
+.vs/
+.vscode/
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,notepadpp,windows,macos,linux,lua
