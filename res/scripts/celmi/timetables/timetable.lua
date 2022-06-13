@@ -386,28 +386,55 @@ end
 ---@param used_constraints table in format like: {constraint={30,0,59,0},constraint={9,0,59,0}}
 ---@return table closestConstraint example: {30,0,59,0}
 function timetable.getNextConstraint(constraints, time, used_constraints)
+    table.sort(constraints, function(a, b)
+        local aTime = timetable.getArrivalTimeFrom(a)
+        local bTime = timetable.getArrivalTimeFrom(b)
+        return aTime < bTime
+    end)
+
+    --- Find the constraint with the closest arrival time
     local res = {diff = 40000, value = nil}
-    for _, constraint in pairs(constraints) do
-        local arrMin = constraint[1]
-        local arrSec = constraint[2]
-        local arrTime = arrMin * 60 + arrSec
+    for index, constraint in pairs(constraints) do
+        local arrTime = timetable.getArrivalTimeFrom(constraint)
         local diff = timetable.getTimeDifference(arrTime, time % 3600)
 
         if (diff < res.diff) then
-            local found = false
-            for _, used_constraint in pairs(used_constraints) do
-                if constraint == used_constraint.constraint then
-                    found = true
-                end
-            end
-
-            if not found then
-                res = {diff = diff, value = constraint}
-            end
+            res = {diff = diff, index = index}
         end
     end
 
-    return res.value
+    -- return nil when there are no contraints
+    if not res.index then return nil end
+
+    -- Find if the constraint with the closest arrival time is currently being used
+    -- If true, find the next consecutive available constraint
+    for i = res.index, #constraints + res.index - 1 do
+        -- Need to make sure that 2 mod 2 returns 2 rather than 0
+        local normalisedIndex = ((i - 1) % #constraints) + 1 
+
+        local constraint = constraints[normalisedIndex]
+        local found = false
+        for _, used_constraint in pairs(used_constraints) do
+            if constraint == used_constraint.constraint then
+                found = true
+            end
+        end
+
+        if not found then
+            return constraint
+        end
+    end
+
+    -- If all constraints are being used, still return the closest constraint anyway.
+    return constraints[res.index]
+end
+
+---Gets the arrival time in seconds from the constraint
+---@param constraint table in format like: {9,0,59,0}
+function timetable.getArrivalTimeFrom(constraint)
+    local arrMin = constraint[1]
+    local arrSec = constraint[2]
+    return arrMin * 60 + arrSec
 end
 
 ---Calculates the time difference between two timestamps in seconds.
