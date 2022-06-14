@@ -58,6 +58,16 @@ function timetable.setTimetableObject(t)
     end
 end
 
+function timetable.getCurrentlyWaiting()
+    return currentlyWaiting
+end
+
+function timetable.setCurrentlyWaiting(t)
+    if t then
+        currentlyWaiting = t
+    end
+end
+
 function timetable.setConditionType(line, stationNumber, type)
     local stationID = timetableHelper.getStationID(line, stationNumber)
     if not(line and stationNumber) then return -1 end
@@ -365,7 +375,7 @@ end
 ---@param allConstraints number table in format like: {{30,0,59,0},{9,0,59,0},...}
 ---@return number timeUntilNextContraint: {30,0,59,0}
 function timetable.getTimeUntilNextConstraint(constraint, allConstraints)
-    local res = 40000
+    local res = 60*60
     local constraintSec =((constraint[1] * 60) + constraint[2])
     for _,v in pairs(allConstraints) do
         local toCheckSec = ((v[1] * 60) + v[2])
