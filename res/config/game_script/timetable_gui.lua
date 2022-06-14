@@ -640,7 +640,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     menu.constraintTable:addRow({headerTable})
 
 
-    -- setup arrival and depature content
+    -- setup arrival and departure content
     for k,v in pairs(conditions) do
         menu.constraintTable:addRow({api.gui.comp.Component.new("HorizontalLine")})
 

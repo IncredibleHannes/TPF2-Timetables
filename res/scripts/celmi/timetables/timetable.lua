@@ -265,7 +265,7 @@ function timetable.waitingRequired(vehicle)
                 currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting = {}
                 return false
             end
-            if timetable.beforeDepature(time, nextConstraint, time) then
+            if timetable.beforeDeparture(time, nextConstraint, time) then
                 -- Constraint set and I need to wait
                 currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle] = {
                     type = "ArrDep",
@@ -284,7 +284,7 @@ function timetable.waitingRequired(vehicle)
             -- already waiting
             local arrivalTime = currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle].arrivalTime
             local constraint = currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle].constraint
-            if timetable.beforeDepature(arrivalTime, constraint, time) then
+            if timetable.beforeDeparture(arrivalTime, constraint, time) then
                 -- need to continue waiting
                 return true
             else
@@ -347,7 +347,7 @@ end
 ---@param arrivalTime number in seconds
 ---@param constraint table in format like: {9,0,59,0}
 ---@param currentTime number in seconds
-function timetable.beforeDepature(arrivalTime, constraint, currentTime)
+function timetable.beforeDeparture(arrivalTime, constraint, currentTime)
     arrivalTime = arrivalTime % 3600
     currentTime = currentTime % 3600
     local departureTime = (60 * constraint[3]) + constraint[4]

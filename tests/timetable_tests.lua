@@ -1,5 +1,4 @@
 local timetableHelper = {}
-
 package.loaded["celmi/timetables/timetable_helper"] = timetableHelper
 
 local timetable = require ".res.scripts.celmi.timetables.timetable"
@@ -59,33 +58,33 @@ end
 
 timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
-    local x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 0 * 60)
+    local x = timetable.beforeDeparture(20 * 60, {0,0,40, 0}, 0 * 60)
     assert(not x, "shouldn't be defore departure")
-    x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 10 * 60)
+    x = timetable.beforeDeparture(20 * 60, {0,0,40, 0}, 10 * 60)
     assert(not x, "shouldn't be defore departure")
-    x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 20 * 60)
+    x = timetable.beforeDeparture(20 * 60, {0,0,40, 0}, 20 * 60)
     assert(x, "should be defore departure")
-    x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 30 * 60)
+    x = timetable.beforeDeparture(20 * 60, {0,0,40, 0}, 30 * 60)
     assert(x, "should be defore departure")
-    x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 40 * 60)
+    x = timetable.beforeDeparture(20 * 60, {0,0,40, 0}, 40 * 60)
     assert(not x, "shouldn't be defore departure")
-    x = timetable.beforeDepature(20 * 60, {0,0,40, 0}, 50 * 60)
+    x = timetable.beforeDeparture(20 * 60, {0,0,40, 0}, 50 * 60)
     assert(not x, "shouldn't be defore departure")
 end
 
 timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
-    local x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 0 * 60)
+    local x = timetable.beforeDeparture(40 * 60, {0,0,20, 0}, 0 * 60)
     assert(x, "should be defore departure")
-    x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 10 * 60)
+    x = timetable.beforeDeparture(40 * 60, {0,0,20, 0}, 10 * 60)
     assert(x, "should be defore departure")
-    x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 20 * 60)
+    x = timetable.beforeDeparture(40 * 60, {0,0,20, 0}, 20 * 60)
     assert(not x, "shouldn't be defore departure")
-    x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 30 * 60)
+    x = timetable.beforeDeparture(40 * 60, {0,0,20, 0}, 30 * 60)
     assert(not x, "shouldn't be defore departure")
-    x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 40 * 60)
+    x = timetable.beforeDeparture(40 * 60, {0,0,20, 0}, 40 * 60)
     assert(x, "should be defore departure")
-    x = timetable.beforeDepature(40 * 60, {0,0,20, 0}, 50 * 60)
+    x = timetable.beforeDeparture(40 * 60, {0,0,20, 0}, 50 * 60)
     assert(x, "should be defore departure")
 end
 
