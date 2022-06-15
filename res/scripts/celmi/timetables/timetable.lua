@@ -251,8 +251,6 @@ function timetable.waitingRequired(vehicle)
     if not timetableObject[currentLineString].stations[currentStop].conditions then return false end
     if not timetableObject[currentLineString].stations[currentStop].conditions.type then return false end
 
-    if timetableHelper.getTimeUntilDeparture(vehicle) >= 5 then return false end
-
     if not currentlyWaiting[currentLineString] then currentlyWaiting[currentLineString] = {stations = {}} end
     if not currentlyWaiting[currentLineString].stations[currentStop] then
           currentlyWaiting[currentLineString].stations[currentStop] = { vehiclesWaiting = {}, vehiclesDeparting = {}}
@@ -292,6 +290,8 @@ function timetable.waitingRequired(vehicle)
             end
         else
             -- already waiting
+            if timetableHelper.getTimeUntilDeparture(vehicle) >= 5 then return false end
+
             local arrivalTime = currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle].arrivalTime
             local constraint = currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle].constraint
             if timetable.beforeDeparture(arrivalTime, constraint, time) then
@@ -310,6 +310,8 @@ function timetable.waitingRequired(vehicle)
     --------------------------------------- DEBOUNCE -------------------------------------------------------------------
     --------------------------------------------------------------------------------------------------------------------
     elseif timetableObject[currentLineString].stations[currentStop].conditions.type == "debounce" then
+        if timetableHelper.getTimeUntilDeparture(vehicle) >= 5 then return false end
+        
         local previousDepartureTime = timetableHelper.getPreviousDepartureTime(tonumber(vehicle))
         local condition = timetable.getConditions(currentLine, currentStop, "debounce")
         if not condition[1] then condition[1] = 0 end
