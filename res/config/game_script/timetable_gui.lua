@@ -669,7 +669,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     menu.constraintTable:addRow({headerTable})
 
 
-    -- setup arrival and depature content
+    -- setup arrival and departure content
     for k,v in pairs(conditions) do
         menu.constraintTable:addRow({api.gui.comp.Component.new("HorizontalLine")})
 
@@ -826,13 +826,13 @@ function timetableGUI.timetableCoroutine()
     while true do
         local vehiclesWithLines = timetableHelper.getAllTimetableRailVehicles(timetable.hasTimetable)
         for _,vehicle in pairs(vehiclesWithLines) do
-            --if timetableHelper.isInStation(vehicle) then
+            if timetableHelper.isInStation(vehicle) then
                 if timetable.waitingRequired(tostring(vehicle)) then
                     timetableHelper.stopVehicle(tostring(vehicle))
                 else
                     timetableHelper.startVehicle(tostring(vehicle))
                 end
-            --end
+            end
             coroutine.yield()
         end
         coroutine.yield()
