@@ -601,7 +601,16 @@ function timetableGUI.fillConstraintTable(index,lineID)
 
     comboBox:onIndexChanged(function (i)
         if i == -1 then return end
-        timetable.setConditionType(lineID, index, timetableHelper.constraintIntToString(i))
+        local constraintType = timetableHelper.constraintIntToString(i)
+        timetable.setConditionType(lineID, index, constraintType)
+        conditions = timetable.getConditions(lineID, index, constraintType)
+        if constraintType == "debounce" then
+            if not conditions[1] then conditions[1] = 0 end
+            if not conditions[2] then conditions[2] = 0 end
+        elseif constraintType == "auto_debounce" then
+            if not conditions[1] then conditions[1] = 1 end
+            if not conditions[2] then conditions[2] = 0 end
+        end
         timetableChanged = true
         timetableGUI.initStationTable()
         timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)

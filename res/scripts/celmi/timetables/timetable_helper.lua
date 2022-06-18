@@ -446,12 +446,8 @@ function timetableHelper.conditionToString(cond, type)
         end
         local res = arr .. "\n"  .. dep
         return res
-    elseif type == "debounce" then
+    elseif type == "debounce" or type == "auto_debounce" then
         if not cond[1] then cond[1] = 0 end
-        if not cond[2] then cond[2] = 0 end
-        return UIStrings.unbunchTime .. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
-    elseif type == "auto_debounce" then
-        if not cond[1] then cond[1] = 1 end
         if not cond[2] then cond[2] = 0 end
         return UIStrings.unbunchTime .. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
     else
