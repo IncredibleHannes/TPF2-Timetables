@@ -216,17 +216,28 @@ end
 
 ---@param line number | string
 -- returns lineFrequency : String, formatted '%M:%S'
+function timetableHelper.getFrequencyString(line)
+    local frequency = timetableHelper.getFrequency(line)
+    if frequency == -1 then return "ERROR" end
+    if frequency == -2 then return "--" end
+
+    return math.floor(frequency / 60) .. ":" .. os.date('%S', frequency)
+end
+
+---@param line number | string
+-- returns lineFrequency in seconds
 function timetableHelper.getFrequency(line)
     if type(line) == "string" then line = tonumber(line) end
-    if not(type(line) == "number") then return "ERROR" end
+    if not(type(line) == "number") then return -1 end
 
     local lineEntity = game.interface.getEntity(line)
+
     if lineEntity and lineEntity.frequency then
-        if lineEntity.frequency == 0 then return "--" end
-        local x = 1 / lineEntity.frequency
-        return math.floor(x / 60) .. ":" .. os.date('%S', x)
+        if lineEntity.frequency == 0 then return -2 end
+        return 1 / lineEntity.frequency
+        
     else
-        return "--"
+        return -2
     end
 end
 
@@ -439,6 +450,10 @@ function timetableHelper.conditionToString(cond, type)
         if not cond[1] then cond[1] = 0 end
         if not cond[2] then cond[2] = 0 end
         return UIStrings.unbunchTime .. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
+    elseif type == "auto_debounce" then
+        if not cond[1] then cond[1] = 1 end
+        if not cond[2] then cond[2] = 0 end
+        return UIStrings.unbunchTime .. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
     else
         return type
     end
@@ -451,6 +466,7 @@ function timetableHelper.constraintIntToString(i)
     elseif i == 1 then return "ArrDep"
     --elseif i == 2 then return "minWait"
     elseif i == 2 then return "debounce"
+    elseif i == 3 then return "auto_debounce"
     --elseif i == 4 then return "moreFancey"
     else return "ERROR"
     end
@@ -463,6 +479,7 @@ function timetableHelper.constraintStringToInt(i)
     elseif i == "ArrDep" then return 1
     --elseif i == "minWait" then return 2
     elseif i == "debounce" then return 2
+    elseif i == "auto_debounce" then return 3
     --elseif i == "moreFancey" then return 4
     else return 0
     end
