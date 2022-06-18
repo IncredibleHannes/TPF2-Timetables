@@ -33,6 +33,7 @@ local UIStrings = {
 		departure = _("departure_i18n"),
 		unbunch_time = _("unbunch_time_i18n"),
 		unbunch	= _("unbunch_i18n"),
+        auto_unbunch = _("auto_unbunch_i18n"),
 		timetable = _("timetable_i18n"),
 		timetables = _("timetables_i18n"),
 		line = _("line_i18n"),
@@ -454,7 +455,7 @@ function timetableGUI.fillStationTable(index, bool)
     local lineID = timetableHelper.getAllRailLines()[index+1].id
 
 
-    local header1 = api.gui.comp.TextView.new(UIStrings.frequency .. " " .. timetableHelper.getFrequency(lineID))
+    local header1 = api.gui.comp.TextView.new(UIStrings.frequency .. " " .. timetableHelper.getFrequencyString(lineID))
     local header2 = api.gui.comp.TextView.new("")
     local header3 = api.gui.comp.TextView.new("")
     local header4 = api.gui.comp.TextView.new("")
@@ -591,6 +592,7 @@ function timetableGUI.fillConstraintTable(index,lineID)
     comboBox:addItem(UIStrings.arr_dep)
     --comboBox:addItem("Minimum Wait")
     comboBox:addItem(UIStrings.unbunch)
+    comboBox:addItem(UIStrings.auto_unbunch)
     --comboBox:addItem("Every X minutes")
     comboBox:setGravity(1,0)
 
@@ -609,7 +611,9 @@ function timetableGUI.fillConstraintTable(index,lineID)
         if i == 1 then
             timetableGUI.makeArrDepWindow(lineID, index)
         elseif i == 2 then
-            timetableGUI.makeDebounceWindow(lineID, index)
+            timetableGUI.makeDebounceWindow(lineID, index, "debounce")
+        elseif i == 3 then
+            timetableGUI.makeDebounceWindow(lineID, index, "auto_debounce")
         end
     end)
 
@@ -757,9 +761,9 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
 
 end
 
-function timetableGUI.makeDebounceWindow(lineID, stationID)
+function timetableGUI.makeDebounceWindow(lineID, stationID, debounceType)
     if not menu.constraintTable then return end
-    local condition2 = timetable.getConditions(lineID,stationID, "debounce")
+    local condition2 = timetable.getConditions(lineID,stationID, debounceType)
 
     local debounceTable = api.gui.comp.Table.new(4, 'NONE')
     debounceTable:setColWidth(0,150)
@@ -772,7 +776,7 @@ function timetableGUI.makeDebounceWindow(lineID, stationID)
     debounceMin:setMaximum(59,false)
 
     debounceMin:onChange(function(value)
-        timetable.updateDebounce(lineID, stationID,  1, value)
+        timetable.updateDebounce(lineID, stationID,  1, value, debounceType)
         timetableChanged = true
         timetableGUI.initStationTable()
         timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
@@ -788,16 +792,17 @@ function timetableGUI.makeDebounceWindow(lineID, stationID)
     debounceSec:setMaximum(59,false)
 
     debounceSec:onChange(function(value)
-        timetable.updateDebounce(lineID, stationID, 2, value)
+        timetable.updateDebounce(lineID, stationID, 2, value, debounceType)
         timetableChanged = true
         timetableGUI.initStationTable()
         timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
     end)
+
     if condition2 and condition2[2] then
         debounceSec:setValue(condition2[2],false)
     end
 
-    debounceTable:addRow({api.gui.comp.TextView.new(UIStrings.unbunch_time .. ":"), debounceMin,api.gui.comp.TextView.new(":"), debounceSec})
+    debounceTable:addRow({api.gui.comp.TextView.new(UIStrings.unbunch_time .. ":"), debounceMin, api.gui.comp.TextView.new(":"), debounceSec})
 
     menu.constraintTable:addRow({debounceTable})
 
@@ -871,6 +876,10 @@ function data()
             state.timetable = timetable.getTimetableObject()
             state.currentlyWaiting = timetable.getCurrentlyWaiting()
 
+            local lines = game.interface.getLines()
+            for k, line in pairs(lines) do
+                timetable.addFrequency(line, timetableHelper.getFrequency(line))
+            end
         end,
 
         guiUpdate = function()

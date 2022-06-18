@@ -151,6 +151,11 @@ function timetable.getConditions(line, stationNumber, type)
     end
 end
 
+function timetable.addFrequency(line, frequency)
+    if not timetableObject[tostring(line)] then return end
+    timetableObject[tostring(line)].frequency = frequency
+end
+
 
 -- TEST: timetable.addCondition(1,1,{type = "ArrDep", ArrDep = {{12,14,14,14}}})
 function timetable.addCondition(line, stationNumber, condition)
@@ -169,6 +174,9 @@ function timetable.addCondition(line, stationNumber, condition)
         elseif condition.type == "debounce" then
             timetableObject[tostring(line)].stations[stationNumber].conditions.type = "debounce"
             timetableObject[tostring(line)].stations[stationNumber].conditions.debounce = condition.debounce
+        elseif condition.type == "auto_debounce" then
+            timetableObject[tostring(line)].stations[stationNumber].conditions.type = "auto_debounce"
+            timetableObject[tostring(line)].stations[stationNumber].conditions.auto_debounce = condition.auto_debounce
         elseif condition.type == "moreFancey" then
             timetableObject[tostring(line)].stations[stationNumber].conditions.type = "moreFancey"
             timetableObject[tostring(line)].stations[stationNumber].conditions.moreFancey = condition.moreFancey
@@ -202,13 +210,13 @@ function timetable.updateArrDep(line, station, indexKey, indexValue, value)
     end
 end
 
-function timetable.updateDebounce(line, station, indexKey, value)
+function timetable.updateDebounce(line, station, indexKey, value, debounceType)
     if not (line and station and indexKey and value) then return -1 end
     if timetableObject[tostring(line)] and
        timetableObject[tostring(line)].stations[station] and
        timetableObject[tostring(line)].stations[station].conditions and
-       timetableObject[tostring(line)].stations[station].conditions.debounce then
-       timetableObject[tostring(line)].stations[station].conditions.debounce[indexKey] = value
+       timetableObject[tostring(line)].stations[station].conditions[debounceType] then
+       timetableObject[tostring(line)].stations[station].conditions[debounceType][indexKey] = value
         return 0
     else
         return -2
@@ -317,6 +325,27 @@ function timetable.waitingRequired(vehicle)
         if not condition[1] then condition[1] = 0 end
         if not condition[2] then condition[2] = 0 end
         if time > previousDepartureTime + ((condition[1] * 60)  + condition[2]) then
+            currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle] = nil
+            return false
+        else
+            return true
+        end
+
+
+    --------------------------------------------------------------------------------------------------------------------
+    --------------------------------------- AUTO DEBOUNCE --------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------------------------
+    elseif timetableObject[currentLineString].stations[currentStop].conditions.type == "auto_debounce" then
+        if timetableHelper.getTimeUntilDeparture(vehicle) >= 5 then return false end
+
+        local previousDepartureTime = timetableHelper.getPreviousDepartureTime(tonumber(vehicle))
+        local condition = timetable.getConditions(currentLine, currentStop, "auto_debounce")
+        if not condition[1] then condition[1] = 1 end
+        if not condition[2] then condition[2] = 0 end
+
+        local frequency = timetableObject[currentLineString].frequency
+
+        if not frequency or time > previousDepartureTime + frequency - ((condition[1]*60 + condition[2])) then
             currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle] = nil
             return false
         else
