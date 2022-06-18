@@ -5,6 +5,7 @@ timetable = {
     line = {
         stations = { stationinfo }
         hasTimetable = true
+        frequency = 1 :: int
     }
 }
 
@@ -32,8 +33,11 @@ currentlyWaiting = {
     }
 }
 
+constraint is used for "ArrDep"
+departureTime is used for "auto_unbunch"
 vehicleWaitingInfo = {
     arrivalTime = 1 :: int
+    departureTime = 1 :: int
     constraint = {}
     type = "ArrDep"
 }
@@ -88,6 +92,10 @@ function timetable.setConditionType(line, stationNumber, type)
         }
         local conditionObject = timetableObject[tostring(line)].stations[stationNumber].conditions[type]
         if not conditionObject then  timetableObject[tostring(line)].stations[stationNumber].conditions[type] = {} end
+    end
+
+    if currentlyWaiting[tostring(line)] and currentlyWaiting[tostring(line)].stations[stationNumber] then
+        currentlyWaiting[tostring(line)].stations[stationNumber] = { vehiclesWaiting = {}, vehiclesDeparting = {}}
     end
 end
 
@@ -290,11 +298,6 @@ function timetable.waitingRequired(vehicle)
                 }
 
                 return true
-            else
-                -- Constraint set and its time to depart
-                currentlyWaiting[currentLineString].stations[currentStop].vehiclesDeparting[vehicle] = {outboundTime = time}
-                currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle] = nil
-                return false
             end
         else
             -- already waiting
@@ -307,6 +310,18 @@ function timetable.waitingRequired(vehicle)
                 return true
             else
                 -- done waiting
+                -- clean up vehiclesWaiting
+                for k, vehicleWaitingInfo in pairs(currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting) do
+                    if not timetable.beforeDeparture(vehicleWaitingInfo.arrivalTime - 60, vehicleWaitingInfo.constraint, time - 60) then
+                        currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[k] = nil
+                    end
+                end
+                -- clean up vehiclesDeparting
+                for k, vehicleDepartingInfo in pairs(currentlyWaiting[currentLineString].stations[currentStop].vehiclesDeparting) do
+                    if vehicleDepartingInfo.outboundTime < time - 60 then
+                        currentlyWaiting[currentLineString].stations[currentStop].vehiclesDeparting[k] = nil
+                    end
+                end
                 currentlyWaiting[currentLineString].stations[currentStop].vehiclesDeparting[vehicle] = {outboundTime = time}
                 currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle] = nil
                 return false
@@ -336,21 +351,70 @@ function timetable.waitingRequired(vehicle)
     --------------------------------------- AUTO DEBOUNCE --------------------------------------------------------------
     --------------------------------------------------------------------------------------------------------------------
     elseif timetableObject[currentLineString].stations[currentStop].conditions.type == "auto_debounce" then
+        -- am I currently waiting or just arrived?
+
+        if not (currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle]) then
+
+            if currentlyWaiting[currentLineString].stations[currentStop].vehiclesDeparting[vehicle]
+               and (currentlyWaiting[currentLineString].stations[currentStop].vehiclesDeparting[vehicle].outboundTime + 60) > time then
+                return false
+            end
+
+            local condition = timetable.getConditions(currentLine, currentStop, "auto_debounce")
+            if not condition[1] then condition[1] = 1 end
+            if not condition[2] then condition[2] = 0 end
+
+            local previousDepartureTime = timetableHelper.getPreviousDepartureTime(tonumber(vehicle))
+
+            -- Account for vehicles currently departing
+            for k, vehicleDepartingInfo in pairs(currentlyWaiting[currentLineString].stations[currentStop].vehiclesDeparting) do
+                if vehicleDepartingInfo.outboundTime > previousDepartureTime then
+                    previousDepartureTime = vehicleDepartingInfo.outboundTime
+                end
+                if vehicleDepartingInfo.outboundTime < time - 60 then
+                    -- clean up table when departing info no longer needed
+                    currentlyWaiting[currentLineString].stations[currentStop].vehiclesDeparting[k] = nil
+                end
+            end
+
+            -- Account for vehicles currently waiting
+            for k, vehicleWaitingInfo in pairs(currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting) do
+                if vehicleWaitingInfo.departureTime > previousDepartureTime then
+                    previousDepartureTime = vehicleWaitingInfo.departureTime
+                end
+                if vehicleWaitingInfo.departureTime < time - 60 then
+                    -- clean up table when waiting info no longer needed
+                    currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[k] = nil
+                end
+            end
+
+            local frequency = timetableObject[currentLineString].frequency
+            local departureTime = time
+            if #timetableHelper.getVehiclesOnLine(currentLine) == 1 then
+                departureTime = time
+            elseif frequency then
+                departureTime = previousDepartureTime + frequency - (condition[1]*60 + condition[2])
+            end
+
+            currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle] = {
+                type = "auto_debounce",
+                arrivalTime = time,
+                departureTime = departureTime
+            }
+            return false
+        end
+
         if timetableHelper.getTimeUntilDeparture(vehicle) >= 5 then return false end
 
-        local previousDepartureTime = timetableHelper.getPreviousDepartureTime(tonumber(vehicle))
-        local condition = timetable.getConditions(currentLine, currentStop, "auto_debounce")
-        if not condition[1] then condition[1] = 1 end
-        if not condition[2] then condition[2] = 0 end
-
-        local frequency = timetableObject[currentLineString].frequency
-
-        if not frequency or time > previousDepartureTime + frequency - ((condition[1]*60 + condition[2])) then
+        if time > currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle].departureTime then
+            -- done waiting
+            currentlyWaiting[currentLineString].stations[currentStop].vehiclesDeparting[vehicle] = {outboundTime = time}
             currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle] = nil
             return false
         else
             return true
         end
+
     else
         currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting[vehicle] = nil
         return false
