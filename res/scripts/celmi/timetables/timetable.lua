@@ -267,7 +267,9 @@ function timetable.waitingRequired(vehicle)
             end
 
             -- just arrived
-            local nextConstraint = timetable.getNextConstraint(timetableObject[currentLineString].stations[currentStop].conditions.ArrDep, time, currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting)
+            local constraints = timetableObject[currentLineString].stations[currentStop].conditions.ArrDep
+            local vehiclesWaiting = currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting
+            local nextConstraint = timetable.getNextConstraint(constraints, time, vehiclesWaiting)
             if not nextConstraint then
                 -- no constraints set
                 currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting = {}
@@ -311,7 +313,7 @@ function timetable.waitingRequired(vehicle)
     --------------------------------------------------------------------------------------------------------------------
     elseif timetableObject[currentLineString].stations[currentStop].conditions.type == "debounce" then
         if timetableHelper.getTimeUntilDeparture(vehicle) >= 5 then return false end
-        
+
         local previousDepartureTime = timetableHelper.getPreviousDepartureTime(tonumber(vehicle))
         local condition = timetable.getConditions(currentLine, currentStop, "debounce")
         if not condition[1] then condition[1] = 0 end
@@ -423,7 +425,7 @@ function timetable.getNextConstraint(constraints, time, used_constraints)
     -- If true, find the next consecutive available constraint
     for i = res.index, #constraints + res.index - 1 do
         -- Need to make sure that 2 mod 2 returns 2 rather than 0
-        local normalisedIndex = ((i - 1) % #constraints) + 1 
+        local normalisedIndex = ((i - 1) % #constraints) + 1
 
         local constraint = constraints[normalisedIndex]
         local found = false
