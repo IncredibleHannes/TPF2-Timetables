@@ -112,6 +112,8 @@ end
 
 -- All tests here done with line and station IDs of 1 for simplicity
 timetableTests[#timetableTests + 1] = function()
+    table.remove(timetableHelper)
+
     timetableHelper.getStationID = function(line, stationNumber)
         assert(line == 1)
         assert(stationNumber == 1)
@@ -173,8 +175,6 @@ timetableTests[#timetableTests + 1] = function()
     end
     x = timetable.waitingRequired(2)
     assert(not x, "Shouldn't wait for train")
-
-    timetableHelper = {}
 end
 
 return {
