@@ -247,14 +247,27 @@ function timetable.waitingRequired(vehicle)
     local currentStop = timetableHelper.getCurrentStation(vehicle)
     local currentLineString = tostring(currentLine)
     if not timetableObject[currentLineString] then return false end
+    if not timetableObject[currentLineString].stations then return false end
     if not timetableObject[currentLineString].stations[currentStop] then return false end
     if not timetableObject[currentLineString].stations[currentStop].conditions then return false end
     if not timetableObject[currentLineString].stations[currentStop].conditions.type then return false end
 
-    if not currentlyWaiting[currentLineString] then currentlyWaiting[currentLineString] = {stations = {}} end
-    if not currentlyWaiting[currentLineString].stations[currentStop] then
-          currentlyWaiting[currentLineString].stations[currentStop] = { vehiclesWaiting = {}, vehiclesDeparting = {}}
+    if not currentlyWaiting[currentLineString] then 
+        currentlyWaiting[currentLineString] = {} 
     end
+    if not currentlyWaiting[currentLineString].stations then
+        currentlyWaiting[currentLineString].stations = {}
+    end
+    if not currentlyWaiting[currentLineString].stations[currentStop] then 
+        currentlyWaiting[currentLineString].stations[currentStop] = {}
+    end
+    if not currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting then
+        currentlyWaiting[currentLineString].stations[currentStop].vehiclesWaiting = {}
+    end
+    if not currentlyWaiting[currentLineString].stations[currentStop].vehiclesDeparting then
+        currentlyWaiting[currentLineString].stations[currentStop].vehiclesDeparting = {}
+    end
+
     if timetableObject[currentLineString].stations[currentStop].conditions.type == "ArrDep" then
         -- am I currently waiting or just arrived?
 
