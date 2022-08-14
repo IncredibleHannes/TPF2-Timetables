@@ -864,8 +864,13 @@ function data()
                 co = coroutine.create(timetableGUI.timetableCoroutine)
             end
             for _ = 0, 20 do
-                local err, msg = coroutine.resume(co)
-                if not err then print(msg) end
+                local coroutineStatus = coroutine.status(co)
+                if coroutineStatus == "suspended" then
+                    local err, msg = coroutine.resume(co)
+                    if not err then print("Timetables coroutine error: " .. msg) end
+                else
+                    print("Timetables failed to resume " .. coroutineStatus .. " coroutine.")
+                end
             end
 
             state.timetable = timetable.getTimetableObject()
