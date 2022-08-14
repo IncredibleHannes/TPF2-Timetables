@@ -815,7 +815,7 @@ end
 
 function timetableGUI.timetableCoroutine()
     while true do
-        local vehiclesWithLines = timetableHelper.getAllTimetableRailVehicles(timetable.hasTimetable)
+        local vehiclesWithLines = timetableHelper.getAllTimetableRailVehicles()
         for _,vehicle in pairs(vehiclesWithLines) do
             if timetableHelper.isInStation(vehicle) then
                 if timetable.waitingRequired(tostring(vehicle)) then
@@ -836,7 +836,7 @@ function data()
 
         handleEvent = function (_, id, _, param)
             if id == "timetableUpdate" then
-                if state == nil then state = {timetable = {}} end
+                if state == nil then state = {timetable = {}, currentlyWaiting = {}} end
                 state.timetable = param
                 timetable.setTimetableObject(state.timetable)
                 timetableChanged = true
@@ -860,17 +860,22 @@ function data()
                     timetable.setCurrentlyWaiting(loadedState.currentlyWaiting)
                 end
             end
-            state = loadedState or {timetable = {}}
+            state = loadedState or {timetable = {}, currentlyWaiting = {}}
         end,
 
         update = function()
-            if state == nil then state = {timetable = {}}end
+            if state == nil then state = {timetable = {}, currentlyWaiting = {}}end
             if co == nil or coroutine.status(co) == "dead" then
                 co = coroutine.create(timetableGUI.timetableCoroutine)
             end
             for _ = 0, 20 do
-                local err, msg = coroutine.resume(co)
-                if not err then print(msg) end
+                local coroutineStatus = coroutine.status(co)
+                if coroutineStatus == "suspended" then
+                    local err, msg = coroutine.resume(co)
+                    if not err then print("Timetables coroutine error: " .. msg) end
+                else
+                    print("Timetables failed to resume " .. coroutineStatus .. " coroutine.")
+                end
             end
 
             state.timetable = timetable.getTimetableObject()
