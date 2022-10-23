@@ -592,7 +592,7 @@ function timetableGUI.fillConstraintTable(index,lineID)
     comboBox:addItem(UIStrings.arr_dep)
     --comboBox:addItem("Minimum Wait")
     comboBox:addItem(UIStrings.unbunch)
-    comboBox:addItem(UIStrings.auto_unbunch)
+    -- comboBox:addItem(UIStrings.auto_unbunch) -- removed due to concerns about feedback loop that will inflate running time
     --comboBox:addItem("Every X minutes")
     comboBox:setGravity(1,0)
 
@@ -909,7 +909,7 @@ function data()
 
             if loadedState.currentlyWaiting then
                 if state == nil then
-                    timetable.setCurrentlyWaiting(loadedState.currentlyWaiting)
+                    timetable.setStopState(loadedState.currentlyWaiting)
                 end
             end
             state = loadedState or {timetable = {}, currentlyWaiting = {}}
@@ -931,7 +931,7 @@ function data()
             end
 
             state.timetable = timetable.getTimetableObject()
-            state.currentlyWaiting = timetable.getCurrentlyWaiting()
+            state.currentlyWaiting = timetable.getStopState()
 
             local lines = game.interface.getLines()
             for k, line in pairs(lines) do
