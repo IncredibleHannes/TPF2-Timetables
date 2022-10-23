@@ -320,7 +320,7 @@ function timetable.waitingRequired(vehicle)
     local currentLine = timetableHelper.getCurrentLine(vehicle)
     local currentStop = timetableHelper.getCurrentStation(vehicle)
     local currentLineString = tostring(currentLine)
-    
+
     -- check if there is a timetable condition for this vehicle and stop
     if not timetableObject[currentLineString] then return false end
     if not timetableObject[currentLineString].stations then return false end
@@ -355,16 +355,10 @@ function timetable.waitingRequired(vehicle)
         if timetableObject[currentLineString].stations[currentStop].conditions.type == "ArrDep" then
             -- get the departure time from the condition
             local constraints = timetableObject[currentLineString].stations[currentStop].conditions.ArrDep
-            local nextConstraint = timetable.getNextConstraint(constraints, time, {})
-
-            -- convert departure time to game time
-            local hourOffset = time - (time % 3600)
-            local departureTime = hourOffset + nextConstraint[3] * 60 + nextConstraint[4]
+            local departureTime = timetable.getNextDeparture(constraints, time, stopState[currentLineString][currentStop].lastDeparture)
 
             -- register vehicle with departure time
             stopState[currentLineString][currentStop].plannedDepartures[vehicle] = departureTime
-
-            print(dump(stopState[currentLineString][currentStop]))
 
         -- logic for conditions with minimal departure interval
         elseif timetableObject[currentLineString].stations[currentStop].conditions.type == "debounce" then
@@ -482,52 +476,96 @@ end
 
 ---Find the next valid constraint for given constraints and time
 ---@param constraints table in format like: {{30,0,59,0},{9,0,59,0}}
----@param time number in seconds
----@param used_constraints table in format like: {constraint={30,0,59,0},constraint={9,0,59,0}}
----@return table closestConstraint example: {30,0,59,0}
-function timetable.getNextConstraint(constraints, time, used_constraints)
-    -- Put the constraints in chronological order by arrival time
+---@param time number in seconds game time
+---@param lastDeparture number in seconds game time 
+---@return number nextDeparture example: {30,0,59,0}
+function timetable.getNextDeparture(constraints, time, lastDeparture)
+    -- Sort the constraints by departure time
     table.sort(constraints, function(a, b)
-        local aTime = timetable.getArrivalTimeFrom(a)
-        local bTime = timetable.getArrivalTimeFrom(b)
+        local aTime = timetable.constraintToSeconds(a).dep
+        local bTime = timetable.constraintToSeconds(b).dep
         return aTime < bTime
     end)
 
-    -- Find the constraint with the closest arrival time
-    local res = {diff = 40000, value = nil}
-    for index, constraint in pairs(constraints) do
-        local arrTime = timetable.getArrivalTimeFrom(constraint)
-        local diff = timetable.getTimeDifference(arrTime, time % 3600)
+    print("finding the next departure")
+    print("constraints: " .. dump(constraints))
+    print("time: " .. time)
+    print("lastDeparture: " .. lastDeparture)
 
-        if (diff < res.diff) then
-            res = {diff = diff, index = index}
+
+    -- find the first departure time that satisfies these conditions:
+    -- 1. the departure time is after the last recorded departure
+    -- 2. the arrival time of the following constraint is still in the future
+    local hourStart = time - (time % 3600)
+    local hourCount = 0
+    local departureIndex = -1
+
+    local function calcAbsTime(hs, hc, ct)
+        return hs + hc * 3600 + ct
+    end
+    
+    -- find the first constraint that departs after the last departure
+    while hourCount < 2 do
+        for i, constraint in ipairs(constraints) do
+            local constraintTime = timetable.constraintToSeconds(constraint).dep
+            local departureTime = calcAbsTime(hourStart, hourCount, constraintTime)
+
+            print("departureTime: " .. departureTime)
+
+            if departureTime > lastDeparture then
+                departureIndex = i
+                break
+            end
+        end
+
+        -- check if a departure time has been found
+        if departureIndex ~= -1 then
+            break
+        else
+            hourCount = hourCount + 1
         end
     end
 
-    -- Return nil when there are no contraints
-    if not res.index then return nil end
-
-    -- Find if the constraint with the closest arrival time is currently being used
-    -- If true, find the next consecutive available constraint
-    for i = res.index, #constraints + res.index - 1 do
-        -- Need to make sure that 2 mod 2 returns 2 rather than 0
-        local normalisedIndex = ((i - 1) % #constraints) + 1
-
-        local constraint = constraints[normalisedIndex]
-        local found = false
-        -- for _, used_constraint in pairs(used_constraints) do
-        --     if constraint == used_constraint.constraint then
-        --         found = true
-        --     end
-        -- end
-
-        if not found then
-            return constraint
-        end
+    if departureIndex == -1 then
+        -- no departure was found
+        return -1
     end
 
-    -- If all constraints are being used, still return the closest constraint anyway.
-    return constraints[res.index]
+    -- keep going until the arrival time of the next constraint is in the future
+    -- increment departure index to look at the next constraint
+    departureIndex = departureIndex + 1
+    while hourCount < 5 do
+        while departureIndex <= #constraints do
+            local constraintTime = timetable.constraintToSeconds(constraints[departureIndex]).arr
+            local arrivalTime = calcAbsTime(hourStart, hourCount, constraintTime)
+
+            if arrivalTime > time then
+                -- found a valid constraint
+                -- shift back to the previous constraint
+                departureIndex = departureIndex - 1
+                if departureIndex == 0 then
+                    departureIndex = #constraints
+                    hourCount = hourCount - 1
+                end
+
+                local departureTime = calcAbsTime(hourStart, hourCount, timetable.constraintToSeconds(constraints[departureIndex]).dep)
+                return departureTime
+            end
+
+            departureIndex = departureIndex + 1
+        end
+
+        hourCount = hourCount + 1
+        departureIndex = 1
+    end
+
+    return -2
+end
+
+function timetable.constraintToSeconds(constraint)
+    local arrTime = constraint[1] * 60 + constraint[2]
+    local depTime = constraint[3] * 60 + constraint[4]
+    return {arr = arrTime, dep = depTime}
 end
 
 ---Gets the arrival time in seconds from the constraint
