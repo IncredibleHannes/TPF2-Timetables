@@ -858,7 +858,15 @@ end
 
 
 function timetableGUI.timetableCoroutine()
+    local lastUpdate = -1
+
     while true do
+        -- only run once a second to avoid unnecessary cpu usage
+        while timetableHelper.getTime() - lastUpdate < 1 do
+            coroutine.yield()
+        end
+        lastUpdate = timetableHelper.getTime()
+
         local vehiclesWithLines = timetableHelper.getAllTimetableRailVehicles()
         for _,vehicle in pairs(vehiclesWithLines) do
             if timetableHelper.isInStation(vehicle) then
