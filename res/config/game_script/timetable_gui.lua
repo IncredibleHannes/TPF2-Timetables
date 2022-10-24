@@ -314,8 +314,6 @@ function timetableGUI.fillLineTable()
                 timetable.setHasTimetable(v.id,false)
                 timetableChanged = true
                 imageVeiw:setImage("ui/checkbox0.tga", false)
-                -- start all stopped vehicles again if the timetable is disabled for this line
-                timetable.startAllLineVehicles(v.id)
             else
                 timetable.setHasTimetable(v.id,true)
                 timetableChanged = true
