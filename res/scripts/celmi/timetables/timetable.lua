@@ -390,7 +390,8 @@ function timetable.waitingRequired(vehicle)
     -- check if the vehicle is waiting for a departure time
     if stopState[currentLineString][currentStop].plannedDepartures[vehicle] then
         -- check if the departure time has been reached or the timetable has been disable in the meantime
-        if  stopState[currentLineString][currentStop].plannedDepartures[vehicle] <= time 
+        if  (stopState[currentLineString][currentStop].waitingVehicles[vehicle].departure <= time
+            and timetableHelper.getTimeUntilDepartureReady(vehicle) < 1)
             or not timetableObject[currentLineString].hasTimetable then
             -- departure time has been reached
             -- remove vehicle from waiting list
