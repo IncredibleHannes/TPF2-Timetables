@@ -485,72 +485,69 @@ function timetable.getNextDeparture(constraints, time, lastDeparture)
         return aTime < bTime
     end)
 
-
-    -- find the first departure time that satisfies these conditions:
-    -- 1. the departure time is after the last recorded departure
-    -- 2. the arrival time of the following constraint is still in the future
     local hourStart = time - (time % 3600)
     local hourCount = 0
-    local departureIndex = -1
+    local departureIndex = 1
 
-    local function calcAbsTime(hs, hc, ct)
-        return hs + hc * 3600 + ct
+    local lastValid = nil
+
+
+    local function constraintToAbsTime(constraint)
+        local function calcAbsTime(relTime)
+            return hourStart + hourCount * 3600 + relTime
+        end
+
+        local constraintRelSec = timetable.constraintToSeconds(constraint)
+
+        local constraintAbsSec = {}
+        for key, relTime in pairs(constraintRelSec) do
+            constraintAbsSec[key] = calcAbsTime(relTime)
+        end
+
+        if constraintAbsSec.arr > constraintAbsSec.dep then
+            constraintAbsSec.arr = constraintAbsSec.arr - 3600
+        end
+
+        return constraintAbsSec
     end
     
-    -- find the first constraint that departs after the last departure
-    while hourCount < 2 do
-        for i, constraint in ipairs(constraints) do
-            local constraintTime = timetable.constraintToSeconds(constraint).dep
-            local departureTime = calcAbsTime(hourStart, hourCount, constraintTime)
-
-            if departureTime > lastDeparture then
-                departureIndex = i
-                break
-            end
-        end
-
-        -- check if a departure time has been found
-        if departureIndex ~= -1 then
-            break
-        else
-            hourCount = hourCount + 1
-        end
-    end
-
-    if departureIndex == -1 then
-        -- no departure was found
-        return -1
-    end
-
-    -- keep going until the arrival time of the next constraint is in the future
-    -- increment departure index to look at the next constraint
-    departureIndex = departureIndex + 1
+    -- go through all constraints until we find an answer
     while hourCount < 5 do
         while departureIndex <= #constraints do
-            local constraintTime = timetable.constraintToSeconds(constraints[departureIndex]).arr
-            local arrivalTime = calcAbsTime(hourStart, hourCount, constraintTime)
+            -- calculate the absolute time of this slot
+            local constraintAbsTime = constraintToAbsTime(constraints[departureIndex])
 
-            if arrivalTime > time then
-                -- found a valid constraint
-                -- shift back to the previous constraint
-                departureIndex = departureIndex - 1
-                if departureIndex == 0 then
-                    departureIndex = #constraints
-                    hourCount = hourCount - 1
+            -- check if the slot satisfies these conditions:
+            -- 1. the departure time is after the last recorded departure
+            -- 2. the arrival time in the past OR it is the first slot after the last recorded departure
+            constraintValid =   constraintAbsTime.dep > lastDeparture 
+                                and (constraintAbsTime.arr <= time or lastValid == nil)
+            
+            
+            -- at first we will not satisfy the first conditionToString, because we are before the last departure
+            -- then we will satisfy both for a while
+            -- finally we will not satisfy the second condition, because we are before the arrival time
+            -- -> when we get invalid answers after valid ones, we can return the last valid answer
+            if constraintValid then
+                lastValid = constraintAbsTime.dep
+            else 
+                if lastValid ~= nil then
+                    return lastValid
                 end
-
-                local departureTime = calcAbsTime(hourStart, hourCount, timetable.constraintToSeconds(constraints[departureIndex]).dep)
-                return departureTime
             end
-
+            
+            --increment the departure index
             departureIndex = departureIndex + 1
         end
 
+        -- increment the hour count
         hourCount = hourCount + 1
         departureIndex = 1
     end
 
-    return -2
+    -- if we get here, we have not found a valid answer withing the next 5 hours
+    -- since the timetable should repeat at least hourly, we can assume that there is no valid time slot
+    return -1
 end
 
 function timetable.constraintToSeconds(constraint)
