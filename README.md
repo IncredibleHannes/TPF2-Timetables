@@ -4,7 +4,7 @@ This is a mod for Transport Fever 2 that adds a timetable system to the game. It
 
 For every stop you can choose between three modes:
 - **None**: The vehicle will use the vanilla logic, i.e. it will stop, wait for loading to complete, sometimes wait a bit extra for unbunching and then depart.
-- **Arrival/Departure**: The vehicle will stop at the station and depart only at the next specified departure time. It chooses the last slot time that has an arrival time in the past and a departure time after the last recorded departure for that line and station.
+- **Arrival/Departure**: The vehicle will stop at the station and depart only at the next specified departure time. It chooses the last slot with a departure time after the last recorded departure and an arrival time in the past.
 - **Unbunch**: The vehicle will depart no sooner than the specified time span after the last recorded departure for that line and station.
 
 More technical information can be found in the [documentation](documentation.md).
