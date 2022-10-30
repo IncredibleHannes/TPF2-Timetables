@@ -135,7 +135,7 @@ end
 
 ---@param vehicle number | string
 -- returns Time in seconds and -1 in case of an error
-function timetableHelper.getTimeUntilDeparture(vehicle)
+function timetableHelper.getTimeUntilDepartureReady(vehicle)
     if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
     if not(type(vehicle) == "number") then print("Expected String or Number") return -1 end
 
