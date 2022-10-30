@@ -339,8 +339,9 @@ function timetable.waitingRequired(vehicle)
         stopState[currentLineString][currentStop].plannedDepartures = {}
     end
     if not stopState[currentLineString][currentStop].lastDeparture then
-        -- 1 hour before the start of the game to avoid problems with the first departure
-        stopState[currentLineString][currentStop].lastDeparture = -3600
+        -- initialize last departure to 30 minutes before now 
+        -- TODO: ideally that offset would depend on the interval of the timetable 
+        stopState[currentLineString][currentStop].lastDeparture = time - 1800
     end
 
 
