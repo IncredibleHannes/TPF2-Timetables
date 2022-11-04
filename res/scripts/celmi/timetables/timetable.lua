@@ -97,7 +97,7 @@ function timetable.setStopState(ttData)
         format = currentVersion,
         data = { }
     }
-    
+
     if ttData and next(ttData) then
         -- ensure saved data conforms to currently expected format
         if not ttData.format or ttData.format ~= currentVersion then
@@ -572,6 +572,10 @@ function timetable.secToStr(sec)
     return timetable.minToStr(min, sec)
 end
 
+function timetable.deltaSecToStr(deltaSec)
+    return math.floor(deltaSec / 6) / 10
+end
+
 ---Gets the arrival time in seconds from the constraint
 ---@param constraint table in format like: {9,0,59,0}
 function timetable.getArrivalTimeFrom(constraint)
@@ -631,6 +635,14 @@ function timetable.dumpStopState(lineID, stopNr)
     if not stopState.data[lineID][stopNr] then return "stopNr " .. stopNr .. " not found" end
 
     return "lineID: " .. lineID .. ", stopNr:" .. stopNr .. "\n" .. dump(stopState.data[lineID][stopNr])
+end
+
+function timetable.getStateOfStop(lineID, stopNr)
+    if not stopState.data then return end
+    if not stopState.data[lineID] then return end
+    if not stopState.data[lineID][stopNr] then return end
+
+    return stopState.data[lineID][stopNr]
 end
 
 return timetable

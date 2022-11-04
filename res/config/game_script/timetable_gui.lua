@@ -193,10 +193,45 @@ function timetableGUI.stFillLines(tabIndex)
 
 
             -- add stop info
-            local stopInfo = timetable.dumpStopState(lineID, stopNr)
-            local stopInfoTV = api.gui.comp.TextView.new(stopInfo)
-            lineInfoBox:addRow({stopInfoTV})
+            local stopInfo = timetable.getStateOfStop(lineID, stopNr)
+            if stopInfo then
+                local stopInfoBox = api.gui.comp.Table.new(2, 'NONE')
+                stopInfoBox:setColWidth(0, 150)
 
+                local function addTimeRow(rowText, rowTime)
+                    local rowTimeString = timetable.secToStr(rowTime)
+                    local rowTimeDeltaString = timetable.deltaSecToStr(rowTime - timetableHelper.getTime())
+
+                    stopInfoBox:addRow({
+                        api.gui.comp.TextView.new(rowText),
+                        api.gui.comp.TextView.new(rowTimeString .. " (" .. rowTimeDeltaString .. ")")})
+                end
+
+                if stopInfo.lastArrival then
+                    addTimeRow("Last Arrival: ", stopInfo.lastArrival)
+                end
+
+                if stopInfo.lastDeparture then
+                    addTimeRow("Last Departure: ", stopInfo.lastDeparture)
+                end
+
+                if stopInfo.plannedDeparture then
+                    addTimeRow("Planned Departure: ", stopInfo.plannedDeparture)
+                end
+
+                if stopInfo.lastVehicle then
+                    stopInfoBox:addRow({
+                        api.gui.comp.TextView.new("Last Vehicle: "),
+                        api.gui.comp.TextView.new(stopInfo.lastVehicle)})
+                end
+
+                lineInfoBox:addRow({stopInfoBox})
+            -- local stopInfo = timetable.dumpStopState(lineID, stopNr)
+            -- local stopInfoTV = api.gui.comp.TextView.new(stopInfo)
+            -- lineInfoBox:addRow({stopInfoTV})
+            else
+                lineInfoBox:addRow({api.gui.comp.TextView.new("No data available yet.")})
+            end
 
             -- add line table
             menu.stationTabLinesTable:addRow({lineInfoBox})
