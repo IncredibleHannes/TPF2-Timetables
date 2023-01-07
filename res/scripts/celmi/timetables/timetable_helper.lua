@@ -30,7 +30,7 @@ function timetableHelper.getTrainLocations(line)
     local vehicles = api.engine.system.transportVehicleSystem.getLineVehicles(line)
     for _,v in pairs(vehicles) do
         local vehicle = api.engine.getComponent(v, api.type.ComponentType.TRANSPORT_VEHICLE)
-        local atTerminal = vehicle.state == 2
+        local atTerminal = vehicle.state == api.type.enum.TransportVehicleState.AT_TERMINAL
         if res[tostring(vehicle.stopIndex)] then
             local prevAtTerminal = res[tostring(vehicle.stopIndex)].atTerminal
             res[tostring(vehicle.stopIndex)] = {
@@ -87,7 +87,7 @@ function timetableHelper.isInStation(vehicle)
     if not(type(vehicle) == "number") then print("Expected String or Number") return false end
 
     local v = api.engine.getComponent(tonumber(vehicle), api.type.ComponentType.TRANSPORT_VEHICLE)
-    return v and v.state == 2
+    return v and v.state == api.type.enum.TransportVehicleState.AT_TERMINAL
 end
 
 ---@param vehicle number | string
@@ -365,7 +365,7 @@ end
 
 
 -- returns [{vehicleID: lineID}]
-function timetableHelper.getAllTimetableRailVehicles()
+function timetableHelper.getAllVehiclesAtTerminal()
     return api.engine.system.transportVehicleSystem.getVehiclesWithState(api.type.enum.TransportVehicleState.AT_TERMINAL)
     --[[local res = {}
     local vehicleMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
