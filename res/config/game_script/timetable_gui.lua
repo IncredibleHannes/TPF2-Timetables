@@ -816,6 +816,7 @@ function timetableGUI.timetableCoroutine()
             timetable.updateFor(line, vehicles)
             coroutine.yield()
         end
+        coroutine.yield()
     end
 end
 
@@ -856,7 +857,7 @@ function data()
                 local coroutineStatus = coroutine.status(co)
                 if coroutineStatus == "suspended" then
                     local err, msg = coroutine.resume(co)
-                    if not err then print("Timetables coroutine error: " .. msg) end
+                    if not err then print("Timetables coroutine error: " .. tostring(msg)) end
                 else
                     print("Timetables failed to resume " .. coroutineStatus .. " coroutine.")
                 end

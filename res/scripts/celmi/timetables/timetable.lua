@@ -10,7 +10,6 @@ timetable = {
 
 stationInfo = {
     conditions = {condition :: Condition},
-    inboundTime = 1 :: int
 }
 
 conditions = {
@@ -87,7 +86,6 @@ function timetable.setConditionType(line, stationNumber, type)
         end
 
         timetableObject[line].stations[stationNumber] = {
-            inboundTime = 0,
             stationID = stationID,
             conditions = {type = type}
         }
@@ -166,7 +164,6 @@ function timetable.addCondition(line, stationNumber, condition)
             timetableObject[line] = {hasTimetable = false, stations = {}}
         end
         timetableObject[line].stations[stationNumber] = {
-            inboundTime = 0,
             stationID = stationID,
             conditions = condition
         }
