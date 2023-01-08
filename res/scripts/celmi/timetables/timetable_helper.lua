@@ -139,7 +139,7 @@ function timetableHelper.getTimeUntilDeparture(vehicle)
     if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
     if not(type(vehicle) == "number") then print("Expected String or Number") return -1 end
 
-    local v = api.engine.getComponent(vehicle, 70)
+    local v = api.engine.getComponent(vehicle, api.type.ComponentType.TRANSPORT_VEHICLE)
     if v and v.timeUntilCloseDoors then return v.timeUntilCloseDoors else return -1 end
 end
 
