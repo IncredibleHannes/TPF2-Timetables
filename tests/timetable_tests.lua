@@ -134,47 +134,38 @@ timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
     timetable.addCondition(1, 1, {type = "ArrDep", ArrDep = {{55, 0, 58, 0}, {57, 0, 0, 0}, {59, 0, 2, 0}}})
 
+    local time = (57*60) + 1 -- 57:01
     timetableHelper.getTime = function()
-        return (57*60) + 1 -- 57:01
+        return time
     end
-    local x = timetable.waitingRequired(1)
-    assert(x, "Should wait for train")
+    local arrivalTime1 = time
+    local x = timetable.readyToDepart(1, arrivalTime1, {1, 2}, 1, 1)
+    assert(not x, "Should wait for train")
 
-    timetableHelper.getTime = function()
-        return (57*60) + 11 -- 57:11
-    end
-    x = timetable.waitingRequired(2)
-    assert(x, "Should wait for train")
+    time = (59*60) + 11 -- 59:11
+    local arrivalTime2 = time
+    x = timetable.readyToDepart(2, arrivalTime2, {1, 2}, 1, 1)
+    assert(not x, "Should wait for train")
 
-    timetableHelper.getTime = function()
-        return (0*60) + 0 -- 00:00
-    end
-    x = timetable.waitingRequired(1)
-    assert(not x, "Shouldn't wait for train")
+    time = (0*60) + 0 -- 00:00
+    x = timetable.readyToDepart(1, arrivalTime1, {1, 2}, 1, 1)
+    assert(x, "Shouldn't wait for train")
 
-    timetableHelper.getTime = function()
-        return (0*60) + 1 -- 00:01
-    end
-    x = timetable.waitingRequired(1)
-    assert(not x, "Shouldn't wait for train")
+    time = (0*60) + 1 -- 00:01
+    x = timetable.readyToDepart(1, arrivalTime1, {1, 2}, 1, 1)
+    assert(x, "Shouldn't wait for train")
 
-    timetableHelper.getTime = function()
-        return (0*60) + 0 -- 00:00
-    end
-    x = timetable.waitingRequired(2)
-    assert(x, "Should wait for train")
+    time = (0*60) + 0 -- 00:00
+    x = timetable.readyToDepart(2, arrivalTime2, {1, 2}, 1, 1)
+    assert(not x, "Should wait for train")
 
-    timetableHelper.getTime = function()
-        return (2*60) + 0 -- 02:00
-    end
-    x = timetable.waitingRequired(2)
-    assert(not x, "Shouldn't wait for train")
+    time = (2*60) + 0 -- 02:00
+    x = timetable.readyToDepart(2, arrivalTime2, {1, 2}, 1, 1)
+    assert(x, "Shouldn't wait for train")
 
-    timetableHelper.getTime = function()
-        return (2*60) + 1 -- 02:01
-    end
-    x = timetable.waitingRequired(2)
-    assert(not x, "Shouldn't wait for train")
+    time = (2*60) + 1 -- 02:01
+    x = timetable.readyToDepart(2, arrivalTime2, {1, 2}, 1, 1)
+    assert(x, "Shouldn't wait for train")
 end
 
 return {
