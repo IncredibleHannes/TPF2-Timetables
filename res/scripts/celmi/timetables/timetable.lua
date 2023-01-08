@@ -225,42 +225,35 @@ function timetable.hasTimetable(line)
 end
 
 function timetable.updateFor(line, vehicles)
-        if timetable.hasTimetable(line) then
-            for _, vehicle in pairs(vehicles) do
-                updateFor(vehicle, vehicles, line)
+    for _, vehicle in pairs(vehicles) do
+        local vehicleInfo = api.engine.getComponent(vehicle, api.type.ComponentType.TRANSPORT_VEHICLE)
+        if vehicleInfo then
+            if timetable.hasTimetable(line) then
+                timetable.updateForVehicle(vehicle, vehicleInfo, line, vehicles)
+            elseif not vehicleInfo.autoDeparture then
+                timetableHelper.restartAutoVehicleDeparture(vehicle)
             end
-        else
-            timetable.restartAutoDepartureForAllLineVehicles(line)
         end
+    end
 end
 
-function timetable.updateForVehicle(vehicle, line, vehicles)
-    local vehicleInfo = api.engine.getComponent(vehicle, api.type.ComponentType.TRANSPORT_VEHICLE)
-    if not vehicleInfo then return end
-
+function timetable.updateForVehicle(vehicle, vehicleInfo, line, vehicles)
     -- if vehicle in terminal
     if vehicleInfo.state == api.type.enum.TransportVehicleState.AT_TERMINAL then
         local stop = vehicleInfo.stopIndex + 1
 
         if timetable.LineAndStationHasTimetable(line, stop) then
             if vehicleInfo.autoDeparture then
-                local arrivalTime = vehicleInfo.doorsTime / 1000000
-                if timetable.readyToDepart(vehicle, arrivalTime, vehicles, line, stop) then
-                    timetableHelper.departVehicle(vehicle)
-                end
-            else
                 timetableHelper.stopAutoVehicleDeparture(vehicle)
+            else
+                timetable.departIfReady(vehicle, vehicleInfo, vehicles, line, stop)
             end
-        else
-            if not vehicleInfo.autoDeparture then
-                timetableHelper.restartAutoVehicleDeparture(vehicle)
-            end
-        end
-
-    else
-        if not vehicleInfo.autoDeparture then
+        elseif not vehicleInfo.autoDeparture then
             timetableHelper.restartAutoVehicleDeparture(vehicle)
         end
+
+    elseif not vehicleInfo.autoDeparture then
+        timetableHelper.restartAutoVehicleDeparture(vehicle)
     end
 end
 
@@ -269,6 +262,15 @@ function timetable.LineAndStationHasTimetable(line, stop)
     if not timetableObject[line].stations[stop].conditions then return false end
     if not timetableObject[line].stations[stop].conditions.type then return false end
     return not (timetableObject[line].stations[stop].conditions.type == "None")
+end
+
+function timetable.departIfReady(vehicle, vehicleInfo, vehicles, line, stop)
+    if not vehicleInfo.doorsOpen then return end
+
+    local arrivalTime = math.floor(vehicleInfo.doorsTime / 1000000)
+    if timetable.readyToDepart(vehicle, arrivalTime, vehicles, line, stop) then
+        timetableHelper.departVehicle(vehicle)
+    end
 end
 
 function timetable.readyToDepart(vehicle, arrivalTime, vehicles, line, stop)
@@ -297,7 +299,7 @@ function timetable.readyToDepart(vehicle, arrivalTime, vehicles, line, stop)
     --------------------------------------------------------------------------------------------------------------------
     elseif timetableObject[line].stations[stop].conditions.type == "debounce" then
         local previousDepartureTime = timetableHelper.getPreviousDepartureTime(stop, vehicles)
-        local condition = timetable.getConditions(currentLine, currentStop, "debounce")
+        local condition = timetable.getConditions(line, stop, "debounce")
         if not condition[1] then condition[1] = 0 end
         if not condition[2] then condition[2] = 0 end
         local nextDepartureTime = previousDepartureTime + ((condition[1] * 60)  + condition[2])
