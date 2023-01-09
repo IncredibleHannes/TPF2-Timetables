@@ -283,14 +283,17 @@ function timetable.departIfReady(vehicle, vehicleInfo, vehicles, line, stop)
     if not timetableObject[line].stations[stop].conditions.type then return end
     local time = timetableHelper.getTime()
 
-    if timetableObject[line].stations[stop].conditions.type == "ArrDep" then
-        timetable.departIfReadyArrDep(vehicle, vehicleInfo, arrivalTime, time, line, stop)
-    elseif timetableObject[line].stations[stop].conditions.type == "debounce" then
+    local conditionType = timetableObject[line].stations[stop].conditions.type
+    if conditionType == "ArrDep" then
+        timetable.departIfReadyArrDep(vehicle, vehicleInfo, time, line, stop)
+    elseif conditionType == "debounce" then
         timetable.departIfReadyDebounce(vehicle, vehicleInfo, vehicles, time, line, stop)
+    elseif conditionType == "auto_debounce" then
+        timetable.departIfReadyAutoDebounce(vehicle, vehicleInfo, vehicles, time, line, stop)
     end
 end
 
-function timetable.departIfReadyArrDep(vehicle, vehicleInfo, arrivalTime, time, line, stop)
+function timetable.departIfReadyArrDep(vehicle, vehicleInfo, time, line, stop)
     local constraints = timetableObject[line].stations[stop].conditions.ArrDep
     if not constraints or contraints == {} then
         timetableObject[line].stations[stop].conditions.type = "None"
@@ -340,21 +343,27 @@ end
 function timetable.departIfReadyDebounce(vehicle, vehicleInfo, vehicles, time, line, stop)
     if not vehicleInfo.doorsOpen then return end
     if vehicleInfo.timeUntilCloseDoors >= 3 then return end
+    if timetable.anotherVehicleArrivedEarlier(vehicle, vehicleInfo, line, stop) then return end
+
     local previousDepartureTime = timetableHelper.getPreviousDepartureTime(stop, vehicles)
     local condition = timetable.getConditions(line, stop, "debounce")
     if not condition[1] then condition[1] = 0 end
     if not condition[2] then condition[2] = 0 end
-    local nextDepartureTime = previousDepartureTime + ((condition[1] * 60)  + condition[2])
 
+    local nextDepartureTime = previousDepartureTime + ((condition[1] * 60)  + condition[2])
     timetable.departIfAfterDepartureTime(vehicle, vehicleInfo, time, nextDepartureTime)
 end
 
 function timetable.departIfReadyAutoDebounce(vehicle, vehicleInfo, vehicles, time, line, stop)
     if not vehicleInfo.doorsOpen then return end
     if vehicleInfo.timeUntilCloseDoors >= 3 then return end
-    if #timetableHelper.getVehiclesOnLine(line) == 1 then return end
+    if #timetableHelper.getVehiclesOnLine(line) == 1 then
+        if not vehicleInfo.autoDeparture then
+            timetableHelper.restartAutoVehicleDeparture(vehicle)
+        end
+    end
 
-    -- Account for vehicles currently waiting or departing
+    if timetable.anotherVehicleArrivedEarlier(vehicle, vehicleInfo, line, stop) then return end
 
     local previousDepartureTime = timetableHelper.getPreviousDepartureTime(stop, vehicles)
     local frequency = timetableObject[line].frequency
@@ -366,6 +375,24 @@ function timetable.departIfReadyAutoDebounce(vehicle, vehicleInfo, vehicles, tim
     local nextDepartureTime = previousDepartureTime + frequency - (condition[1]*60 + condition[2])
 
     timetable.departIfAfterDepartureTime(vehicle, vehicleInfo, time, nextDepartureTime)
+end
+
+-- Account for vehicles currently waiting or departing
+function timetable.anotherVehicleArrivedEarlier(vehicle, vehicleInfo, line, stop)
+    local vehiclesAtStop = timetableHelper.getVehiclesAtStop(line, stop)
+    if #vehiclesAtStop <= 1 then return false end
+    for _, otherVehicle in pairs(vehiclesAtStop) do
+        if otherVehicle ~= vehicle then
+            local otherVehicleInfo = timetableHelper.getVehicleInfo(otherVehicle)
+            if otherVehicleInfo.doorsOpen then
+                return otherVehicleInfo.doorsTime < vehicleInfo.doorsTime
+            else
+                return true
+            end
+        end
+    end
+
+    return false
 end
 
 function timetable.departIfAfterDepartureTime(vehicle, vehicleInfo, time, departureTime)
