@@ -226,7 +226,7 @@ end
 
 function timetable.updateFor(line, vehicles)
     for _, vehicle in pairs(vehicles) do
-        local vehicleInfo = api.engine.getComponent(vehicle, api.type.ComponentType.TRANSPORT_VEHICLE)
+        local vehicleInfo = timetableHelper.getVehicleInfo(vehicle)
         if vehicleInfo then
             if timetable.hasTimetable(line) then
                 timetable.updateForVehicle(vehicle, vehicleInfo, line, vehicles)
@@ -238,8 +238,7 @@ function timetable.updateFor(line, vehicles)
 end
 
 function timetable.updateForVehicle(vehicle, vehicleInfo, line, vehicles)
-    -- if vehicle in terminal
-    if vehicleInfo.state == api.type.enum.TransportVehicleState.AT_TERMINAL then
+    if timetableHelper.isVehicleAtTerminal(vehicleInfo) then
         local stop = vehicleInfo.stopIndex + 1
 
         if timetable.LineAndStationHasTimetable(line, stop) then
@@ -277,8 +276,7 @@ end
 
 function timetable.departIfReadyArrDep(vehicle, vehicleInfo, arrivalTime, time, line, stop)
     local constraints = timetableObject[line].stations[stop].conditions.ArrDep
-    local constraint = timetable.getNextConstraint(constraints, arrivalTime, {})
-    if not constraint then 
+    if not constraints or contraints == {} then
         timetableObject[line].stations[stop].conditions.type = "None"
         return
     end
@@ -289,14 +287,16 @@ function timetable.departIfReadyArrDep(vehicle, vehicleInfo, arrivalTime, time, 
         if not vehicleInfo.doorsOpen then return end
 
         local arrivalTime = math.floor(vehicleInfo.doorsTime / 1000000)
-        if timetable.readyToDepartArrDep(constraint, arrivalTime, time, line, stop) then
+        if timetable.readyToDepartArrDep(constraints, arrivalTime, time, line, stop) then
             timetableHelper.departVehicle(vehicle)
         end
     end
 end
 
-function timetable.readyToDepartArrDep(constraint, arrivalTime, time, line, stop)
-    local lineInfo = api.engine.getComponent(line, api.type.ComponentType.LINE)
+function timetable.readyToDepartArrDep(constraints, arrivalTime, time, line, stop)
+    local constraint = timetable.getNextConstraint(constraints, arrivalTime, {})
+
+    local lineInfo = timetableHelper.getLineInfo(line)
     local stopInfo = lineInfo.stops[stop]
 
     if timetable.afterDepartureConstraint(arrivalTime, constraint, time) then 
@@ -315,6 +315,7 @@ end
 
 function timetable.waitedMaximumTime(stopInfo, arrivalTime, time)
     local wait = stopInfo.maxWaitingTime
+    if wait == -1 then return false end
 
     local departureTime = arrivalTime + wait
     return timetable.afterDepartureTime(arrivalTime, departureTime, time)
@@ -371,7 +372,7 @@ function timetable.afterDepartureConstraint(arrivalTime, constraint, currentTime
 end
 
 function timetable.afterDepartureTime(arrivalTime, departureTime, currentTime)
-    if arrivalTime < departureTime then
+    if arrivalTime <= departureTime then
         -- Eg. the arrival time is 10:00 and the departure is 12:00
         return arrivalTime > currentTime or currentTime >= departureTime
     else

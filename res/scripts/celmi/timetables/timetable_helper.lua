@@ -10,6 +10,15 @@ local UIStrings = {
 ---------------------- Vehicle related ----------------------
 -------------------------------------------------------------
 
+function timetableHelper.getVehicleInfo(vehicle)
+    return api.engine.getComponent(vehicle, api.type.ComponentType.TRANSPORT_VEHICLE)
+end
+
+
+function timetableHelper.isVehicleAtTerminal(vehicleInfo)
+    return vehicleInfo.state == api.type.enum.TransportVehicleState.AT_TERMINAL
+end
+
 -- returns [lineID] indext by VehicleID : String
 function timetableHelper.getAllRailVehicles()
     local res = {}
@@ -279,6 +288,9 @@ function timetableHelper.getStation(station)
     end
 end
 
+function timetableHelper.getLineInfo(line)
+    return api.engine.getComponent(line, api.type.ComponentType.LINE)
+end
 
 ---@param line number | string
 -- returns [id : Number] Array of stationIds

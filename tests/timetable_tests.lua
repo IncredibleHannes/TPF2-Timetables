@@ -131,40 +131,52 @@ timetableTests[#timetableTests + 1] = function()
         assert(vehicle == 1 or vehicle == 2)
         return 1
     end
+    timetableHelper.getLineInfo = function(line)
+        assert(line == 1)
+        return {
+            stops = {
+                {
+                    minWaitingTime = 0,
+                    maxWaitingTime = -1
+                }
+            }
+        }
+    end
     timetable.setTimetableObject({})
-    timetable.addCondition(1, 1, {type = "ArrDep", ArrDep = {{55, 0, 58, 0}, {57, 0, 0, 0}, {59, 0, 2, 0}}})
+    local constraints = {{55, 0, 58, 0}, {57, 0, 0, 0}, {59, 0, 2, 0}}
+    timetable.addCondition(1, 1, {type = "ArrDep", ArrDep = constraints}) 
 
     local time = (57*60) + 1 -- 57:01
     timetableHelper.getTime = function()
         return time
     end
     local arrivalTime1 = time
-    local x = timetable.readyToDepart(1, arrivalTime1, {1, 2}, 1, 1)
+    local x = timetable.readyToDepartArrDep(constraints, arrivalTime1, time, 1, 1)
     assert(not x, "Should wait for train")
 
     time = (59*60) + 11 -- 59:11
     local arrivalTime2 = time
-    x = timetable.readyToDepart(2, arrivalTime2, {1, 2}, 1, 1)
+    x = timetable.readyToDepartArrDep(constraints, arrivalTime2, time, 1, 1)
     assert(not x, "Should wait for train")
 
     time = (0*60) + 0 -- 00:00
-    x = timetable.readyToDepart(1, arrivalTime1, {1, 2}, 1, 1)
+    x = timetable.readyToDepartArrDep(constraints, arrivalTime1, time, 1, 1)
     assert(x, "Shouldn't wait for train")
 
     time = (0*60) + 1 -- 00:01
-    x = timetable.readyToDepart(1, arrivalTime1, {1, 2}, 1, 1)
+    x = timetable.readyToDepartArrDep(constraints, arrivalTime1, time, 1, 1)
     assert(x, "Shouldn't wait for train")
 
     time = (0*60) + 0 -- 00:00
-    x = timetable.readyToDepart(2, arrivalTime2, {1, 2}, 1, 1)
+    x = timetable.readyToDepartArrDep(constraints, arrivalTime2, time, 1, 1)
     assert(not x, "Should wait for train")
 
     time = (2*60) + 0 -- 02:00
-    x = timetable.readyToDepart(2, arrivalTime2, {1, 2}, 1, 1)
+    x = timetable.readyToDepartArrDep(constraints, arrivalTime2, time, 1, 1)
     assert(x, "Shouldn't wait for train")
 
     time = (2*60) + 1 -- 02:01
-    x = timetable.readyToDepart(2, arrivalTime2, {1, 2}, 1, 1)
+    x = timetable.readyToDepartArrDep(constraints, arrivalTime2, time, 1, 1)
     assert(x, "Shouldn't wait for train")
 end
 
