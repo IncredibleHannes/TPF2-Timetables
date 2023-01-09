@@ -305,7 +305,7 @@ function timetableGUI.fillLineTable()
         local buttonImage = api.gui.comp.ImageView.new("ui/checkbox0.tga")
         if timetable.hasTimetable(v.id) then buttonImage:setImage("ui/checkbox1.tga", false) end
         local button = api.gui.comp.Button.new(buttonImage, true)
-        button:setStyleClassList({"timetable-avtivateTimetableButton"})
+        button:setStyleClassList({"timetable-activateTimetableButton"})
         button:setGravity(1,0.5)
         button:onClick(function()
             local imageVeiw = buttonImage
@@ -315,7 +315,7 @@ function timetableGUI.fillLineTable()
                 timetableChanged = true
                 imageVeiw:setImage("ui/checkbox0.tga", false)
                 -- start all stopped vehicles again if the timetable is disabled for this line
-                timetable.startAllLineVehicles(v.id)
+                timetable.restartAutoDepartureForAllLineVehicles(v.id)
             else
                 timetable.setHasTimetable(v.id,true)
                 timetableChanged = true
@@ -466,15 +466,15 @@ function timetableGUI.fillStationTable(index, bool)
     for k, v in pairs(timetableHelper.getAllStations(lineID)) do
         menu.lineImage = {}
         local vehiclePositions = timetableHelper.getTrainLocations(lineID)
-        if vehiclePositions[tostring(k-1)] then
-            if vehiclePositions[tostring(k-1)].atTerminal then
-                if vehiclePositions[tostring(k-1)].countStr == "MANY" then
+        if vehiclePositions[k-1] then
+            if vehiclePositions[k-1].atTerminal then
+                if vehiclePositions[k-1].countStr == "MANY" then
                     menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_in_station_many.tga")
                 else
                     menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_in_station.tga")
                 end
             else
-                if vehiclePositions[tostring(k-1)].countStr == "MANY" then
+                if vehiclePositions[k-1].countStr == "MANY" then
                     menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_en_route_many.tga")
                 else
                     menu.lineImage[k] = api.gui.comp.ImageView.new("ui/timetable_line_train_en_route.tga")
@@ -487,15 +487,15 @@ function timetableGUI.fillStationTable(index, bool)
         menu.lineImage[k]:onStep(function()
             if not x then print("ERRROR") return end
             local vehiclePositions2 = timetableHelper.getTrainLocations(lineID)
-            if vehiclePositions2[tostring(k-1)] then
-                if vehiclePositions2[tostring(k-1)].atTerminal then
-                    if vehiclePositions2[tostring(k-1)].countStr == "MANY" then
+            if vehiclePositions2[k-1] then
+                if vehiclePositions2[k-1].atTerminal then
+                    if vehiclePositions2[k-1].countStr == "MANY" then
                         x:setImage("ui/timetable_line_train_in_station_many.tga", false)
                     else
                         x:setImage("ui/timetable_line_train_in_station.tga", false)
                     end
                 else
-                    if vehiclePositions2[tostring(k-1)].countStr == "MANY" then
+                    if vehiclePositions2[k-1].countStr == "MANY" then
                         x:setImage("ui/timetable_line_train_en_route_many.tga", false)
                     else
                         x:setImage("ui/timetable_line_train_en_route.tga", false)
@@ -824,15 +824,10 @@ end
 
 function timetableGUI.timetableCoroutine()
     while true do
-        local vehiclesWithLines = timetableHelper.getAllTimetableRailVehicles()
-        for _,vehicle in pairs(vehiclesWithLines) do
-            if timetableHelper.isInStation(vehicle) then
-                if timetable.waitingRequired(tostring(vehicle)) then
-                    timetableHelper.stopVehicle(tostring(vehicle))
-                else
-                    timetableHelper.startVehicle(tostring(vehicle))
-                end
-            end
+        local vehicleLineMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
+        
+        for line, vehicles in pairs(vehicleLineMap) do
+            timetable.updateFor(line, vehicles)
             coroutine.yield()
         end
         coroutine.yield()
@@ -845,7 +840,7 @@ function data()
 
         handleEvent = function (_, id, _, param)
             if id == "timetableUpdate" then
-                if state == nil then state = {timetable = {}, currentlyWaiting = {}} end
+                if state == nil then state = {timetable = {}} end
                 state.timetable = param
                 timetable.setTimetableObject(state.timetable)
                 timetableChanged = true
@@ -864,16 +859,11 @@ function data()
                 end
             end
 
-            if loadedState.currentlyWaiting then
-                if state == nil then
-                    timetable.setCurrentlyWaiting(loadedState.currentlyWaiting)
-                end
-            end
-            state = loadedState or {timetable = {}, currentlyWaiting = {}}
+            state = loadedState or {timetable = {}}
         end,
 
         update = function()
-            if state == nil then state = {timetable = {}, currentlyWaiting = {}}end
+            if state == nil then state = {timetable = {}}end
             if co == nil or coroutine.status(co) == "dead" then
                 co = coroutine.create(timetableGUI.timetableCoroutine)
             end
@@ -881,17 +871,16 @@ function data()
                 local coroutineStatus = coroutine.status(co)
                 if coroutineStatus == "suspended" then
                     local err, msg = coroutine.resume(co)
-                    if not err then print("Timetables coroutine error: " .. msg) end
+                    if not err then print("Timetables coroutine error: " .. tostring(msg)) end
                 else
                     print("Timetables failed to resume " .. coroutineStatus .. " coroutine.")
                 end
             end
 
             state.timetable = timetable.getTimetableObject()
-            state.currentlyWaiting = timetable.getCurrentlyWaiting()
 
             local lines = game.interface.getLines()
-            for k, line in pairs(lines) do
+            for _, line in pairs(lines) do
                 timetable.addFrequency(line, timetableHelper.getFrequency(line))
             end
         end,
