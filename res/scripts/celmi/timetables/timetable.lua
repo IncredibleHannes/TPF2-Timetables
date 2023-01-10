@@ -72,6 +72,14 @@ end
 
 function timetable.setTimetableObject(t)
     if t then
+        local k, _ = next(t)
+        if type(k) == "string" then
+            print("Timetables: Converting old timetable to new timetable")
+            for k, v in pairs(t) do
+                t[tonumber(k)] = t[k]
+                t[k] = nil
+            end
+        end
         timetableObject = t
     end
 end
