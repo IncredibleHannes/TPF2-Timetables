@@ -96,10 +96,6 @@ function timetable.setConditionType(line, stationNumber, type)
         local conditionObject = timetableObject[line].stations[stationNumber].conditions[type]
         if not conditionObject then  timetableObject[line].stations[stationNumber].conditions[type] = {} end
     end
-
-    if currentlyWaiting[tostring(line)] and currentlyWaiting[tostring(line)].stations[stationNumber] then
-        currentlyWaiting[tostring(line)].stations[stationNumber] = { vehiclesWaiting = {}, vehiclesDeparting = {}}
-    end
 end
 
 function timetable.getConditionType(line, stationNumber)
