@@ -74,11 +74,13 @@ function timetable.setTimetableObject(t)
     if t then
         local k, _ = next(t)
         if type(k) == "string" then
+            tConverted = {}
             print("Timetables: Converting old timetable to new timetable")
             for k, v in pairs(t) do
-                t[tonumber(k)] = t[k]
-                t[k] = nil
+                print(k, type(k))
+                tConverted[tonumber(k)] = v
             end
+            t = tConverted
         end
         timetableObject = t
     end
@@ -148,8 +150,8 @@ function timetable.getConditions(line, stationNumber, type)
 end
 
 function timetable.addFrequency(line, frequency)
-    if not timetableObject[tostring(line)] then return end
-    timetableObject[tostring(line)].frequency = frequency
+    if not timetableObject[line] then return end
+    timetableObject[line].frequency = frequency
 end
 
 

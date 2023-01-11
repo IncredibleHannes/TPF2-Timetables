@@ -852,14 +852,16 @@ function data()
         end,
 
         load = function(loadedState)
-            if loadedState == nil  or next(loadedState) == nil then  return end
+            if loadedState == nil  or next(loadedState) == nil then return end
             if loadedState.timetable then
                 if state == nil then
                     timetable.setTimetableObject(loadedState.timetable)
+                    state = {}
                 end
+                state.timetable = loadedState.timetable
+            else
+                state = {timetable = {}}
             end
-
-            state = loadedState or {timetable = {}}
         end,
 
         update = function()
