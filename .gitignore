@@ -130,4 +130,11 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Visual studio and vs code
+.vs/
+.vscode/
+
+# Obsidian config
+.obsidian
+
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,notepadpp,windows,macos,linux,lua

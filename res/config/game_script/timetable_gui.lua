@@ -33,6 +33,7 @@ local UIStrings = {
 		departure = _("departure_i18n"),
 		unbunch_time = _("unbunch_time_i18n"),
 		unbunch	= _("unbunch_i18n"),
+        auto_unbunch = _("auto_unbunch_i18n"),
 		timetable = _("timetable_i18n"),
 		timetables = _("timetables_i18n"),
 		line = _("line_i18n"),
@@ -56,9 +57,29 @@ local local_styles = {
     ja = "timetable-mono-ja",
     kr = "timetable-mono-kr"
 }
+
+-- flatten a table into a string for printing
+-- adapted from https://stackoverflow.com/a/27028488
+local function dump(o, depth)
+    if not depth then depth = 0 end
+
+    if type(o) == 'table' then
+        local s = '{\n'
+        for k,v in pairs(o) do
+            if type(k) ~= 'number' then k = '"'..k..'"' end
+            s = s .. string.rep('    ', depth + 1) .. '['..k..'] = ' .. dump(v, depth + 1)
+        end
+        return s .. string.rep('    ', depth) .. '}\n'
+    else
+        return tostring(o) .. "\n"
+    end
+end
+
+
 -------------------------------------------------------------
 ---------------------- stationTab ---------------------------
 -------------------------------------------------------------
+-- abbreviated prefix: st
 
 function timetableGUI.initStationTab()
     if menu.stationTabScrollArea then UIState.floatingLayoutStationTab:removeItem(menu.scrollArea) end
@@ -66,81 +87,158 @@ function timetableGUI.initStationTab()
     --left table
     local stationOverview = api.gui.comp.TextView.new('StationOverview')
     menu.stationTabScrollArea = api.gui.comp.ScrollArea.new(stationOverview, "timetable.stationTabStationOverviewScrollArea")
-    menu.stationTabStationTable = api.gui.comp.Table.new(1, 'SINGLE')
+    menu.stStations = api.gui.comp.Table.new(1, 'SINGLE')
     menu.stationTabScrollArea:setMinimumSize(api.gui.util.Size.new(300, 700))
     menu.stationTabScrollArea:setMaximumSize(api.gui.util.Size.new(300, 700))
-    menu.stationTabScrollArea:setContent(menu.stationTabStationTable)
-    timetableGUI.fillStationTabStationTable()
+    menu.stationTabScrollArea:setContent(menu.stStations)
+    timetableGUI.stFillStations()
     UIState.floatingLayoutStationTab:addItem(menu.stationTabScrollArea,0,0)
 
     menu.stationTabLinesScrollArea = api.gui.comp.ScrollArea.new(api.gui.comp.TextView.new('LineOverview'), "timetable.stationTabLinesScrollArea")
-    menu.stationTabLinesTable = api.gui.comp.Table.new(3, 'NONE')
+    menu.stationTabLinesTable = api.gui.comp.Table.new(1, 'NONE')
     menu.stationTabLinesScrollArea:setMinimumSize(api.gui.util.Size.new(799, 700))
     menu.stationTabLinesScrollArea:setMaximumSize(api.gui.util.Size.new(799, 700))
-    menu.stationTabLinesTable:setColWidth(0,23)
-    menu.stationTabLinesTable:setColWidth(1,150)
+    -- menu.stationTabLinesTable:setColWidth(0,23)
+    -- menu.stationTabLinesTable:setColWidth(1,150)
 
     menu.stationTabLinesScrollArea:setContent(menu.stationTabLinesTable)
     UIState.floatingLayoutStationTab:addItem(menu.stationTabLinesScrollArea,1,0)
 end
 
-function timetableGUI.fillStationTabStationTable()
-    menu.stationTabStationTable:deleteAll()
+-- fills the station table on the left side with all stations that have constraints
+function timetableGUI.stFillStations()
+    -- list all stations that are part of a timetable 
+    timetable.cleanTimetable() -- remove old lines no longer in the game
 
-    local lineNames2 ={}
-    for k,_ in pairs(timetable.getAllConditionsOfAllStations()) do
-        local stationName = timetableHelper.getStationName(k)
+    menu.stStations:deleteAll()
+    local stationNameOrder = {} -- used to sort the lines by name
+
+    -- add stations from timetable data
+    for stationID, stationInfo in pairs(timetable.getConstraintsByStation()) do
+        local stationName = timetableHelper.getStationName(stationID)
         if not (stationName == -1) then
-            menu.stationTabStationTable:addRow({api.gui.comp.TextView.new(tostring(stationName))})
-            lineNames2[#lineNames2 + 1] = stationName
+            menu.stStations:addRow({api.gui.comp.TextView.new(tostring(stationName))})
+            stationNameOrder[#stationNameOrder + 1] = stationName
         end
     end
-    menu.stationTabStationTable:onSelect(timetableGUI.fillStationTabLineTable)
 
-    local order = timetableHelper.getOrderOfArray(lineNames2)
-    menu.stationTabStationTable:setOrder(order)
+    local order = timetableHelper.getOrderOfArray(stationNameOrder)
+    menu.stStations:setOrder(order)
+
+    menu.stStations:onSelect(timetableGUI.stFillLines)
+  
     -- select last station again
     if UIState.currentlySelectedStationTabStation
-       and menu.stationTabStationTable:getNumRows() > UIState.currentlySelectedStationTabStation  then
-        menu.stationTabStationTable:select(UIState.currentlySelectedStationTabStation, true)
+       and menu.stStations:getNumRows() > UIState.currentlySelectedStationTabStation  then
+        menu.stStations:select(UIState.currentlySelectedStationTabStation, true)
     end
 
 end
 
-function timetableGUI.fillStationTabLineTable(index)
-
+-- fills the line table on the right side with all lines that stop at the selected station
+function timetableGUI.stFillLines(tabIndex)
+    -- setting up internationalization
     local lang = api.util.getLanguage()
     local local_style = {local_styles[lang.code]}
 
-    if index == - 1 then return end
-    UIState.currentlySelectedStationTabStation = index
+    -- resetting line info
+    if tabIndex == - 1 then return end
+    UIState.currentlySelectedStationTabStation = tabIndex
     menu.stationTabLinesTable:deleteAll()
-    local i = 0
-    local constraints
-    for _,v in pairs(timetable.getAllConditionsOfAllStations()) do
-        if i == index then
-            constraints = v
+
+    -- get station data for tab
+    -- since the order is the same, we can use the index to get the data
+    local stationData
+    local stationIndex = 0
+    for stationID, data in pairs(timetable.getConstraintsByStation()) do
+        if stationIndex == tabIndex then
+            stationData = data
             break
         end
-        i = i + 1
+        stationIndex = stationIndex + 1
     end
-    local lineNames2 ={}
-    for k,v in  pairs(constraints) do
-        local lineName = timetableHelper.getLineName(k)
-        lineNames2[#lineNames2 + 1] = lineName
 
-        local lineColour2 = api.gui.comp.TextView.new("●")
+    -- add stops and lines to table
+    local lineNameOrder ={}
+    for lineID, lineData in pairs(stationData) do
+        for stopNr, stopData in pairs(lineData) do
 
-        lineColour2:setName("timetable-linecolour-" .. timetableHelper.getLineColour(tonumber(k)))
-        lineColour2:setStyleClassList({"timetable-linecolour"})
+            -- create container to hold line info
+            -- local lineInfoBox =  api.gui.comp.List.new(false, api.gui.util.Orientation.VERTICAL, false)
+            local lineInfoBox = api.gui.comp.Table.new(1, 'NONE')
 
-        local type = timetableHelper.conditionToString(v.conditions[v.conditions.type], v.conditions.type)
-        local stConditionString = api.gui.comp.TextView.new(type)
-        stConditionString:setName("conditionString")
-        stConditionString:setStyleClassList(local_style)
-        menu.stationTabLinesTable:addRow({lineColour2, api.gui.comp.TextView.new(lineName), stConditionString})
+            -- add line name
+            local lineColourTV = api.gui.comp.TextView.new("●")
+            ---@diagnostic disable-next-line: param-type-mismatch
+            lineColourTV:setName("timetable-linecolour-" .. timetableHelper.getLineColour(tonumber(lineID)))
+            lineColourTV:setStyleClassList({"timetable-linecolour"})
+
+            local lineName = timetableHelper.getLineName(lineID) .. " - Stop " .. stopNr
+            local lineNameTV = api.gui.comp.TextView.new(lineName)
+
+            local lineNameBox = api.gui.comp.Table.new(2, 'NONE')
+            lineNameBox:setColWidth(0, 25)
+            lineNameBox:addRow({lineColourTV, lineNameTV})
+
+            lineInfoBox:addRow({lineNameBox})
+
+
+            -- add constraint info
+            local type = timetableHelper.conditionToString(stopData.conditions[stopData.conditions.type], stopData.conditions.type)
+            local stConditionString = api.gui.comp.TextView.new(type)
+            stConditionString:setName("conditionString")
+            stConditionString:setStyleClassList(local_style)
+
+            lineInfoBox:addRow({stConditionString})
+
+
+            -- add stop info
+            local stopInfo = timetable.getStateOfStop(lineID, stopNr)
+            if stopInfo then
+                local stopInfoBox = api.gui.comp.Table.new(2, 'NONE')
+                stopInfoBox:setColWidth(0, 150)
+
+                local function addTimeRow(rowText, rowTime)
+                    local rowTimeString = timetable.secToStr(rowTime)
+                    local rowTimeDeltaString = timetable.deltaSecToStr(rowTime - timetableHelper.getTime())
+
+                    stopInfoBox:addRow({
+                        api.gui.comp.TextView.new(rowText),
+                        api.gui.comp.TextView.new(rowTimeString .. " (" .. rowTimeDeltaString .. ")")})
+                end
+
+                if stopInfo.lastArrival then
+                    addTimeRow("Last Arrival: ", stopInfo.lastArrival)
+                end
+
+                if stopInfo.lastDeparture then
+                    addTimeRow("Last Departure: ", stopInfo.lastDeparture)
+                end
+
+                if stopInfo.plannedDeparture then
+                    addTimeRow("Planned Departure: ", stopInfo.plannedDeparture)
+                end
+
+                if stopInfo.lastVehicle then
+                    stopInfoBox:addRow({
+                        api.gui.comp.TextView.new("Last Vehicle: "),
+                        api.gui.comp.TextView.new(stopInfo.lastVehicle)})
+                end
+
+                lineInfoBox:addRow({stopInfoBox})
+            -- local stopInfo = timetable.dumpStopState(lineID, stopNr)
+            -- local stopInfoTV = api.gui.comp.TextView.new(stopInfo)
+            -- lineInfoBox:addRow({stopInfoTV})
+            else
+                lineInfoBox:addRow({api.gui.comp.TextView.new("No data available yet.")})
+            end
+
+            -- add line table
+            menu.stationTabLinesTable:addRow({lineInfoBox})
+            lineNameOrder[#lineNameOrder + 1] = lineName
+        end
     end
-    local order = timetableHelper.getOrderOfArray(lineNames2)
+    local order = timetableHelper.getOrderOfArray(lineNameOrder)
     menu.stationTabLinesTable:setOrder(order)
 
 end
@@ -257,7 +355,7 @@ function timetableGUI.showLineMenu()
 
     menu.tabWidget:onCurrentChanged(function(i)
         if i == 1 then
-            timetableGUI.fillStationTabStationTable()
+            timetableGUI.stFillStations()
         end
     end)
 
@@ -294,7 +392,7 @@ function timetableGUI.fillLineTable()
     menu.lineHeader:addRow({sortAll,sortBus,sortTram,sortRail,sortWater,sortAir})
 
     local lineNames = {}
-    for k,v in pairs(timetableHelper.getAllRailLines()) do
+    for k,v in pairs(timetableHelper.getAllLines()) do
         local lineColour = api.gui.comp.TextView.new("●")
         lineColour:setName("timetable-linecolour-" .. timetableHelper.getLineColour(v.id))
         lineColour:setStyleClassList({"timetable-linecolour"})
@@ -313,8 +411,6 @@ function timetableGUI.fillLineTable()
                 timetable.setHasTimetable(v.id,false)
                 timetableChanged = true
                 imageVeiw:setImage("ui/checkbox0.tga", false)
-                -- start all stopped vehicles again if the timetable is disabled for this line
-                timetable.startAllLineVehicles(v.id)
             else
                 timetable.setHasTimetable(v.id,true)
                 timetableChanged = true
@@ -445,16 +541,16 @@ function timetableGUI.fillStationTable(index, bool)
 
     --initial checks
     if not index then return end
-    if not(timetableHelper.getAllRailLines()[index+1]) or (not menu.stationTable)then return end
+    if not(timetableHelper.getAllLines()[index+1]) or (not menu.stationTable)then return end
 
     -- initial cleanup
     menu.stationTable:deleteAll()
 
     UIState.currentlySelectedLineTableIndex = index
-    local lineID = timetableHelper.getAllRailLines()[index+1].id
+    local lineID = timetableHelper.getAllLines()[index+1].id
 
 
-    local header1 = api.gui.comp.TextView.new(UIStrings.frequency .. " " .. timetableHelper.getFrequency(lineID))
+    local header1 = api.gui.comp.TextView.new(UIStrings.frequency .. " " .. timetableHelper.getFrequencyString(lineID))
     local header2 = api.gui.comp.TextView.new("")
     local header3 = api.gui.comp.TextView.new("")
     local header4 = api.gui.comp.TextView.new("")
@@ -591,6 +687,7 @@ function timetableGUI.fillConstraintTable(index,lineID)
     comboBox:addItem(UIStrings.arr_dep)
     --comboBox:addItem("Minimum Wait")
     comboBox:addItem(UIStrings.unbunch)
+    -- comboBox:addItem(UIStrings.auto_unbunch) -- removed due to concerns about feedback loop that will inflate running time
     --comboBox:addItem("Every X minutes")
     comboBox:setGravity(1,0)
 
@@ -609,7 +706,9 @@ function timetableGUI.fillConstraintTable(index,lineID)
         if i == 1 then
             timetableGUI.makeArrDepWindow(lineID, index)
         elseif i == 2 then
-            timetableGUI.makeDebounceWindow(lineID, index)
+            timetableGUI.makeDebounceWindow(lineID, index, "debounce")
+        elseif i == 3 then
+            timetableGUI.makeDebounceWindow(lineID, index, "auto_debounce")
         end
     end)
 
@@ -631,6 +730,50 @@ end
 function timetableGUI.makeArrDepWindow(lineID, stationID)
     if not menu.constraintTable then return end
     local conditions = timetable.getConditions(lineID,stationID, "ArrDep")
+
+    -- setup separation selector
+    local separationList = {30, 20, 15, 12, 10, 7.5, 6, 5, 4, 3, 2.5, 2, 1.5, 1}
+    local separationCombo = api.gui.comp.ComboBox.new()
+    for k,v in ipairs(separationList) do 
+        separationCombo:addItem(v .. " min (" .. 60 / v .. "/h)")
+    end
+    separationCombo:setGravity(1,0)
+    
+    -- setup generate button
+    local generateButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("Generate"), true)
+    generateButton:setGravity(1, 0)
+    generateButton:onClick(function()
+        -- preparation
+        if not conditions[1] then return end                        -- template condition not found
+        if separationCombo:getCurrentIndex() == -1 then return end  -- no separation selected
+        templateArrDep = conditions[1]
+
+        -- remove all conditions after the template
+        while conditions[2] do
+            timetable.removeCondition(lineID, stationID, "ArrDep", 2)
+        end
+
+        -- generate recurring conditions
+        local separation = separationList[separationCombo:getCurrentIndex() + 1]
+        for i = 1, 60 / separation - 1 do
+            timetable.addCondition(lineID,stationID, {type = "ArrDep", ArrDep = {timetable.shiftConstraint(templateArrDep, i * separation * 60)}})
+        end
+
+        -- cleanup
+        timetableChanged = true
+        clearConstraintWindowLaterHACK = function()
+            timetableGUI.initStationTable()
+            timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
+            timetableGUI.clearConstraintWindow()
+            timetableGUI.makeArrDepWindow(lineID, stationID)
+        end
+    end)
+
+    -- setup recurring departure generator
+    local recurringTable = api.gui.comp.Table.new(3, 'NONE')
+    recurringTable:addRow({api.gui.comp.TextView.new("Separation"),separationCombo,generateButton})
+    menu.constraintTable:addRow({recurringTable})
+
 
     -- setup add button
     local addButton = api.gui.comp.Button.new(api.gui.comp.TextView.new(UIStrings.add), true)
@@ -656,7 +799,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     menu.constraintTable:addRow({headerTable})
 
 
-    -- setup arrival and depature content
+    -- setup arrival and departure content
     for k,v in pairs(conditions) do
         menu.constraintTable:addRow({api.gui.comp.Component.new("HorizontalLine")})
 
@@ -757,9 +900,9 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
 
 end
 
-function timetableGUI.makeDebounceWindow(lineID, stationID)
+function timetableGUI.makeDebounceWindow(lineID, stationID, debounceType)
     if not menu.constraintTable then return end
-    local condition2 = timetable.getConditions(lineID,stationID, "debounce")
+    local condition2 = timetable.getConditions(lineID,stationID, debounceType)
 
     local debounceTable = api.gui.comp.Table.new(4, 'NONE')
     debounceTable:setColWidth(0,150)
@@ -772,7 +915,7 @@ function timetableGUI.makeDebounceWindow(lineID, stationID)
     debounceMin:setMaximum(59,false)
 
     debounceMin:onChange(function(value)
-        timetable.updateDebounce(lineID, stationID,  1, value)
+        timetable.updateDebounce(lineID, stationID,  1, value, debounceType)
         timetableChanged = true
         timetableGUI.initStationTable()
         timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
@@ -788,16 +931,17 @@ function timetableGUI.makeDebounceWindow(lineID, stationID)
     debounceSec:setMaximum(59,false)
 
     debounceSec:onChange(function(value)
-        timetable.updateDebounce(lineID, stationID, 2, value)
+        timetable.updateDebounce(lineID, stationID, 2, value, debounceType)
         timetableChanged = true
         timetableGUI.initStationTable()
         timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
     end)
+
     if condition2 and condition2[2] then
         debounceSec:setValue(condition2[2],false)
     end
 
-    debounceTable:addRow({api.gui.comp.TextView.new(UIStrings.unbunch_time .. ":"), debounceMin,api.gui.comp.TextView.new(":"), debounceSec})
+    debounceTable:addRow({api.gui.comp.TextView.new(UIStrings.unbunch_time .. ":"), debounceMin, api.gui.comp.TextView.new(":"), debounceSec})
 
     menu.constraintTable:addRow({debounceTable})
 
@@ -809,16 +953,24 @@ end
 
 
 function timetableGUI.timetableCoroutine()
+    local lastUpdate = -1
+
     while true do
-        local vehiclesWithLines = timetableHelper.getAllTimetableRailVehicles(timetable.hasTimetable)
+        -- only run once a second to avoid unnecessary cpu usage
+        while timetableHelper.getTime() - lastUpdate < 1 do
+            coroutine.yield()
+        end
+        lastUpdate = timetableHelper.getTime()
+
+        local vehiclesWithLines = timetableHelper.getAllTimetableRailVehicles()
         for _,vehicle in pairs(vehiclesWithLines) do
-            --if timetableHelper.isInStation(vehicle) then
+            if timetableHelper.isInStation(vehicle) then
                 if timetable.waitingRequired(tostring(vehicle)) then
                     timetableHelper.stopVehicle(tostring(vehicle))
                 else
                     timetableHelper.startVehicle(tostring(vehicle))
                 end
-            --end
+            end
             coroutine.yield()
         end
         coroutine.yield()
@@ -831,46 +983,51 @@ function data()
 
         handleEvent = function (_, id, _, param)
             if id == "timetableUpdate" then
-                if state == nil then state = {timetable = {}} end
+                if state == nil then state = {timetable = {}, currentlyWaiting = {}} end
                 state.timetable = param
                 timetable.setTimetableObject(state.timetable)
                 timetableChanged = true
             end
+            -- TODO: add stopState update
         end,
 
         save = function()
+            -- save happens once for both threads to verify loading and saving works
+            -- then the engine thread repeatedly saves its state for the gui thread to load
+            state = {}
+            state.timetable = timetable.getTimetableObject()
+            state.stopState = timetable.getStopState()
+            
             return state
         end,
 
         load = function(loadedState)
-            if loadedState == nil  or next(loadedState) == nil then  return end
-            if loadedState.timetable then
-                if state == nil then
-                    timetable.setTimetableObject(loadedState.timetable)
-                end
-            end
+            -- load happens once for engine thread and repeatedly for gui thread
+            state = loadedState or {timetable = {}, stopState = {}}
 
-            if loadedState.currentlyWaiting then
-                if state == nil then
-                    timetable.setCurrentlyWaiting(loadedState.currentlyWaiting)
-                end
-            end
-            state = loadedState or {timetable = {}}
+            timetable.setTimetableObject(state.timetable)
+            timetable.setStopState(state.stopState)
         end,
 
         update = function()
-            if state == nil then state = {timetable = {}}end
+            if state == nil then state = {timetable = {}, stopState = {}} end
             if co == nil or coroutine.status(co) == "dead" then
                 co = coroutine.create(timetableGUI.timetableCoroutine)
             end
             for _ = 0, 20 do
-                local err, msg = coroutine.resume(co)
-                if not err then print(msg) end
+                local coroutineStatus = coroutine.status(co)
+                if coroutineStatus == "suspended" then
+                    local err, msg = coroutine.resume(co)
+                    if not err then print("Timetables coroutine error: " .. msg) end
+                else
+                    print("Timetables failed to resume " .. coroutineStatus .. " coroutine.")
+                end
             end
 
-            state.timetable = timetable.getTimetableObject()
-            state.currentlyWaiting = timetable.getCurrentlyWaiting()
-
+            local lines = game.interface.getLines()
+            for k, line in pairs(lines) do
+                timetable.addFrequency(line, timetableHelper.getFrequency(line))
+            end
         end,
 
         guiUpdate = function()
@@ -917,3 +1074,4 @@ function data()
         end
     }
 end
+

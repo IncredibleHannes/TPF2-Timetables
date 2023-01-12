@@ -6,6 +6,21 @@ local UIStrings = {
     unbunchTime = _("unbunch_time_i18n")
 }
 
+-- flatten a table into a string for printing
+-- from https://stackoverflow.com/a/27028488
+local function dump(o)
+    if type(o) == 'table' then
+        local s = '{ '
+        for k,v in pairs(o) do
+            if type(k) ~= 'number' then k = '"'..k..'"' end
+            s = s .. '['..k..'] = ' .. dump(v) .. ','
+        end
+        return s .. '} '
+    else
+        return tostring(o)
+    end
+end
+
 -------------------------------------------------------------
 ---------------------- Vehicle related ----------------------
 -------------------------------------------------------------
@@ -135,7 +150,7 @@ end
 
 ---@param vehicle number | string
 -- returns Time in seconds and -1 in case of an error
-function timetableHelper.getTimeUntilDeparture(vehicle)
+function timetableHelper.getTimeUntilDepartureReady(vehicle)
     if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
     if not(type(vehicle) == "number") then print("Expected String or Number") return -1 end
 
@@ -216,24 +231,36 @@ end
 
 ---@param line number | string
 -- returns lineFrequency : String, formatted '%M:%S'
+function timetableHelper.getFrequencyString(line)
+    local frequency = timetableHelper.getFrequency(line)
+    if frequency == -1 then return "ERROR" end
+    if frequency == -2 then return "--" end
+
+    return math.floor(frequency / 60) .. ":" .. os.date('%S', frequency)
+end
+
+---@param line number | string
+-- returns lineFrequency in seconds
 function timetableHelper.getFrequency(line)
     if type(line) == "string" then line = tonumber(line) end
-    if not(type(line) == "number") then return "ERROR" end
+    if not(type(line) == "number") then return -1 end
 
     local lineEntity = game.interface.getEntity(line)
+
     if lineEntity and lineEntity.frequency then
-        if lineEntity.frequency == 0 then return "--" end
-        local x = 1 / lineEntity.frequency
-        return math.floor(x / 60) .. ":" .. os.date('%S', x)
+        if lineEntity.frequency == 0 then return -2 end
+        return 1 / lineEntity.frequency
+        
     else
-        return "--"
+        return -2
     end
 end
 
 -- returns [{id : number, name : String}]
-function timetableHelper.getAllRailLines()
+function timetableHelper.getAllLines()
     local res = {}
     local ls = api.engine.system.lineSystem.getLines()
+
     for k,l in pairs(ls) do
         local lineName = api.engine.getComponent(l, 63)
         if lineName and lineName.name then
@@ -242,8 +269,21 @@ function timetableHelper.getAllRailLines()
             res[k] = {id = l, name = "ERROR"}
         end
     end
+
     return res
 end
+
+-- returns [lineID]
+function timetableHelper.lineExists(lineID)
+    local apiLines = api.engine.system.lineSystem.getLines()
+
+    for apiLineNr, apiLineID in pairs(apiLines) do
+        if tonumber(lineID) == tonumber(apiLineID) then return true end
+    end
+
+    return false
+end
+
 
 ---@param line number | string
 -- returns [time: Number] Array indexed by station index in sec starting with index 1
@@ -439,6 +479,10 @@ function timetableHelper.conditionToString(cond, type)
         if not cond[1] then cond[1] = 0 end
         if not cond[2] then cond[2] = 0 end
         return UIStrings.unbunchTime .. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
+    elseif type == "auto_debounce" then
+        if not cond[1] then cond[1] = 1 end
+        if not cond[2] then cond[2] = 0 end
+        return UIStrings.unbunchTime .. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
     else
         return type
     end
@@ -451,6 +495,7 @@ function timetableHelper.constraintIntToString(i)
     elseif i == 1 then return "ArrDep"
     --elseif i == 2 then return "minWait"
     elseif i == 2 then return "debounce"
+    elseif i == 3 then return "auto_debounce"
     --elseif i == 4 then return "moreFancey"
     else return "ERROR"
     end
@@ -463,6 +508,7 @@ function timetableHelper.constraintStringToInt(i)
     elseif i == "ArrDep" then return 1
     --elseif i == "minWait" then return 2
     elseif i == "debounce" then return 2
+    elseif i == "auto_debounce" then return 3
     --elseif i == "moreFancey" then return 4
     else return 0
     end
