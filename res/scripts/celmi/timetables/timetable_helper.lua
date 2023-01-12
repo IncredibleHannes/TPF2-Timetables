@@ -6,6 +6,21 @@ local UIStrings = {
     unbunchTime = _("unbunch_time_i18n")
 }
 
+-- flatten a table into a string for printing
+-- from https://stackoverflow.com/a/27028488
+local function dump(o)
+    if type(o) == 'table' then
+        local s = '{ '
+        for k,v in pairs(o) do
+            if type(k) ~= 'number' then k = '"'..k..'"' end
+            s = s .. '['..k..'] = ' .. dump(v) .. ','
+        end
+        return s .. '} '
+    else
+        return tostring(o)
+    end
+end
+
 -------------------------------------------------------------
 ---------------------- Vehicle related ----------------------
 -------------------------------------------------------------
@@ -148,7 +163,7 @@ end
 
 ---@param vehicle number | string
 -- returns Time in seconds and -1 in case of an error
-function timetableHelper.getTimeUntilDeparture(vehicle)
+function timetableHelper.getTimeUntilDepartureReady(vehicle)
     if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
     if not(type(vehicle) == "number") then print("Expected String or Number") return -1 end
 
@@ -255,9 +270,10 @@ function timetableHelper.getFrequency(line)
 end
 
 -- returns [{id : number, name : String}]
-function timetableHelper.getAllRailLines()
+function timetableHelper.getAllLines()
     local res = {}
     local ls = api.engine.system.lineSystem.getLines()
+
     for k,l in pairs(ls) do
         local lineName = api.engine.getComponent(l, api.type.ComponentType.NAME)
         if lineName and lineName.name then
@@ -266,8 +282,21 @@ function timetableHelper.getAllRailLines()
             res[k] = {id = l, name = "ERROR"}
         end
     end
+
     return res
 end
+
+-- returns [lineID]
+function timetableHelper.lineExists(lineID)
+    local apiLines = api.engine.system.lineSystem.getLines()
+
+    for apiLineNr, apiLineID in pairs(apiLines) do
+        if tonumber(lineID) == tonumber(apiLineID) then return true end
+    end
+
+    return false
+end
+
 
 ---@param line number | string
 -- returns [time: Number] Array indexed by station index in sec starting with index 1

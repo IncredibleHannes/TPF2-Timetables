@@ -134,4 +134,7 @@ $RECYCLE.BIN/
 .vs/
 .vscode/
 
+# Obsidian config
+.obsidian
+
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,notepadpp,windows,macos,linux,lua
