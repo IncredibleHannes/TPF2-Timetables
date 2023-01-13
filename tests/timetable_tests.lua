@@ -6,7 +6,7 @@ local timetable = require ".res.scripts.celmi.timetables.timetable"
 local timetableTests = {}
 
 timetableTests[#timetableTests + 1] = function()
-    local x = { testfield = 0 }
+    local x = { [1] = 0 }
     timetable.setTimetableObject(x)
     local y = timetable.getTimetableObject()
     assert(x.testfield == y.testfield, "Error while setting and retriving the same object from the timetable")
@@ -34,25 +34,25 @@ end
 
 timetableTests[#timetableTests + 1] = function()
     timetable.setTimetableObject({})
-    local x = timetable.getNextDeparture({{30,0,59,0},{9,0,59,0} },1200, {})
+    local x = timetable.getNextDepartureConstraint({{30,0,59,0},{9,0,59,0} },1200, {})
     assert(x[1] == 30 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextDeparture({{30,0,59,0},{11,0,59,0} },1200, {})
+    x = timetable.getNextDepartureConstraint({{30,0,59,0},{11,0,59,0} },1200, {})
     assert(x[1] == 11 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextDeparture({{51,0,0,0},{50,0,59,0} },1200, {})
+    x = timetable.getNextDepartureConstraint({{51,0,0,0},{50,0,59,0} },1200, {})
     assert(x[1] == 51 and x[2] == 0 and x[3] == 0 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextDeparture({{51,0,0,0},{49,1,0,0} },1200, {})
+    x = timetable.getNextDepartureConstraint({{51,0,0,0},{49,1,0,0} },1200, {})
     assert(x[1] == 51 and x[2] == 0 and x[3] == 0 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextDeparture({{0,59,1,0},{1,30,1,30} },60, {})
+    x = timetable.getNextDepartureConstraint({{0,59,1,0},{1,30,1,30} },60, {})
     assert(x[1] == 0 and x[2] == 59 and x[3] == 1 and x[4] == 0, "should choose the closest time constraint")
-    x = timetable.getNextDeparture({},1200, {})
+    x = timetable.getNextDepartureConstraint({},1200, {})
     assert(x == nil, "should return nil")
 
     local a = {30,0,59,0}
-    x = timetable.getNextDeparture({a,{9,0,59,0} },1200, {{constraint=a}})
+    x = timetable.getNextDepartureConstraint({a,{9,0,59,0} },1200, {{constraint=a}})
     assert(x[1] == 9 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the only available time constraint")
-    x = timetable.getNextDeparture({a,{30,0,59,0} },1200, {{constraint=a}})
+    x = timetable.getNextDepartureConstraint({a,{30,0,59,0} },1200, {{constraint=a}})
     assert(x[1] == 30 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should choose the only available time constraint")
-    x = timetable.getNextDeparture({a },1200, {{constraint=a}})
+    x = timetable.getNextDepartureConstraint({a },1200, {{constraint=a}})
     assert(x[1] == 30 and x[2] == 0 and x[3] == 59 and x[4] == 0, "should still return the constraint")
 end
 

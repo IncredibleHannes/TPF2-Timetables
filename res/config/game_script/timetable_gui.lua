@@ -58,24 +58,6 @@ local local_styles = {
     kr = "timetable-mono-kr"
 }
 
--- flatten a table into a string for printing
--- adapted from https://stackoverflow.com/a/27028488
-local function dump(o, depth)
-    if not depth then depth = 0 end
-
-    if type(o) == 'table' then
-        local s = '{\n'
-        for k,v in pairs(o) do
-            if type(k) ~= 'number' then k = '"'..k..'"' end
-            s = s .. string.rep('    ', depth + 1) .. '['..k..'] = ' .. dump(v, depth + 1)
-        end
-        return s .. string.rep('    ', depth) .. '}\n'
-    else
-        return tostring(o) .. "\n"
-    end
-end
-
-
 -------------------------------------------------------------
 ---------------------- stationTab ---------------------------
 -------------------------------------------------------------
@@ -226,9 +208,6 @@ function timetableGUI.stFillLines(tabIndex)
                 end
 
                 lineInfoBox:addRow({stopInfoBox})
-            -- local stopInfo = timetable.dumpStopState(lineID, stopNr)
-            -- local stopInfoTV = api.gui.comp.TextView.new(stopInfo)
-            -- lineInfoBox:addRow({stopInfoTV})
             else
                 lineInfoBox:addRow({api.gui.comp.TextView.new("No data available yet.")})
             end
@@ -993,7 +972,6 @@ function data()
                 timetable.setTimetableObject(state.timetable)
                 timetableChanged = true
             end
-            -- TODO: add stopState update
         end,
 
         save = function()
@@ -1001,21 +979,19 @@ function data()
             -- then the engine thread repeatedly saves its state for the gui thread to load
             state = {}
             state.timetable = timetable.getTimetableObject()
-            state.stopState = timetable.getStopState()
             
             return state
         end,
 
         load = function(loadedState)
             -- load happens once for engine thread and repeatedly for gui thread
-            state = loadedState or {timetable = {}, stopState = {}}
+            state = loadedState or {timetable = {}}
 
             timetable.setTimetableObject(state.timetable)
-            timetable.setStopState(state.stopState)
         end,
 
         update = function()
-            if state == nil then state = {timetable = {}, stopState = {}} end
+            if state == nil then state = {timetable = {}} end
             if co == nil or coroutine.status(co) == "dead" then
                 co = coroutine.create(timetableGUI.timetableCoroutine)
             end
