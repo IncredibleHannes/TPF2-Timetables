@@ -127,7 +127,7 @@ timetableTests[#timetableTests + 1] = function()
         assert(vehicle == 1 or vehicle == 2)
         return 1
     end
-    timetableHelper.getTimeUntilDeparture = function(vehicle)
+    timetableHelper.getTimeUntilDepartureReady = function(vehicle)
         assert(vehicle == 1 or vehicle == 2)
         return 1
     end

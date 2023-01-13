@@ -141,7 +141,7 @@ function timetableGUI.stFillLines(tabIndex)
     end
 
     -- add stops and lines to table
-    local lineNameOrder ={}
+    local lineNameOrder = {}
     for lineID, lineData in pairs(stationData) do
         for stopNr, stopData in pairs(lineData) do
 
@@ -173,48 +173,9 @@ function timetableGUI.stFillLines(tabIndex)
 
             lineInfoBox:addRow({stConditionString})
 
-
-            -- add stop info
-            local stopInfo = timetable.getStateOfStop(lineID, stopNr)
-            if stopInfo then
-                local stopInfoBox = api.gui.comp.Table.new(2, 'NONE')
-                stopInfoBox:setColWidth(0, 150)
-
-                local function addTimeRow(rowText, rowTime)
-                    local rowTimeString = timetable.secToStr(rowTime)
-                    local rowTimeDeltaString = timetable.deltaSecToStr(rowTime - timetableHelper.getTime())
-
-                    stopInfoBox:addRow({
-                        api.gui.comp.TextView.new(rowText),
-                        api.gui.comp.TextView.new(rowTimeString .. " (" .. rowTimeDeltaString .. ")")})
-                end
-
-                if stopInfo.lastArrival then
-                    addTimeRow("Last Arrival: ", stopInfo.lastArrival)
-                end
-
-                if stopInfo.lastDeparture then
-                    addTimeRow("Last Departure: ", stopInfo.lastDeparture)
-                end
-
-                if stopInfo.plannedDeparture then
-                    addTimeRow("Planned Departure: ", stopInfo.plannedDeparture)
-                end
-
-                if stopInfo.lastVehicle then
-                    stopInfoBox:addRow({
-                        api.gui.comp.TextView.new("Last Vehicle: "),
-                        api.gui.comp.TextView.new(stopInfo.lastVehicle)})
-                end
-
-                lineInfoBox:addRow({stopInfoBox})
-            else
-                lineInfoBox:addRow({api.gui.comp.TextView.new("No data available yet.")})
-            end
-
-            -- add line table
-            menu.stationTabLinesTable:addRow({lineInfoBox})
-            lineNameOrder[#lineNameOrder + 1] = lineName
+                        -- add line table
+                        menu.stationTabLinesTable:addRow({lineInfoBox})
+                        lineNameOrder[#lineNameOrder + 1] = lineName
         end
     end
     local order = timetableHelper.getOrderOfArray(lineNameOrder)
@@ -722,7 +683,7 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     local conditions = timetable.getConditions(lineID,stationID, "ArrDep")
 
     -- setup separation selector
-    local separationList = {30, 20, 15, 12, 10, 7.5, 6, 5, 4, 3, 2.5, 2, 1.5, 1}
+    local separationList = {30, 20, 15, 12, 10, 7.5, 6, 5, 4, 3, 2.5, 2, 1.5, 1.2, 1}
     local separationCombo = api.gui.comp.ComboBox.new()
     for k,v in ipairs(separationList) do 
         separationCombo:addItem(v .. " min (" .. 60 / v .. "/h)")

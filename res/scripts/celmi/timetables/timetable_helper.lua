@@ -8,12 +8,13 @@ local UIStrings = {
 
 -- flatten a table into a string for printing
 -- from https://stackoverflow.com/a/27028488
-local function dump(o)
+-- TF2 also uses debugPrint(object) function where object is a table, string, or other lua element to print
+function timetableHelper.dump(o)
     if type(o) == 'table' then
         local s = '{ '
         for k,v in pairs(o) do
             if type(k) ~= 'number' then k = '"'..k..'"' end
-            s = s .. '['..k..'] = ' .. dump(v) .. ','
+            s = s .. '['..k..'] = ' .. timetableHelper.dump(v) .. ','
         end
         return s .. '} '
     else
@@ -296,7 +297,6 @@ function timetableHelper.lineExists(lineID)
 
     return false
 end
-
 
 ---@param line number | string
 -- returns [time: Number] Array indexed by station index in sec starting with index 1

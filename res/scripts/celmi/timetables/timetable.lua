@@ -29,24 +29,6 @@ ArrDep = {
 }
 --]]
 
--- flatten a table into a string for printing
--- adapted from https://stackoverflow.com/a/27028488
--- TF2 also uses debugPrint(object) function where object is a table, string, or other lua element to print
-local function dump(o, depth)
-    if not depth then depth = 0 end
-
-    if type(o) == 'table' then
-        local s = '{\n'
-        for k,v in pairs(o) do
-            if type(k) ~= 'number' then k = '"'..k..'"' end
-            s = s .. string.rep('    ', depth + 1) .. '['..k..'] = ' .. dump(v, depth + 1)
-        end
-        return s .. string.rep('    ', depth) .. '}\n'
-    else
-        return tostring(o) .. "\n"
-    end
-end
-
 local timetable = { }
 local timetableObject = { }
 
