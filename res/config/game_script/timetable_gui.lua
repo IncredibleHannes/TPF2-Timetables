@@ -91,6 +91,7 @@ end
 function timetableGUI.stFillStations()
     -- list all stations that are part of a timetable 
     timetable.cleanTimetable() -- remove old lines no longer in the game
+    timetableChanged = true
 
     menu.stStations:deleteAll()
     local stationNameOrder = {} -- used to sort the lines by name
@@ -918,6 +919,7 @@ function timetableGUI.timetableCoroutine()
             timetable.updateFor(line, vehicles)
             coroutine.yield()
         end
+        -- timetable.cleanTimetable()
         coroutine.yield()
     end
 end
@@ -947,7 +949,7 @@ function data()
         load = function(loadedState)
             -- load happens once for engine thread and repeatedly for gui thread
             state = loadedState or {timetable = {}}
-
+            
             timetable.setTimetableObject(state.timetable)
         end,
 

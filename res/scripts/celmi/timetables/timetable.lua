@@ -593,6 +593,12 @@ function timetable.cleanTimetable()
         if not timetableHelper.lineExists(lineID) then
             timetableObject[lineID] = nil
             print("removed line " .. lineID)
+        else
+            local stations = timetableHelper.getAllStations(lineID)
+            for stationID = #stations + 1, #timetableObject[lineID].stations, 1 do
+                timetableObject[lineID].stations[stationID] = nil
+                print("removed station " .. stationID)
+            end
         end
     end
 end

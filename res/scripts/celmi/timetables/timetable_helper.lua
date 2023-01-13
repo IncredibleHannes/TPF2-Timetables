@@ -36,7 +36,7 @@ function timetableHelper.isVehicleAtTerminal(vehicleInfo)
 end
 
 -- returns [lineID] indext by VehicleID : String
-function timetableHelper.getAllRailVehicles()
+function timetableHelper.getAllVehicles()
     local res = {}
     local lineVehiclesMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
     for line,vehicles in pairs(lineVehiclesMap) do
