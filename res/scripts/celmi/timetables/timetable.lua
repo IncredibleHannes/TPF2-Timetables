@@ -347,7 +347,7 @@ function timetable.readyToDepartArrDep(constraints, arrivalTime, time, line, sto
     if timetable.afterDepartureConstraint(arrivalTime, departureConstraint, time) then 
         return timetable.waitedMinimumTime(stopInfo, arrivalTime, time)
     else
-        return timetable.waitedMaximumTime(stopInfo, arrivalTime, time)
+        return false -- timetable.waitedMaximumTime(stopInfo, arrivalTime, time) todo: make a setting to enable/disable
     end
 end
 
