@@ -494,7 +494,7 @@ end
 ---Find the next valid constraint for given constraints and time
 ---@param constraints table in format like: {{30,0,59,0},{9,0,59,0}}
 ---@param time number in seconds
----@param usedConstraints table in format like: {constraint={30,0,59,0},constraint={9,0,59,0}}
+---@param usedConstraints table in format like: {{30,0,59,0}, {9,0,59,0}}
 ---@return table closestConstraint example: {30,0,59,0}
 function timetable.getNextDepartureConstraint(constraints, time, usedConstraints)
     -- Put the constraints in chronological order by arrival time
