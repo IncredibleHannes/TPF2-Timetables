@@ -386,23 +386,6 @@ end
 ---------------------- Array Functions ----------------------
 -------------------------------------------------------------
 
-function timetableHelper.arrayContainsConstraint(constraint, array)
-    for key, item in pairs(array) do
-        if item == constraint then
-            return true
-        elseif (
-            item[1] == constraint[1] and 
-            item[2] == constraint[2] and
-            item[3] == constraint[3] and
-            item[4] == constraint[4]
-        ) then
-            return true
-        end
-    end
-
-    return false
-end
-
 ---@param arr table
 -- returns [Number], an Array where the index it the source element and the number is the target position
 function timetableHelper.getOrderOfArray(arr)

@@ -1,5 +1,5 @@
-local timetableHelper = {}
-package.loaded["celmi/timetables/timetable_helper"] = timetableHelper
+local mockTimetableHelper = {}
+package.loaded["celmi/timetables/timetable_helper"] = mockTimetableHelper
 
 local timetable = require ".res.scripts.celmi.timetables.timetable"
 
@@ -112,26 +112,26 @@ end
 
 -- All tests here done with line and station IDs of 1 for simplicity
 timetableTests[#timetableTests + 1] = function()
-    table.remove(timetableHelper)
+    table.remove(mockTimetableHelper)
 
-    timetableHelper.getStationID = function(line, stationNumber)
+    mockTimetableHelper.getStationID = function(line, stationNumber)
         assert(line == 1)
         assert(stationNumber == 1)
         return 1
     end
-    timetableHelper.getCurrentLine = function(vehicle)
+    mockTimetableHelper.getCurrentLine = function(vehicle)
         assert(vehicle == 1 or vehicle == 2)
         return 1
     end
-    timetableHelper.getCurrentStation = function(vehicle)
+    mockTimetableHelper.getCurrentStation = function(vehicle)
         assert(vehicle == 1 or vehicle == 2)
         return 1
     end
-    timetableHelper.getTimeUntilDepartureReady = function(vehicle)
+    mockTimetableHelper.getTimeUntilDepartureReady = function(vehicle)
         assert(vehicle == 1 or vehicle == 2)
         return 1
     end
-    timetableHelper.getLineInfo = function(line)
+    mockTimetableHelper.getLineInfo = function(line)
         assert(line == 1)
         return {
             stops = {
@@ -147,7 +147,7 @@ timetableTests[#timetableTests + 1] = function()
     timetable.addCondition(1, 1, {type = "ArrDep", ArrDep = constraints}) 
 
     local time = (57*60) + 1 -- 57:01
-    timetableHelper.getTime = function()
+    mockTimetableHelper.getTime = function()
         return time
     end
     local arrivalTime1 = time

@@ -329,7 +329,7 @@ function timetable.readyToDepartArrDep(constraints, arrivalTime, time, line, sto
     local validDepartureConstraint = nil
     if vehiclesWaiting[vehicle] then
         departureConstraint = vehiclesWaiting[vehicle]
-        validDepartureConstraint = timetableHelper.arrayContainsConstraint(departureConstraint, constraints)
+        validDepartureConstraint = timetable.arrayContainsConstraint(departureConstraint, constraints)
     end
     if not validDepartureConstraint then
         departureConstraint = timetable.getNextDepartureConstraint(constraints, arrivalTime, vehiclesWaiting)
@@ -526,13 +526,30 @@ function timetable.getNextDepartureConstraint(constraints, time, usedConstraints
 
         local constraint = constraints[normalisedIndex]
         local found = false
-        if not timetableHelper.arrayContainsConstraint(constraint, usedConstraints) then
+        if not timetable.arrayContainsConstraint(constraint, usedConstraints) then
             return constraint
         end
     end
 
     -- If all constraints are being used, still return the closest constraint anyway.
     return constraints[res.index]
+end
+
+function timetable.arrayContainsConstraint(constraint, array)
+    for key, item in pairs(array) do
+        if item == constraint then
+            return true
+        elseif (
+            item[1] == constraint[1] and 
+            item[2] == constraint[2] and
+            item[3] == constraint[3] and
+            item[4] == constraint[4]
+        ) then
+            return true
+        end
+    end
+
+    return false
 end
 
 function timetable.constraintToSeconds(constraint)
