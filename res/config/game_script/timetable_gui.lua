@@ -174,9 +174,9 @@ function timetableGUI.stFillLines(tabIndex)
 
             lineInfoBox:addRow({stConditionString})
 
-                        -- add line table
-                        menu.stationTabLinesTable:addRow({lineInfoBox})
-                        lineNameOrder[#lineNameOrder + 1] = lineName
+             -- add line table
+            menu.stationTabLinesTable:addRow({lineInfoBox})
+            lineNameOrder[#lineNameOrder + 1] = lineName
         end
     end
     local order = timetableHelper.getOrderOfArray(lineNameOrder)
@@ -683,14 +683,6 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
     if not menu.constraintTable then return end
     local conditions = timetable.getConditions(lineID,stationID, "ArrDep")
 
-    -- setup separation selector
-    local separationList = {30, 20, 15, 12, 10, 7.5, 6, 5, 4, 3, 2.5, 2, 1.5, 1.2, 1}
-    local separationCombo = api.gui.comp.ComboBox.new()
-    for k,v in ipairs(separationList) do 
-        separationCombo:addItem(v .. " min (" .. 60 / v .. "/h)")
-    end
-    separationCombo:setGravity(1,0)
-
     -- minimum maximum setting
     local minButtonImage = api.gui.comp.ImageView.new("ui/checkbox0.tga")
     if timetable.getMinWaitEnabled(lineID) then minButtonImage:setImage("ui/checkbox1.tga", false) end
@@ -731,6 +723,14 @@ function timetableGUI.makeArrDepWindow(lineID, stationID)
         api.gui.comp.TextView.new("Min. wait enabled"), minButton, 
         api.gui.comp.TextView.new("Max. wait enabled"), maxButton})
     menu.constraintTable:addRow({settingsTable})
+
+    -- setup separation selector
+    local separationList = {30, 20, 15, 12, 10, 7.5, 6, 5, 4, 3, 2.5, 2, 1.5, 1.2, 1}
+    local separationCombo = api.gui.comp.ComboBox.new()
+    for k,v in ipairs(separationList) do 
+        separationCombo:addItem(v .. " min (" .. 60 / v .. "/h)")
+    end
+    separationCombo:setGravity(1,0)
     
     -- setup generate button
     local generateButton = api.gui.comp.Button.new(api.gui.comp.TextView.new("Generate"), true)
@@ -896,6 +896,17 @@ end
 function timetableGUI.makeDebounceWindow(lineID, stationID, debounceType)
     if not menu.constraintTable then return end
     local condition2 = timetable.getConditions(lineID,stationID, debounceType)
+
+    --setup header
+    local headerTable = api.gui.comp.Table.new(3, 'NONE')
+    headerTable:setColWidth(0,150)
+    headerTable:setColWidth(1,87)
+    headerTable:setColWidth(2,63)
+    headerTable:addRow({
+        api.gui.comp.TextView.new(""),
+        api.gui.comp.TextView.new(UIStrings.min),
+        api.gui.comp.TextView.new(UIStrings.sec)})
+    menu.constraintTable:addRow({headerTable})
 
     local debounceTable = api.gui.comp.Table.new(4, 'NONE')
     debounceTable:setColWidth(0,150)
