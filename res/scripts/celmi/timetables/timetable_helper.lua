@@ -8,12 +8,13 @@ local UIStrings = {
 
 -- flatten a table into a string for printing
 -- from https://stackoverflow.com/a/27028488
-local function dump(o)
+-- TF2 also uses debugPrint(object) function where object is a table, string, or other lua element to print
+function timetableHelper.dump(o)
     if type(o) == 'table' then
         local s = '{ '
         for k,v in pairs(o) do
             if type(k) ~= 'number' then k = '"'..k..'"' end
-            s = s .. '['..k..'] = ' .. dump(v) .. ','
+            s = s .. '['..k..'] = ' .. timetableHelper.dump(v) .. ','
         end
         return s .. '} '
     else
@@ -25,13 +26,22 @@ end
 ---------------------- Vehicle related ----------------------
 -------------------------------------------------------------
 
+function timetableHelper.getVehicleInfo(vehicle)
+    return api.engine.getComponent(vehicle, api.type.ComponentType.TRANSPORT_VEHICLE)
+end
+
+
+function timetableHelper.isVehicleAtTerminal(vehicleInfo)
+    return vehicleInfo.state == api.type.enum.TransportVehicleState.AT_TERMINAL
+end
+
 -- returns [lineID] indext by VehicleID : String
-function timetableHelper.getAllRailVehicles()
+function timetableHelper.getAllVehicles()
     local res = {}
-    local vehicleMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
-    for k,v in pairs(vehicleMap) do
-        for _,v2 in pairs(v) do
-            res[tostring(v2)] = k
+    local lineVehiclesMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
+    for line,vehicles in pairs(lineVehiclesMap) do
+        for _,vehicle in pairs(vehicles) do
+            res[vehicle] = line
         end
     end
     return res
@@ -45,17 +55,17 @@ function timetableHelper.getTrainLocations(line)
     local vehicles = api.engine.system.transportVehicleSystem.getLineVehicles(line)
     for _,v in pairs(vehicles) do
         local vehicle = api.engine.getComponent(v, api.type.ComponentType.TRANSPORT_VEHICLE)
-        local atTerminal = vehicle.state == 2
-        if res[tostring(vehicle.stopIndex)] then
-            local prevAtTerminal = res[tostring(vehicle.stopIndex)].atTerminal
-            res[tostring(vehicle.stopIndex)] = {
+        local atTerminal = vehicle.state == api.type.enum.TransportVehicleState.AT_TERMINAL
+        if res[vehicle.stopIndex] then
+            local prevAtTerminal = res[vehicle.stopIndex].atTerminal
+            res[vehicle.stopIndex] = {
                 stopIndex = vehicle.stopIndex,
                 vehicle = v,
                 atTerminal = (atTerminal or prevAtTerminal),
                 countStr = "MANY"
             }
         else
-            res[tostring(vehicle.stopIndex)] = {
+            res[vehicle.stopIndex] = {
                 stopIndex = vehicle.stopIndex,
                 vehicle = v,
                 atTerminal = atTerminal,
@@ -102,49 +112,53 @@ function timetableHelper.isInStation(vehicle)
     if not(type(vehicle) == "number") then print("Expected String or Number") return false end
 
     local v = api.engine.getComponent(tonumber(vehicle), api.type.ComponentType.TRANSPORT_VEHICLE)
-    return v and v.state == 2
+    return v and v.state == api.type.enum.TransportVehicleState.AT_TERMINAL
 end
 
 ---@param vehicle number | string
 -- returns Null
-function timetableHelper.startVehicle(vehicle)
-    if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
-    if not(type(vehicle) == "number") then print("Expected String or Number") return false end
-
-    --api.cmd.sendCommand(api.cmd.make.setVehicleShouldDepart(vehicle))
-    api.cmd.sendCommand(api.cmd.make.setUserStopped(vehicle,false))
-    api.cmd.sendCommand(api.cmd.make.setVehicleManualDeparture(vehicle,false))
-    return nil
-end
-
----@param vehicle number | string
--- returns Null
-function timetableHelper.stopVehicle(vehicle)
+function timetableHelper.stopAutoVehicleDeparture(vehicle)
     if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
     if not(type(vehicle) == "number") then print("Expected String or Number") return false end
 
     api.cmd.sendCommand(api.cmd.make.setVehicleManualDeparture(vehicle,true))
-    --api.cmd.sendCommand(api.cmd.make.setUserStopped(vehicle,true))
-
-    return nil
 end
 
 ---@param vehicle number | string
--- returns time in seconds from game start
-function timetableHelper.getPreviousDepartureTime(vehicle)
+-- returns Null
+function timetableHelper.restartAutoVehicleDeparture(vehicle)
     if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
     if not(type(vehicle) == "number") then print("Expected String or Number") return false end
 
-    local vehicleLineMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
-    local line = timetableHelper.getCurrentLine(vehicle)
-    local departureTimes = {}
-    local compontent = api.engine.getComponent(vehicle, 70)
-    if (not compontent) or (not compontent.stopIndex) then return -1 end
-    local currentStopIndex = compontent.stopIndex
-    for _,v in pairs(vehicleLineMap[line]) do
-        departureTimes[#departureTimes + 1] = api.engine.getComponent(v, 70).lineStopDepartures[currentStopIndex + 1]
+    api.cmd.sendCommand(api.cmd.make.setVehicleManualDeparture(vehicle,false))
+end
 
+---@param vehicle number | string
+-- returns Null
+function timetableHelper.departVehicle(vehicle)
+    if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
+    if not(type(vehicle) == "number") then print("Expected String or Number") return false end
+
+    api.cmd.sendCommand(api.cmd.make.setVehicleShouldDepart(vehicle))
+end
+
+function timetableHelper.getVehiclesAtStop(line, stop)
+    return api.engine.system.transportVehicleSystem.getLineStopVehicles(line, stop)
+end
+
+---@param vehicle number | string
+-- returns departure time of previous vehicle
+function timetableHelper.getPreviousDepartureTime(stop, vehicles)
+    if type(stop) == "string" then stop = tonumber(stop) end
+    if not(type(stop) == "number") then print("Expected String or Number") return false end
+
+    local departureTimes = {}
+    for _,v in pairs(vehicles) do
+        -- append to a list using a[#a + 1] = new_item
+        local lineVehicle = api.engine.getComponent(v, api.type.ComponentType.TRANSPORT_VEHICLE)
+        departureTimes[#departureTimes + 1] = lineVehicle.lineStopDepartures[stop]
     end
+
     return (timetableHelper.maximumArray(departureTimes))/1000
 end
 
@@ -154,7 +168,7 @@ function timetableHelper.getTimeUntilDepartureReady(vehicle)
     if type(vehicle) == "string" then vehicle = tonumber(vehicle) end
     if not(type(vehicle) == "number") then print("Expected String or Number") return -1 end
 
-    local v = api.engine.getComponent(vehicle, 70)
+    local v = api.engine.getComponent(vehicle, api.type.ComponentType.TRANSPORT_VEHICLE)
     if v and v.timeUntilCloseDoors then return v.timeUntilCloseDoors else return -1 end
 end
 
@@ -232,11 +246,17 @@ end
 ---@param line number | string
 -- returns lineFrequency : String, formatted '%M:%S'
 function timetableHelper.getFrequencyString(line)
-    local frequency = timetableHelper.getFrequency(line)
+    local frequency = timetableHelper.getFrequencyMinSec(line)
     if frequency == -1 then return "ERROR" end
     if frequency == -2 then return "--" end
 
-    return math.floor(frequency / 60) .. ":" .. os.date('%S', frequency)
+    return frequency.min .. ":" .. frequency.sec
+end
+
+function timetableHelper.getFrequencyMinSec(line)
+    local frequency = timetableHelper.getFrequency(line)
+    if frequency <= 0 then return frequency end
+    return { min = math.floor(frequency / 60), sec = math.floor(frequency % 60) }
 end
 
 ---@param line number | string
@@ -262,7 +282,7 @@ function timetableHelper.getAllLines()
     local ls = api.engine.system.lineSystem.getLines()
 
     for k,l in pairs(ls) do
-        local lineName = api.engine.getComponent(l, 63)
+        local lineName = api.engine.getComponent(l, api.type.ComponentType.NAME)
         if lineName and lineName.name then
             res[k] = {id = l, name = lineName.name}
         else
@@ -284,7 +304,6 @@ function timetableHelper.lineExists(lineID)
     return false
 end
 
-
 ---@param line number | string
 -- returns [time: Number] Array indexed by station index in sec starting with index 1
 function timetableHelper.getLegTimes(line)
@@ -293,7 +312,7 @@ function timetableHelper.getLegTimes(line)
     local vehicleLineMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
     if vehicleLineMap[line] == nil or vehicleLineMap[line][1] == nil then return {}end
     local vehicle = vehicleLineMap[line][1]
-    local vehicleObject = api.engine.getComponent(vehicle, 70)
+    local vehicleObject = api.engine.getComponent(vehicle, api.type.ComponentType.TRANSPORT_VEHICLE)
     if vehicleObject and vehicleObject.sectionTimes then
         return vehicleObject.sectionTimes
     else
@@ -319,6 +338,9 @@ function timetableHelper.getStation(station)
     end
 end
 
+function timetableHelper.getLineInfo(line)
+    return api.engine.getComponent(line, api.type.ComponentType.LINE)
+end
 
 ---@param line number | string
 -- returns [id : Number] Array of stationIds
@@ -405,14 +427,14 @@ end
 
 
 -- returns [{vehicleID: lineID}]
-function timetableHelper.getAllTimetableRailVehicles()
+function timetableHelper.getAllVehiclesAtTerminal()
     return api.engine.system.transportVehicleSystem.getVehiclesWithState(api.type.enum.TransportVehicleState.AT_TERMINAL)
     --[[local res = {}
     local vehicleMap = api.engine.system.transportVehicleSystem.getLine2VehicleMap()
     for k,v in pairs(vehicleMap) do
         if (hasTimetable(k)) then
             for _,v2 in pairs(v) do
-                res[tostring(v2)] = k
+                res[v2] = k
             end
         end
     end
@@ -480,9 +502,9 @@ function timetableHelper.conditionToString(cond, type)
         if not cond[2] then cond[2] = 0 end
         return UIStrings.unbunchTime .. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
     elseif type == "auto_debounce" then
-        if not cond[1] then cond[1] = 1 end
+        if not cond[1] then cond[1] = 0 end
         if not cond[2] then cond[2] = 0 end
-        return UIStrings.unbunchTime .. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
+    return "Margin Time: " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
     else
         return type
     end

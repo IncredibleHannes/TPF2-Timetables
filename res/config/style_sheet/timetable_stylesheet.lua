@@ -41,7 +41,7 @@ function data()
       fontSize = 26,
     })
 
-    a("!timetable-avtivateTimetableButton", {
+    a("!timetable-activateTimetableButton", {
       margin = {0,4,0,0},
       textAlignment = {0.5,0.5}
     })

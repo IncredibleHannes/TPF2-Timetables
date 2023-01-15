@@ -5,59 +5,36 @@ timetable = {
     line = {
         stations = { stationinfo }
         hasTimetable = true
+        frequency = 1 :: int
     }
 }
 
 stationInfo = {
     conditions = {condition :: Condition},
-    inboundTime = 1 :: int
-}
-
-conditions = {
-    type = "None"| "ArrDep" | "minWait" | "debounce" | "moreFancey"
-    ArrDep = {}
-    minWait = {}
-    debaunce  = {}
-    moreFancey = {}
-}
---]]
-
---[[
-stopState = {
-    "format" = 3,
-    "data" = {
-        [line] = {
-            [stop] = {
-                "lastArrival" = 1234,
-                "lastDeparture" = 1234,
-                "lastVehicle" = 1234,
-                "plannedDeparture" = 1234|nil
-            }
+    vehiclesWaiting = {
+        vehicleNumber = {
+            constraint
         }
     }
 }
-]]
 
--- flatten a table into a string for printing
--- adapted from https://stackoverflow.com/a/27028488
-local function dump(o, depth)
-    if not depth then depth = 0 end
+conditions = {
+    type = "None"| "ArrDep" | "debounce" | "moreFancey"
+    ArrDep = {}
+    debounce  = {}
+    moreFancey = {}
+}
 
-    if type(o) == 'table' then
-        local s = '{\n'
-        for k,v in pairs(o) do
-            if type(k) ~= 'number' then k = '"'..k..'"' end
-            s = s .. string.rep('    ', depth + 1) .. '['..k..'] = ' .. dump(v, depth + 1)
-        end
-        return s .. string.rep('    ', depth) .. '}\n'
-    else
-        return tostring(o) .. "\n"
-    end
-end
+ArrDep = {
+    [1] = 12 -- arrival minute
+    [2] = 30 -- arrival second
+    [3] = 15 -- departure minute
+    [4] = 00 -- departure second
+}
+--]]
 
 local timetable = { }
 local timetableObject = { }
-local stopState = { }
 
 
 function timetable.getTimetableObject()
@@ -87,50 +64,30 @@ function timetable.setTimetableObject(t)
     end
 end
 
-function timetable.getStopState()
-    return stopState
-end
-
-function timetable.setStopState(ttData)
-    local currentVersion = 3
-    local fallback = {
-        format = currentVersion,
-        data = { }
-    }
-
-    if ttData and next(ttData) then
-        -- ensure saved data conforms to currently expected format
-        if not ttData.format or ttData.format ~= currentVersion then
-            print("stopState: format version mismatch, rejecting loaded state")
-            ttData = {format = currentVersion}
-        end
-
-        stopState = ttData
-    else
-        stopState = fallback
-    end
-end
-
 function timetable.setConditionType(line, stationNumber, type)
     local stationID = timetableHelper.getStationID(line, stationNumber)
     if not(line and stationNumber) then return -1 end
-    if timetableObject[line] and timetableObject[line].stations[stationNumber] then
-        timetableObject[line].stations[stationNumber].conditions.type = type
-        local conditionObject = timetableObject[line].stations[stationNumber].conditions[type]
-        if not conditionObject then  timetableObject[line].stations[stationNumber].conditions[type] = {} end
-        timetableObject[line].stations[stationNumber].stationID = stationID
-    else
-        if not timetableObject[line] then
-            timetableObject[line] = { hasTimetable = false, stations = {}}
-        end
 
-        timetableObject[line].stations[stationNumber] = {
-            inboundTime = 0,
-            stationID = stationID,
-            conditions = {type = type}
-        }
-        local conditionObject = timetableObject[line].stations[stationNumber].conditions[type]
-        if not conditionObject then  timetableObject[line].stations[stationNumber].conditions[type] = {} end
+    if not timetableObject[line] then
+        timetableObject[line] = { hasTimetable = false, stations = {} }
+    end
+    if not timetableObject[line].stations[stationNumber] then
+        timetableObject[line].stations[stationNumber] = { stationID = stationID, conditions = {} }
+    end
+
+    local stopInfo = timetableObject[line].stations[stationNumber]
+    stopInfo.conditions.type = type
+
+    if not stopInfo.conditions[type] then 
+        stopInfo.conditions[type] = {}
+    end
+    
+    if type == "ArrDep" then
+        if not stopInfo.vehiclesWaiting then
+            stopInfo.vehiclesWaiting = {}
+        end
+    else
+        stopInfo.vehiclesWaiting = nil
     end
 end
 
@@ -148,17 +105,6 @@ function timetable.getConditionType(line, stationNumber)
     end
 end
 
--- gets the constraints for a specific station
-function timetable.getConstraintsForStation(stationID)
-    local constraintsByStation = timetable.getConstraintsByStation()
-
-    if constraintsByStation[stationID] then
-        return constraintsByStation[stationID]
-    else
-        return {}
-    end
-end
-
 -- reorders the constraints into the structure res[stationID][lineID][stopNr] = 
 -- only returns stations that have constraints
 function timetable.getConstraintsByStation()
@@ -173,6 +119,21 @@ function timetable.getConstraintsByStation()
         end
     end
 
+    return res
+end
+
+function timetable.getAllConditionsOfAllStations()
+    local res = { }
+    for k,v in pairs(timetableObject) do
+        for _,v2 in pairs(v.stations) do
+            if v2.stationID and v2.conditions and  v2.conditions.type and not (v2.conditions.type == "None")  then
+                if not res[v2.stationID] then res[v2.stationID] = {} end
+                res[v2.stationID][k] = {
+                    conditions = v2.conditions
+                }
+            end
+        end
+    end
     return res
 end
 
@@ -204,9 +165,6 @@ function timetable.addCondition(line, stationNumber, condition)
             local arrDepCond = timetableObject[line].stations[stationNumber].conditions.ArrDep
             local mergedArrays = timetableHelper.mergeArray(arrDepCond, condition.ArrDep)
             timetableObject[line].stations[stationNumber].conditions.ArrDep = mergedArrays
-        elseif condition.type == "minWait" then
-            timetableObject[line].stations[stationNumber].conditions.type = "minWait"
-            timetableObject[line].stations[stationNumber].conditions.minWait = condition.minWait
         elseif condition.type == "debounce" then
             timetableObject[line].stations[stationNumber].conditions.type = "debounce"
             timetableObject[line].stations[stationNumber].conditions.debounce = condition.debounce
@@ -224,30 +182,21 @@ function timetable.addCondition(line, stationNumber, condition)
             timetableObject[line] = {hasTimetable = false, stations = {}}
         end
         timetableObject[line].stations[stationNumber] = {
-            inboundTime = 0,
             stationID = stationID,
             conditions = condition
         }
     end
 end
 
-function timetable.updateArrDep(line, stopNr, indexKey, indexValue, value)
-    if not (line and stopNr and indexKey and indexValue and value) then return -1 end
+function timetable.updateArrDep(line, station, indexKey, indexValue, value)
+    if not (line and station and indexKey and indexValue and value) then return -1 end
     if timetableObject[line] and
-       timetableObject[line].stations[stopNr] and
-       timetableObject[line].stations[stopNr].conditions and
-       timetableObject[line].stations[stopNr].conditions.ArrDep and
-       timetableObject[line].stations[stopNr].conditions.ArrDep[indexKey] and
-       timetableObject[line].stations[stopNr].conditions.ArrDep[indexKey][indexValue] then
-
-        timetableObject[line].stations[stopNr].conditions.ArrDep[indexKey][indexValue] = value
-        
-        -- update departure for all waiting vehicles on that stop
-        local stopInfo = stopState.data[line][stopNr]
-        if stopInfo.plannedDeparture then
-            timetable.planArrDep(line, stopNr, stopInfo.lastVehicle, stopInfo.lastArrival)
-        end
-
+       timetableObject[line].stations[station] and
+       timetableObject[line].stations[station].conditions and
+       timetableObject[line].stations[station].conditions.ArrDep and
+       timetableObject[line].stations[station].conditions.ArrDep[indexKey] and
+       timetableObject[line].stations[station].conditions.ArrDep[indexKey][indexValue] then
+       timetableObject[line].stations[station].conditions.ArrDep[indexKey][indexValue] = value
         return 0
     else
         return -2
@@ -293,121 +242,228 @@ function timetable.hasTimetable(line)
     end
 end
 
-
-function timetable.planArrDep(line, stop, vehicle, arrivalTime)
-    -- get the departure time from the condition
-    local constraints = timetableObject[line].stations[stop].conditions.ArrDep
-    local stopInfo = stopState.data[line][stop]
-    local departureTime = timetable.getNextDeparture(constraints, arrivalTime, stopInfo.lastDeparture)
-
-    -- register vehicle with departure time
-    stopInfo.lastArrival = arrivalTime
-    stopInfo.plannedDeparture = departureTime
+function timetable.updateFor(line, vehicles)
+    for _, vehicle in pairs(vehicles) do
+        local vehicleInfo = timetableHelper.getVehicleInfo(vehicle)
+        if vehicleInfo then
+            if timetable.hasTimetable(line) then
+                timetable.updateForVehicle(vehicle, vehicleInfo, line, vehicles)
+            elseif not vehicleInfo.autoDeparture then
+                timetableHelper.restartAutoVehicleDeparture(vehicle)
+            end
+        end
+    end
 end
 
+function timetable.updateForVehicle(vehicle, vehicleInfo, line, vehicles)
+    if timetableHelper.isVehicleAtTerminal(vehicleInfo) then
+        local stop = vehicleInfo.stopIndex + 1
 
-function timetable.planUnbunch(line, stop, vehicle, arrivalTime)
-    -- get last departure time and minimum interval
-    local condition = timetable.getConditions(line, stop, "debounce")
-    local stopInfo = stopState.data[line][stop]
-    local interval = condition[1] * 60 + condition[2]
-    -- for auto_debounce, use timetableObject[currentLine].interval - constraint[1] * 60 - constraint[2]
-    local lastDeparture = stopInfo.lastDeparture
+        if timetable.LineAndStationHasTimetable(line, stop) then
+            timetable.departIfReady(vehicle, vehicleInfo, vehicles, line, stop)
+        elseif not vehicleInfo.autoDeparture then
+            timetableHelper.restartAutoVehicleDeparture(vehicle)
+        end
 
-    -- calculate next departure time
-    local departureTime = lastDeparture + interval
-
-    -- register vehicle with departure time
-    stopInfo.lastArrival = arrivalTime
-    stopInfo.plannedDeparture = departureTime
+    elseif not vehicleInfo.autoDeparture then
+        timetableHelper.restartAutoVehicleDeparture(vehicle)
+    end
 end
 
+function timetable.LineAndStationHasTimetable(line, stop)
+    if not timetableObject[line].stations[stop] then return false end
+    if not timetableObject[line].stations[stop].conditions then return false end
+    if not timetableObject[line].stations[stop].conditions.type then return false end
+    return not (timetableObject[line].stations[stop].conditions.type == "None")
+end
 
-function timetable.waitingRequired(vehicle)
-    -- get data about the vehicle from the game api
+function timetable.departIfReady(vehicle, vehicleInfo, vehicles, line, stop)
+    if not timetableObject[line] then return end
+    if not timetableObject[line].stations then return end
+    if not timetableObject[line].stations[stop] then return end
+    if not timetableObject[line].stations[stop].conditions then return end
+    if not timetableObject[line].stations[stop].conditions.type then return end
     local time = timetableHelper.getTime()
-    local currentLine = timetableHelper.getCurrentLine(vehicle)
-    local currentStop = timetableHelper.getCurrentStation(vehicle)
 
-    -- check if there is a timetable condition for this vehicle and stop
-    if not timetableObject[currentLine] then return false end
-    if not timetableObject[currentLine].stations then return false end
-    if not timetableObject[currentLine].stations[currentStop] then return false end
-    if not timetableObject[currentLine].stations[currentStop].conditions then return false end
-    if not timetableObject[currentLine].stations[currentStop].conditions.type then return false end
-
-    -- initialize table of waiting vehicles if required
-    if not stopState.data[currentLine] then
-        stopState.data[currentLine] = {}
+    local conditionType = timetableObject[line].stations[stop].conditions.type
+    if conditionType == "ArrDep" then
+        timetable.departIfReadyArrDep(vehicle, vehicleInfo, time, line, stop)
+    elseif conditionType == "debounce" then
+        timetable.departIfReadyDebounce(vehicle, vehicleInfo, vehicles, time, line, stop)
+    elseif conditionType == "auto_debounce" then
+        timetable.departIfReadyAutoDebounce(vehicle, vehicleInfo, vehicles, time, line, stop)
     end
-    if not stopState.data[currentLine][currentStop] then
-        stopState.data[currentLine][currentStop] = {}
-    end
+end
 
-    local stopInfo = stopState.data[currentLine][currentStop]
-
-    if not stopInfo.lastDeparture then
-        -- initialize last departure to 30 minutes before now 
-        -- TODO: ideally that offset would depend on the interval of the timetable 
-        stopInfo.lastDeparture = time - 1800
+function timetable.departIfReadyArrDep(vehicle, vehicleInfo, time, line, stop)
+    local constraints = timetableObject[line].stations[stop].conditions.ArrDep
+    if not constraints or contraints == {} then
+        timetableObject[line].stations[stop].conditions.type = "None"
+        return
     end
 
+    if vehicleInfo.autoDeparture then
+        timetableHelper.stopAutoVehicleDeparture(vehicle)
+    else
+        if not vehicleInfo.doorsOpen then return end
 
-    -- check if the vehicle just arrived at the station and has a timetable
-    -- in that case, no departure time is planned
-    -- to avoid recapturing departing vehicles, do not check for new arrivals within 3 seconds after the last departure
-    if  timetableObject[currentLine].hasTimetable
-        and not stopInfo.plannedDeparture
-        and time - stopInfo.lastDeparture > 3 then
-
-        -- set departure time if condition is set
-        if timetableObject[currentLine].stations[currentStop].conditions.type == "ArrDep" then
-            timetable.planArrDep(currentLine, currentStop, vehicle, time)
-
-        elseif timetableObject[currentLine].stations[currentStop].conditions.type == "debounce" then
-            timetable.planUnbunch(currentLine, currentStop, vehicle, time)
-
-        end
-
-        if stopInfo.plannedDeparture then
-            stopInfo.lastVehicle = vehicle
-
-            print(  "vehicle " .. vehicle .. " will depart at " ..
-                    timetable.secToStr(stopInfo.plannedDeparture) ..
-                    " (in " ..
-                    math.floor((stopInfo.plannedDeparture - time) / 6) / 10
-                    .. " min) " .. " from station " .. currentStop .. " on line " .. currentLine .. " with type " ..
-                    timetableObject[currentLine].stations[currentStop].conditions.type)
+        local arrivalTime = math.floor(vehicleInfo.doorsTime / 1000000)
+        if timetable.readyToDepartArrDep(constraints, arrivalTime, time, line, stop, vehicle) then
+            timetableHelper.departVehicle(vehicle)
+            timetableObject[line].stations[stop].vehiclesWaiting[vehicle] = nil
         end
     end
+end
 
-    -- if there are any constraints on departure time, they are now set
-    -- now they need to be executed
-    -- check if the vehicle is waiting for a departure time
-    if stopInfo.plannedDeparture then
-        -- check if the departure time has been reached or the timetable has been disable in the meantime
-        if  (stopInfo.plannedDeparture <= time
-            and timetableHelper.getTimeUntilDepartureReady(vehicle) < 1)
-            or not timetableObject[currentLine].hasTimetable then
-            -- departure time has been reached
-            -- remove vehicle from waiting list
-            stopInfo.plannedDeparture = nil
+function timetable.readyToDepartArrDep(constraints, arrivalTime, time, line, stop, vehicle)
+    if not timetableObject[line].stations[stop].vehiclesWaiting then
+        timetableObject[line].stations[stop].vehiclesWaiting = {}
+    end
 
-            -- update last departure time
-            stopInfo.lastDeparture = time
+    local vehiclesWaiting = timetableObject[line].stations[stop].vehiclesWaiting
+    local departureConstraint = nil
+    local validDepartureConstraint = nil
+    if vehiclesWaiting[vehicle] then
+        departureConstraint = vehiclesWaiting[vehicle]
+        validDepartureConstraint = timetable.arrayContainsConstraint(departureConstraint, constraints)
+    end
+    if not validDepartureConstraint then
+        departureConstraint = timetable.getNextDepartureConstraint(constraints, arrivalTime, vehiclesWaiting)
+        vehiclesWaiting[vehicle] = departureConstraint
+    end
 
-            -- return false to indicate that the vehicle can depart
-            print("vehicle " .. vehicle .. " departing")
-            return false
+
+    local lineInfo = timetableHelper.getLineInfo(line)
+    local stopInfo = lineInfo.stops[stop]
+
+    if timetable.afterDepartureConstraint(arrivalTime, departureConstraint, time) then
+        if timetable.getMinWaitEnabled(line) then
+            return timetable.waitedMinimumTime(stopInfo, arrivalTime, time)
         else
-            -- departure time has not been reached yet
-            -- return true to indicate that the vehicle has to wait
             return true
         end
     else
-        -- no constraints exist
-        -- return false to indicate that the vehicle can depart
-        return false
+        if timetable.getMaxWaitEnabled(line) then
+            return timetable.waitedMaximumTime(stopInfo, arrivalTime, time)
+        else
+            return false
+        end
+    end
+end
+
+function timetable.setMinWaitEnabled(line, value)
+    if timetableObject[line] then
+        timetableObject[line].minWaitEnabled = value
+    end
+end
+
+function timetable.getMinWaitEnabled(line)
+    if timetableObject[line] then
+        -- if true or nil
+        if timetableObject[line].minWaitEnabled ~= false then
+            return true
+        end
+    end
+
+    return false
+end
+
+function timetable.setMaxWaitEnabled(line, value)
+    if timetableObject[line] then
+        timetableObject[line].maxWaitEnabled = value
+    end
+end
+
+function timetable.getMaxWaitEnabled(line)
+    if timetableObject[line] then
+        -- if true
+        if timetableObject[line].maxWaitEnabled then
+            return true
+        end
+    end
+
+    return false
+end
+
+function timetable.waitedMinimumTime(stopInfo, arrivalTime, time)
+    local wait = stopInfo.minWaitingTime
+
+    local departureTime = arrivalTime + wait
+    return timetable.afterDepartureTime(arrivalTime, departureTime, time)
+end
+
+function timetable.waitedMaximumTime(stopInfo, arrivalTime, time)
+    local wait = stopInfo.maxWaitingTime
+    if wait == -1 then return false end
+
+    local departureTime = arrivalTime + wait
+    return timetable.afterDepartureTime(arrivalTime, departureTime, time)
+end
+
+function timetable.departIfReadyDebounce(vehicle, vehicleInfo, vehicles, time, line, stop)
+    if not vehicleInfo.doorsOpen then return end
+    if vehicleInfo.timeUntilCloseDoors >= 3 then return end
+    if timetable.anotherVehicleArrivedEarlier(vehicle, vehicleInfo, line, stop) then return end
+
+    local previousDepartureTime = timetableHelper.getPreviousDepartureTime(stop, vehicles)
+    local condition = timetable.getConditions(line, stop, "debounce")
+    if not condition[1] then condition[1] = 0 end
+    if not condition[2] then condition[2] = 0 end
+
+    local nextDepartureTime = previousDepartureTime + ((condition[1] * 60)  + condition[2])
+    timetable.departIfAfterDepartureTime(vehicle, vehicleInfo, time, nextDepartureTime)
+end
+
+function timetable.departIfReadyAutoDebounce(vehicle, vehicleInfo, vehicles, time, line, stop)
+    if not vehicleInfo.doorsOpen then return end
+    if vehicleInfo.timeUntilCloseDoors >= 3 then return end
+    if #timetableHelper.getVehiclesOnLine(line) == 1 then
+        if not vehicleInfo.autoDeparture then
+            timetableHelper.restartAutoVehicleDeparture(vehicle)
+        end
+    end
+
+    if timetable.anotherVehicleArrivedEarlier(vehicle, vehicleInfo, line, stop) then return end
+
+    local previousDepartureTime = timetableHelper.getPreviousDepartureTime(stop, vehicles)
+    local frequency = timetableObject[line].frequency
+    if not frequency then return end
+
+    local condition = timetable.getConditions(line, stop, "auto_debounce")
+    if not condition[1] then condition[1] = 1 end
+    if not condition[2] then condition[2] = 0 end
+    local nextDepartureTime = previousDepartureTime + frequency - (condition[1]*60 + condition[2])
+
+    timetable.departIfAfterDepartureTime(vehicle, vehicleInfo, time, nextDepartureTime)
+end
+
+-- Account for vehicles currently waiting or departing
+function timetable.anotherVehicleArrivedEarlier(vehicle, vehicleInfo, line, stop)
+    local vehiclesAtStop = timetableHelper.getVehiclesAtStop(line, stop)
+    if #vehiclesAtStop <= 1 then return false end
+    for _, otherVehicle in pairs(vehiclesAtStop) do
+        if otherVehicle ~= vehicle then
+            local otherVehicleInfo = timetableHelper.getVehicleInfo(otherVehicle)
+            if otherVehicleInfo.doorsOpen then
+                return otherVehicleInfo.doorsTime < vehicleInfo.doorsTime
+            else
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+function timetable.departIfAfterDepartureTime(vehicle, vehicleInfo, time, departureTime)
+    if time > departureTime then
+        if not vehicleInfo.autoDeparture then
+            timetableHelper.restartAutoVehicleDeparture(vehicle)
+        end
+    else
+        if vehicleInfo.autoDeparture then
+            timetableHelper.stopAutoVehicleDeparture(vehicle)
+        end
     end
 end
 
@@ -417,10 +473,15 @@ function timetable.setHasTimetable(line, bool)
     else
         timetableObject[line] = {stations = {} , hasTimetable = bool}
     end
-
-    print("setting hasTimetable for line " .. line .. " to " .. tostring(bool))
-
     return bool
+end
+
+--- Start all vehicles of given line.
+---@param line table line id
+function timetable.restartAutoDepartureForAllLineVehicles(line)
+    for _, vehicle in pairs(timetableHelper.getVehiclesOnLine(line)) do
+        timetableHelper.restartAutoVehicleDeparture(vehicle)
+    end
 end
 
 
@@ -430,22 +491,21 @@ end
 ---@param arrivalTime number in seconds
 ---@param constraint table in format like: {9,0,59,0}
 ---@param currentTime number in seconds
-function timetable.beforeDeparture(arrivalTime, constraint, currentTime)
+function timetable.afterDepartureConstraint(arrivalTime, constraint, currentTime)
     arrivalTime = arrivalTime % 3600
     currentTime = currentTime % 3600
 
     local departureTime = (60 * constraint[3]) + constraint[4]
+    return timetable.afterDepartureTime(arrivalTime, departureTime, currentTime)
+end
 
-    -- print("arrivalTime: " .. arrivalTime)
-    -- print("currentTime: " .. currentTime)
-    -- print("departureTime: " .. departureTime)
-
-    if arrivalTime < departureTime then
+function timetable.afterDepartureTime(arrivalTime, departureTime, currentTime)
+    if arrivalTime <= departureTime then
         -- Eg. the arrival time is 10:00 and the departure is 12:00
-        return arrivalTime <= currentTime and currentTime < departureTime
+        return arrivalTime > currentTime or currentTime >= departureTime
     else
         -- Eg. the arrival time is 59:00 and the departure is 01:00
-        return arrivalTime <= currentTime or currentTime < departureTime
+        return arrivalTime > currentTime and currentTime >= departureTime
     end
 end
 
@@ -471,80 +531,63 @@ end
 
 ---Find the next valid constraint for given constraints and time
 ---@param constraints table in format like: {{30,0,59,0},{9,0,59,0}}
----@param time number in seconds game time
----@param lastDeparture number in seconds game time 
----@return number nextDeparture example: {30,0,59,0}
-function timetable.getNextDeparture(constraints, time, lastDeparture)
-    -- Sort the constraints by departure time
+---@param time number in seconds
+---@param usedConstraints table in format like: {{30,0,59,0}, {9,0,59,0}}
+---@return table closestConstraint example: {30,0,59,0}
+function timetable.getNextDepartureConstraint(constraints, time, usedConstraints)
+    -- Put the constraints in chronological order by arrival time
     table.sort(constraints, function(a, b)
-        local aTime = timetable.constraintToSeconds(a).dep
-        local bTime = timetable.constraintToSeconds(b).dep
+        local aTime = timetable.getArrivalTimeFrom(a)
+        local bTime = timetable.getArrivalTimeFrom(b)
         return aTime < bTime
     end)
 
-    local hourStart = time - (time % 3600)
-    local hourCount = 0
-    local departureIndex = 1
+    -- Find the distance from the arrival time
+    local res = {diff = 3601, value = nil}
+    for index, constraint in pairs(constraints) do
+        local arrTime = timetable.getArrivalTimeFrom(constraint)
+        local diff = timetable.getTimeDifference(arrTime, time % 3600)
 
-    local lastValid = nil
-
-
-    local function constraintToAbsTime(constraint)
-        local function calcAbsTime(relTime)
-            return hourStart + hourCount * 3600 + relTime
+        if (diff < res.diff) then
+            res = {diff = diff, index = index}
         end
-
-        local constraintRelSec = timetable.constraintToSeconds(constraint)
-
-        local constraintAbsSec = {}
-        for key, relTime in pairs(constraintRelSec) do
-            constraintAbsSec[key] = calcAbsTime(relTime)
-        end
-
-        if constraintAbsSec.arr > constraintAbsSec.dep then
-            constraintAbsSec.arr = constraintAbsSec.arr - 3600
-        end
-
-        return constraintAbsSec
-    end
-    
-    -- go through all constraints until we find an answer
-    while hourCount < 5 do
-        while departureIndex <= #constraints do
-            -- calculate the absolute time of this slot
-            local constraintAbsTime = constraintToAbsTime(constraints[departureIndex])
-
-            -- check if the slot satisfies these conditions:
-            -- 1. the departure time is after the last recorded departure
-            -- 2. the arrival time in the past OR it is the first slot after the last recorded departure
-            constraintValid =   constraintAbsTime.dep > lastDeparture 
-                                and (constraintAbsTime.arr <= time or lastValid == nil)
-            
-            
-            -- at first we will not satisfy the first conditionToString, because we are before the last departure
-            -- then we will satisfy both for a while
-            -- finally we will not satisfy the second condition, because we are before the arrival time
-            -- -> when we get invalid answers after valid ones, we can return the last valid answer
-            if constraintValid then
-                lastValid = constraintAbsTime.dep
-            else 
-                if lastValid ~= nil then
-                    return lastValid
-                end
-            end
-            
-            --increment the departure index
-            departureIndex = departureIndex + 1
-        end
-
-        -- increment the hour count
-        hourCount = hourCount + 1
-        departureIndex = 1
     end
 
-    -- if we get here, we have not found a valid answer withing the next 5 hours
-    -- since the timetable should repeat at least hourly, we can assume that there is no valid time slot
-    return -1
+    -- Return nil when there are no contraints
+    if not res.index then return nil end
+
+    -- Find if the constraint with the closest arrival time is currently being used
+    -- If true, find the next consecutive available constraint
+    for i = res.index, #constraints + res.index - 1 do
+        -- Need to make sure that 2 mod 2 returns 2 rather than 0
+        local normalisedIndex = ((i - 1) % #constraints) + 1
+
+        local constraint = constraints[normalisedIndex]
+        local found = false
+        if not timetable.arrayContainsConstraint(constraint, usedConstraints) then
+            return constraint
+        end
+    end
+
+    -- If all constraints are being used, still return the closest constraint anyway.
+    return constraints[res.index]
+end
+
+function timetable.arrayContainsConstraint(constraint, array)
+    for key, item in pairs(array) do
+        if item == constraint then
+            return true
+        elseif (
+            item[1] == constraint[1] and 
+            item[2] == constraint[2] and
+            item[3] == constraint[3] and
+            item[4] == constraint[4]
+        ) then
+            return true
+        end
+    end
+
+    return false
 end
 
 function timetable.constraintToSeconds(constraint)
@@ -559,7 +602,7 @@ end
 
 function timetable.secToMin(sec)
     local min = math.floor(sec / 60) % 60
-    local sec = sec % 60
+    local sec = math.floor(sec % 60)
     return min, sec
 end
 
@@ -625,24 +668,14 @@ function timetable.cleanTimetable()
         if not timetableHelper.lineExists(lineID) then
             timetableObject[lineID] = nil
             print("removed line " .. lineID)
+        else
+            local stations = timetableHelper.getAllStations(lineID)
+            for stationID = #stations + 1, #timetableObject[lineID].stations, 1 do
+                timetableObject[lineID].stations[stationID] = nil
+                print("removed station " .. stationID)
+            end
         end
     end
-end
-
-function timetable.dumpStopState(lineID, stopNr)
-    if not stopState.data then return "data block not initialized" end
-    if not stopState.data[lineID] then return "lineID " .. lineID .. " of type " .. type(lineID) .. " not found \n" .. timetable.secToStr(timetableHelper.getTime()) end
-    if not stopState.data[lineID][stopNr] then return "stopNr " .. stopNr .. " not found" end
-
-    return "lineID: " .. lineID .. ", stopNr:" .. stopNr .. "\n" .. dump(stopState.data[lineID][stopNr])
-end
-
-function timetable.getStateOfStop(lineID, stopNr)
-    if not stopState.data then return end
-    if not stopState.data[lineID] then return end
-    if not stopState.data[lineID][stopNr] then return end
-
-    return stopState.data[lineID][stopNr]
 end
 
 return timetable
