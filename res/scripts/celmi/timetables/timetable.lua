@@ -19,9 +19,8 @@ stationInfo = {
 }
 
 conditions = {
-    type = "None"| "ArrDep" | "minWait" | "debounce" | "moreFancey"
+    type = "None"| "ArrDep" | "debounce" | "moreFancey"
     ArrDep = {}
-    minWait = {}
     debounce  = {}
     moreFancey = {}
 }
@@ -166,9 +165,6 @@ function timetable.addCondition(line, stationNumber, condition)
             local arrDepCond = timetableObject[line].stations[stationNumber].conditions.ArrDep
             local mergedArrays = timetableHelper.mergeArray(arrDepCond, condition.ArrDep)
             timetableObject[line].stations[stationNumber].conditions.ArrDep = mergedArrays
-        elseif condition.type == "minWait" then
-            timetableObject[line].stations[stationNumber].conditions.type = "minWait"
-            timetableObject[line].stations[stationNumber].conditions.minWait = condition.minWait
         elseif condition.type == "debounce" then
             timetableObject[line].stations[stationNumber].conditions.type = "debounce"
             timetableObject[line].stations[stationNumber].conditions.debounce = condition.debounce
@@ -340,11 +336,53 @@ function timetable.readyToDepartArrDep(constraints, arrivalTime, time, line, sto
     local lineInfo = timetableHelper.getLineInfo(line)
     local stopInfo = lineInfo.stops[stop]
 
-    if timetable.afterDepartureConstraint(arrivalTime, departureConstraint, time) then 
-        return timetable.waitedMinimumTime(stopInfo, arrivalTime, time)
+    if timetable.afterDepartureConstraint(arrivalTime, departureConstraint, time) then
+        if timetable.getMinWaitEnabled(line) then
+            return timetable.waitedMinimumTime(stopInfo, arrivalTime, time)
+        else
+            return true
+        end
     else
-        return false -- timetable.waitedMaximumTime(stopInfo, arrivalTime, time) todo: make a setting to enable/disable
+        if timetable.getMaxWaitEnabled(line) then
+            return timetable.waitedMaximumTime(stopInfo, arrivalTime, time)
+        else
+            return false
+        end
     end
+end
+
+function timetable.setMinWaitEnabled(line, value)
+    if timetableObject[line] then
+        timetableObject[line].minWaitEnabled = value
+    end
+end
+
+function timetable.getMinWaitEnabled(line)
+    if timetableObject[line] then
+        -- if true or nil
+        if timetableObject[line].minWaitEnabled ~= false then
+            return true
+        end
+    end
+
+    return false
+end
+
+function timetable.setMaxWaitEnabled(line, value)
+    if timetableObject[line] then
+        timetableObject[line].maxWaitEnabled = value
+    end
+end
+
+function timetable.getMaxWaitEnabled(line)
+    if timetableObject[line] then
+        -- if true
+        if timetableObject[line].maxWaitEnabled then
+            return true
+        end
+    end
+
+    return false
 end
 
 function timetable.waitedMinimumTime(stopInfo, arrivalTime, time)
