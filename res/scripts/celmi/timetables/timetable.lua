@@ -602,7 +602,7 @@ end
 
 function timetable.secToMin(sec)
     local min = math.floor(sec / 60) % 60
-    local sec = sec % 60
+    local sec = math.floor(sec % 60)
     return min, sec
 end
 

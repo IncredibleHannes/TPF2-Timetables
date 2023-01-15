@@ -246,11 +246,17 @@ end
 ---@param line number | string
 -- returns lineFrequency : String, formatted '%M:%S'
 function timetableHelper.getFrequencyString(line)
-    local frequency = timetableHelper.getFrequency(line)
+    local frequency = timetableHelper.getFrequencyMinSec(line)
     if frequency == -1 then return "ERROR" end
     if frequency == -2 then return "--" end
 
-    return math.floor(frequency / 60) .. ":" .. os.date('%S', frequency)
+    return frequency.min .. ":" .. frequency.sec
+end
+
+function timetableHelper.getFrequencyMinSec(line)
+    local frequency = timetableHelper.getFrequency(line)
+    if frequency <= 0 then return frequency end
+    return { min = math.floor(frequency / 60), sec = math.floor(frequency % 60) }
 end
 
 ---@param line number | string
@@ -491,10 +497,14 @@ function timetableHelper.conditionToString(cond, type)
         end
         local res = arr .. "\n"  .. dep
         return res
-    elseif type == "debounce" or type == "auto_debounce" then
+    elseif type == "debounce" then
         if not cond[1] then cond[1] = 0 end
         if not cond[2] then cond[2] = 0 end
         return UIStrings.unbunchTime .. ": " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
+    elseif type == "auto_debounce" then
+        if not cond[1] then cond[1] = 0 end
+        if not cond[2] then cond[2] = 0 end
+    return "Margin Time: " .. string.format("%02d", cond[1]) .. ":" .. string.format("%02d", cond[2])
     else
         return type
     end

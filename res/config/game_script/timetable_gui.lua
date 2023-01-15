@@ -895,7 +895,27 @@ end
 
 function timetableGUI.makeDebounceWindow(lineID, stationID, debounceType)
     if not menu.constraintTable then return end
+    local frequency = timetableHelper.getFrequencyMinSec(lineID)
     local condition2 = timetable.getConditions(lineID,stationID, debounceType)
+    local autoDebounceMin = nil
+    local autoDebounceSec = nil
+
+    local updateAutoDebounce = function()
+        if debounceType == "auto_debounce" then
+            condition2 = timetable.getConditions(lineID, stationID, debounceType)
+            if type(frequency) == "table" and autoDebounceMin and autoDebounceSec and condition2 and condition2[1] and condition2[2] then
+                local unbunchTime = (frequency.min - condition2[1]) * 60 + frequency.sec - condition2[2]
+                if unbunchTime >= 0 then
+                    autoDebounceMin:setText(tostring(math.floor(unbunchTime / 60)))
+                    autoDebounceSec:setText(tostring(math.floor(unbunchTime % 60)))
+                else
+                    autoDebounceMin:setText("--")
+                    autoDebounceSec:setText("--")
+                end
+                print("set extra info")
+            end
+        end
+    end
 
     --setup header
     local headerTable = api.gui.comp.Table.new(3, 'NONE')
@@ -917,12 +937,16 @@ function timetableGUI.makeDebounceWindow(lineID, stationID, debounceType)
     local debounceMin = api.gui.comp.DoubleSpinBox.new()
     debounceMin:setMinimum(0,false)
     debounceMin:setMaximum(59,false)
+    if debounceType == "auto_debounce" then
+        debounceMin:setMaximum(frequency.min,false)
+    end
 
     debounceMin:onChange(function(value)
         timetable.updateDebounce(lineID, stationID,  1, value, debounceType)
         timetableChanged = true
         timetableGUI.initStationTable()
         timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
+        updateAutoDebounce()
     end)
 
     if condition2 and condition2[1] then
@@ -939,16 +963,26 @@ function timetableGUI.makeDebounceWindow(lineID, stationID, debounceType)
         timetableChanged = true
         timetableGUI.initStationTable()
         timetableGUI.fillStationTable(UIState.currentlySelectedLineTableIndex, false)
+        updateAutoDebounce()
     end)
 
     if condition2 and condition2[2] then
         debounceSec:setValue(condition2[2],false)
     end
 
-    debounceTable:addRow({api.gui.comp.TextView.new(UIStrings.unbunch_time .. ":"), debounceMin, api.gui.comp.TextView.new(":"), debounceSec})
+    local unbunchTimeHeader = api.gui.comp.TextView.new(UIStrings.unbunch_time .. ":")
+    debounceHeader = unbunchTimeHeader
+    if debounceType == "auto_debounce" then debounceHeader = api.gui.comp.TextView.new("Margin Time:") end
+    debounceTable:addRow({debounceHeader, debounceMin, api.gui.comp.TextView.new(":"), debounceSec})
+
+    if debounceType == "auto_debounce" then
+        autoDebounceMin = api.gui.comp.TextView.new("--")
+        autoDebounceSec = api.gui.comp.TextView.new("--")
+        updateAutoDebounce()
+        debounceTable:addRow({unbunchTimeHeader, autoDebounceMin, api.gui.comp.TextView.new(":"), autoDebounceSec})
+    end
 
     menu.constraintTable:addRow({debounceTable})
-
 end
 
 -------------------------------------------------------------
