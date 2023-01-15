@@ -912,7 +912,6 @@ function timetableGUI.makeDebounceWindow(lineID, stationID, debounceType)
                     autoDebounceMin:setText("--")
                     autoDebounceSec:setText("--")
                 end
-                print("set extra info")
             end
         end
     end
